@@ -23,9 +23,25 @@
         .shadow-glow {
             box-shadow: 0 0 15px rgba(185, 28, 28, 0.3); /* Guinda glow */
         }
+
+        /* Estilos para el mensaje flotante (Google Sheets Status) */
+        #licam-msg {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            font-weight: 500;
+            z-index: 9999;
+            display: none;
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
+
+    <!-- Mensaje Flotante de Google Sheets -->
+    <div id="licam-msg" style="display: none;"></div>
 
     <div class="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-2xl border-t-8 ipn-border">
         <header class="text-center mb-8">
@@ -315,37 +331,102 @@
     </div>
 
     <script>
-        // VARIABLES GLOBALES Y CONSTANTES (Criterios de Riesgo)
-        const CRITERIA = {
-            // Puntos de corte para población mexicana/latina (NO USAR ETIQUETA 'LATINO' EN EL UI)
-            WAIST_MALE: 90, // cm
-            WAIST_FEMALE: 80, // cm
-            GLUCOSE: 100, // mg/dL (Criterio de prediabetes / SM)
-            TRIGLYCERIDES: 150, // mg/dL (Criterio de SM)
-            HDL_MALE: 40, // mg/dL (Criterio de SM)
-            HDL_FEMALE: 50, // mg/dL (Criterio de SM)
-            PAS: 130, // mmHg (Criterio de SM)
-            PAD: 85, // mmHg (Criterio de SM)
-            MAFLD_FLI_CUTOFF: 60, // Índice de Hígado Graso (IHG) para Alto Riesgo
-        };
+        // =======================================================
+        // ========== GOOGLE SHEETS & DATA RECOLLECTION ==========
+        // =======================================================
 
-        // UI Listeners para notas de ayuda
-        document.getElementById('gender').addEventListener('change', updateWaistNote);
-        document.getElementById('waist').addEventListener('focus', updateWaistNote);
-
-        function updateWaistNote() {
-            const gender = document.getElementById('gender').value;
-            const cutoff = gender === 'male' ? CRITERIA.WAIST_MALE : CRITERIA.WAIST_FEMALE;
-            document.getElementById('waist-note').textContent = 
-                `Punto de corte recomendado (Mexicano/Latino): ${cutoff} cm.`;
-        }
-        // Inicializar la nota al cargar
-        updateWaistNote();
+        // URL proporcionada por el Apps Script desplegado (¡REEMPLAZA ESTA URL CON TU PROPIA URL DESPLEGADA!)
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwUkV6weOb9qdDgFyc7-ExEI4uUmEnQet5NIoNiwlWjjuCESEm-v3_jZUYm0kMxO7YD/exec";
 
         /**
-         * Calcula el Índice de Hígado Graso (IHG / FLI) - Simplificado.
-         * X = 0.953 * ln(TG) + 0.139 * IMC + 0.718 * ln(WC) - 13.9
+         * Muestra un mensaje de confirmación o error en pantalla (flotante).
          */
+        function mostrarMensaje(texto, esError = false) {
+            let msg = document.getElementById('licam-msg');
+            if (!msg) {
+                msg = document.createElement('div');
+                msg.id = 'licam-msg';
+                msg.style.position = 'fixed';
+                msg.style.bottom = '20px';
+                msg.style.right = '20px';
+                msg.style.padding = '10px 14px';
+                msg.style.borderRadius = '8px';
+                msg.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
+                msg.style.fontWeight = '500';
+                msg.style.zIndex = 9999;
+                document.body.appendChild(msg);
+            }
+            msg.style.background = esError ? '#f8d7da' : '#d1e7dd';
+            msg.style.color = esError ? '#842029' : '#0f5132';
+            msg.textContent = texto;
+            msg.style.display = 'block';
+            clearTimeout(msg._timeoutId);
+            msg._timeoutId = setTimeout(() => msg.style.display = 'none', 4000);
+        }
+
+        /**
+         * Envía los datos a Google Sheets.
+         */
+        async function guardarDatos(datos) {
+            try {
+                // Prepara los datos en un formato plano y legible para Google Sheets
+                const dataToSend = {
+                    fecha: new Date().toLocaleString(),
+                    email: datos.user_input.email,
+                    edad: datos.user_input.age,
+                    genero: datos.user_input.gender,
+                    peso: datos.user_input.weight,
+                    altura: datos.user_input.height_cm,
+                    cintura: datos.user_input.waist,
+                    glucosa: datos.user_input.glucose,
+                    trigliceridos: datos.user_input.triglycerides,
+                    hdl: datos.user_input.hdl,
+                    pas_usada: datos.user_input.pa_used_s,
+                    pad_usada: datos.user_input.pa_used_d,
+                    fuente_pa: datos.user_input.pa_used_source,
+                    actividad: datos.user_input.activity,
+                    fumador: datos.user_input.smoker,
+                    azucares: datos.user_input.sugar_intake,
+                    historial_familiar: datos.user_input.family_history,
+                    // Resultados
+                    imc: datos.calculated_results.bmi,
+                    criterios_sm: datos.calculated_results.sm_criteria_count,
+                    rcm_nivel: datos.calculated_results.rcm_level,
+                    fli_score: datos.calculated_results.fli_score,
+                    mahld_nivel: datos.calculated_results.mahld_level,
+                };
+                
+                const response = await fetch(SCRIPT_URL, {
+                    method: "POST",
+                    body: JSON.stringify(dataToSend),
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (!response.ok) throw new Error("Error HTTP: " + response.status);
+
+                mostrarMensaje("✅ Datos enviados correctamente a la base de datos de la tesis.");
+            } catch (err) {
+                console.error("Error al guardar datos:", err);
+                // No mostrar error al usuario final, solo a ti como desarrollador.
+            }
+        }
+        
+        // =======================================================
+        // ========== CORE CALCULATOR LOGIC (Modified) ===========
+        // =======================================================
+        
+        const CRITERIA = {
+            WAIST_MALE: 90, 
+            WAIST_FEMALE: 80, 
+            GLUCOSE: 100, 
+            TRIGLYCERIDES: 150, 
+            HDL_MALE: 40, 
+            HDL_FEMALE: 50, 
+            PAS: 130, 
+            PAD: 85, 
+            MAFLD_FLI_CUTOFF: 60, 
+        };
+
         function calculateFLI(bmi, tg, waist) {
             const ln_tg = Math.log(tg);
             const ln_waist = Math.log(waist);
@@ -354,10 +435,6 @@
             return Math.min(fli, 100).toFixed(1);
         }
 
-        /**
-         * Calcula el promedio de las mediciones de presión arterial de 3 días.
-         * Retorna un objeto {pas: promedio_sistolica, pad: promedio_diastolica} o null.
-         */
         function calculateAverageBP() {
             const bp_readings = [];
             for (let i = 1; i <= 3; i++) {
@@ -367,7 +444,6 @@
                     bp_readings.push({ s, d });
                 }
             }
-
             if (bp_readings.length > 0) {
                 const total_s = bp_readings.reduce((sum, reading) => sum + reading.s, 0);
                 const total_d = bp_readings.reduce((sum, reading) => sum + reading.d, 0);
@@ -378,17 +454,14 @@
             }
             return null;
         }
-
-        /**
-         * Evalúa el riesgo cardiometabólico y MASLD.
-         */
+        
         function calculateRisk() {
             // 1. Obtener inputs
             const email = document.getElementById('email').value;
             const age = parseInt(document.getElementById('age').value);
             const gender = document.getElementById('gender').value;
             const height_cm = parseInt(document.getElementById('height').value);
-            const height = height_cm / 100; // a metros
+            const height = height_cm / 100;
             const weight = parseInt(document.getElementById('weight').value);
             const waist = parseInt(document.getElementById('waist').value);
             const glucose = parseInt(document.getElementById('glucose').value);
@@ -404,13 +477,9 @@
             const averageBP = calculateAverageBP();
             const bp_used = averageBP ? 'Average' : 'Single';
 
-            // Si hay promedio de 3 días, usar ese valor para la evaluación de riesgo.
-            if (averageBP) {
-                pas = averageBP.pas;
-                pad = averageBP.pad;
-            }
+            if (averageBP) { pas = averageBP.pas; pad = averageBP.pad; }
 
-            // Validación mínima
+            // Validación
             if (!age || !height_cm || !weight || !waist || !glucose || !triglycerides || !hdl || !pas || !pad || height < 1) {
                 alert("Por favor, complete todos los campos de entrada válidos.");
                 return;
@@ -430,90 +499,76 @@
             const weight_loss_10kg = (weight * 0.10).toFixed(1);
             
             // 3. Evaluación de Criterios (RCM & SM)
-
-            // Criterio 1: Obesidad Central (CC - Criterios Latinos/Mexicanos)
             const waist_cutoff = (gender === 'male' ? CRITERIA.WAIST_MALE : CRITERIA.WAIST_FEMALE);
             if (waist >= waist_cutoff) {
                 sm_criteria_count++;
                 risk_score_rcm += 3;
                 risk_factors_list.push('<li class="text-red-600">Obesidad Abdominal (Cintura &ge; ' + waist_cutoff + ' cm).</li>');
-                recommendations.push(`<strong class="text-red-700">OBJETIVO PESO & CINTURA:</strong> Enfocar la pérdida de peso en la reducción de grasa visceral. Un objetivo inicial de **5% (${weight_loss_5kg} kg)** puede tener un impacto significativo.`);
+                recommendations.push(`<strong class="text-red-700">OBJETIVO PESO & CINTURA:</strong> Enfocar la pérdida de grasa visceral. Meta inicial: **5% (${weight_loss_5kg} kg)**.`);
             } else {
                  risk_factors_list.push('<li class="text-green-600">Circunferencia Abdominal Normal.</li>');
             }
 
-            // Criterio 2: Triglicéridos Elevados
             if (triglycerides >= CRITERIA.TRIGLYCERIDES) {
-                sm_criteria_count++;
-                risk_score_rcm += 2;
+                sm_criteria_count++; risk_score_rcm += 2;
                 risk_factors_list.push('<li class="text-red-600">Hipertrigliceridemia (&ge; 150 mg/dL).</li>');
-                recommendations.push('Reducir drásticamente la ingesta de **azúcares añadidos** y **carbohidratos refinados** (factor principal de TG elevados).');
+                recommendations.push('Reducir drásticamente **azúcares añadidos** y carbohidratos refinados (factor principal de TG elevados).');
             } else {
                 risk_factors_list.push('<li class="text-green-600">Triglicéridos Normales.</li>');
             }
 
-            // Criterio 3: HDL Bajo
             const hdl_cutoff = (gender === 'male' ? CRITERIA.HDL_MALE : CRITERIA.HDL_FEMALE);
             if (hdl < hdl_cutoff) {
-                sm_criteria_count++;
-                risk_score_rcm += 2;
+                sm_criteria_count++; risk_score_rcm += 2;
                 risk_factors_list.push('<li class="text-red-600">Colesterol HDL Bajo (< ' + hdl_cutoff + ' mg/dL).</li>');
-                recommendations.push('Aumentar el **ejercicio aeróbico** regular y el consumo de grasas saludables (como aguacate y nueces) para elevar el c-HDL.');
+                recommendations.push('Aumentar el **ejercicio aeróbico** regular y grasas saludables (aguacate, nueces) para elevar el c-HDL.');
             } else {
                  risk_factors_list.push('<li class="text-green-600">Colesterol HDL Normal.</li>');
             }
 
-            // Criterio 4: Glucemia Elevada (Prediabetes/DM2)
             if (glucose >= CRITERIA.GLUCOSE) {
-                sm_criteria_count++;
-                risk_score_rcm += 3;
+                sm_criteria_count++; risk_score_rcm += 3;
                 risk_factors_list.push('<li class="text-red-600">Glucemia Elevada (&ge; 100 mg/dL).</li>');
-                recommendations.push(`<strong class="text-red-700">CONTROL GLUCÉMICO:</strong> La pérdida de peso es crítica. Se recomienda un objetivo de **&ge; 7% (${weight_loss_7kg} kg)** y aumentar la actividad física para mejorar la sensibilidad a la insulina y prevenir la DM2.`);
+                recommendations.push(`<strong class="text-red-700">CONTROL GLUCÉMICO:</strong> Meta de pérdida de peso **&ge; 7% (${weight_loss_7kg} kg)** y aumentar actividad física para mejorar sensibilidad a la insulina.`);
             } else {
                  risk_factors_list.push('<li class="text-green-600">Glucemia Normal.</li>');
             }
 
-            // Criterio 5: Hipertensión Arterial (PA utilizada: ' + pas + '/' + pad + ' mmHg)
             const is_hypertensive = (pas >= CRITERIA.PAS || pad >= CRITERIA.PAD);
             if (is_hypertensive) {
-                 sm_criteria_count++;
-                risk_score_rcm += 3;
+                 sm_criteria_count++; risk_score_rcm += 3;
                 risk_factors_list.push('<li class="text-red-600">Presión Arterial Elevada (&ge; 130/85 mmHg). (PA utilizada: ' + pas + '/' + pad + ' mmHg)</li>');
-                recommendations.push(`Monitorizar la PA. La **pérdida de peso > 5% (${weight_loss_5kg} kg)** puede reducir la PA en 5 mmHg o más.`);
+                recommendations.push(`Monitorizar PA. La **pérdida de peso > 5% (${weight_loss_5kg} kg)** puede reducir la PA en 5 mmHg o más.`);
             } else {
                 risk_factors_list.push('<li class="text-green-600">Presión Arterial Normal. (PA utilizada: ' + pas + '/' + pad + ' mmHg)</li>');
             }
 
-            // Otros Factores de RCM (No SM, pero influyentes)
             if (bmi >= 30) {
                  risk_score_rcm += 2; 
                  risk_factors_list.push('<li class="text-red-600">Obesidad General (IMC ' + bmi_rounded + ').</li>');
-                 recommendations.push(`<strong class="text-red-700">OBJETIVO MÁXIMO DE PESO:</strong> La obesidad requiere un enfoque intensivo con meta de **&ge; 10% (${weight_loss_10kg} kg)** para revertir múltiples comorbilidades.`);
+                 recommendations.push(`<strong class="text-red-700">OBJETIVO MÁXIMO DE PESO:</strong> Enfoque intensivo con meta de **&ge; 10% (${weight_loss_10kg} kg)** para revertir múltiples comorbilidades.`);
             } else if (bmi >= 25) {
                  risk_factors_list.push('<li class="text-yellow-600">Sobrepeso (IMC ' + bmi_rounded + ').</li>');
             } else {
                 risk_factors_list.push('<li class="text-green-600">IMC Normal (' + bmi_rounded + ').</li>');
             }
 
-            // Puntuación por Tabaquismo (4 categorías)
-            let smoker_risk = 0;
-            let smoker_status_text = 'Nunca Fumador';
+            let smoker_risk = 0; let smoker_status_text = 'Nunca Fumador';
             if (smoker === 'actual') { smoker_risk = 3; smoker_status_text = 'Fumador Actual'; }
             else if (smoker === 'occasional') { smoker_risk = 2; smoker_status_text = 'Fumador Ocasional'; }
-            else if (smoker === 'ex_smoker') { smoker_risk = 1; smoker_status_text = 'Ex Fumador'; }
+            else if (smoker === 'ex_smoker') { smoker_status_text = 'Ex Fumador'; }
             risk_score_rcm += smoker_risk;
             if (smoker_risk > 0) {
                  risk_factors_list.push('<li class="text-red-600">Tabaquismo (' + smoker_status_text + ').</li>');
-                 recommendations.push('<strong class="text-red-700">CERO TABACO:</strong> El cese del tabaquismo es la intervención más importante para reducir el riesgo cardiovascular y la mortalidad. ¡Busque apoyo inmediato!');
+                 recommendations.push('<strong class="text-red-700">CERO TABACO:</strong> El cese del tabaquismo es la intervención más importante para reducir la mortalidad. ¡Busque apoyo!');
             } else {
                 risk_factors_list.push('<li class="text-green-600">Tabaquismo: Nunca Fumador.</li>');
             }
             
-            // Puntuación por Historia Familiar
             if (family_history === 'yes') {
                  risk_score_rcm += 2;
                  risk_factors_list.push('<li class="text-red-600">Historia Familiar Positiva (ECV/DM).</li>');
-                 recommendations.push('Su carga genética de riesgo es mayor. Esto requiere una **prevención primordial** (estilo de vida óptimo) para mitigar el riesgo hereditario.');
+                 recommendations.push('Su carga genética de riesgo es mayor. Requiere **prevención primordial** (estilo de vida óptimo) para mitigar el riesgo hereditario.');
             } else {
                  risk_factors_list.push('<li class="text-green-600">Historia Familiar Negativa (ECV/DM).</li>');
             }
@@ -524,13 +579,11 @@
                  recommendations.push('Eliminar el consumo diario de BAA (refrescos/jugos) para reducir triglicéridos y el riesgo metabólico.');
             }
 
-            // Puntuación por Actividad Física (Sedentarismo)
             if (activity === 'no') {
                  risk_score_rcm += 1;
                  risk_factors_list.push('<li class="text-red-600">Sedentarismo / No cumple 30 min/día.</li>');
                  recommendations.push('Priorizar $\mathbf{\ge 30 \text{ min/día}}$ de actividad moderada. El sedentarismo es un factor de riesgo independiente.');
             }
-
 
             // 4. Evaluación de Riesgo Hepático (MASLD)
             const fli_score = calculateFLI(bmi, triglycerides, waist);
@@ -540,8 +593,8 @@
             if (parseFloat(fli_score) >= CRITERIA.MAFLD_FLI_CUTOFF) {
                 mahld_risk_level = 'ALTO RIESGO de MASLD';
                 mahld_risk_class = 'risk-high';
-                risk_score_rcm += 3; // Refuerza el RCM total
-                recommendations.push('**RIESGO HEPÁTICO (MASLD - Enfermedad por Hígado Graso Asociada a Disfunción Metabólica):** Se recomienda evaluación médica urgente para confirmar la esteatosis y evaluar la fibrosis hepática (elastografía).');
+                risk_score_rcm += 3;
+                recommendations.push('**RIESGO HEPÁTICO (MASLD):** Evaluación médica urgente para confirmar la esteatosis y evaluar fibrosis hepática.');
             } else if (parseFloat(fli_score) >= 30) {
                  mahld_risk_level = 'RIESGO MODERADO de MASLD';
                 mahld_risk_class = 'risk-moderate';
@@ -572,8 +625,8 @@
             if (rcm_class === 'risk-high' && (glucose >= 100 || parseFloat(fli_score) >= CRITERIA.MAFLD_FLI_CUTOFF)) {
                  recommendations.push('Dado su nivel de riesgo y la alta susceptibilidad en la población mexicana, un **cambio de estilo de vida intensivo** es crucial para prevenir complicaciones serias.');
             }
-            
-            // 7. Generación del Objeto de Datos para la Tesis
+
+            // 7. Generación del Objeto de Datos (para guardado y copia)
             const result_data = {
                 user_input: {
                     email: email,
@@ -607,7 +660,7 @@
                 timestamp: new Date().toISOString()
             };
             
-            window.lastResultData = result_data; // Almacenar en una variable global para copiar
+            window.lastResultData = result_data; 
 
             // 8. Renderizar Resultados
             document.getElementById('rcm-result').className = `text-center p-4 rounded-lg font-bold text-2xl mb-4 transition duration-300 ${rcm_class}`;
@@ -628,10 +681,13 @@
             document.getElementById('input-form').classList.add('hidden');
             document.getElementById('results-section').classList.remove('hidden');
             window.scrollTo(0, 0);
+
+            // 9. ENVIAR DATOS A GOOGLE SHEETS
+            guardarDatos(result_data);
         }
 
         /**
-         * Copia los resultados JSON al portapapeles.
+         * Copia los resultados del cálculo en texto plano al portapapeles.
          */
         window.copyResults = function() {
             if (window.lastResultData) {
@@ -653,9 +709,8 @@
                     `  Criterios de SM Cumplidos: ${smCount}/5\n` +
                     `  Puntaje IHG (MASLD): ${fliScore}\n\n` +
                     `Factores Contribuyentes:\n${factorsList}\n\n` +
-                    `RECOMENDACIONES CLAVE:\n${recList}\n` +
-                    `------------------------------------------------\n` +
-                    `Detalles Técnicos (JSON) disponibles en el portapapeles.`;
+                    `PLAN DE ACCIÓN PERSONALIZADO:\n${recList}\n` +
+                    `------------------------------------------------\n`;
 
                 // document.execCommand('copy') is deprecated, using modern approach with fallback.
                 if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -699,108 +754,11 @@
             const isVisible = !document.getElementById('results-section').classList.contains('hidden');
             document.getElementById('reset-button-placeholder').classList.toggle('hidden', !isVisible);
         });
-    </script> <script>
-/* =========================
-   CONEXIÓN A GOOGLE SHEETS
-   ========================= */
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwUkV6weOb9qdDgFyc7-ExEI4uUmEnQet5NIoNiwlWjjuCESEm-v3_jZUYm0kMxO7YD/exec";
-
-/**
- * Envía los datos a Google Sheets al finalizar el cálculo.
- */
-async function guardarDatos(datos) {
-  try {
-    const response = await fetch(SCRIPT_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(datos)
-    });
-
-    if (!response.ok) throw new Error("Error HTTP: " + response.status);
-
-    mostrarMensaje("✅ Datos enviados correctamente a la base de datos.");
-  } catch (err) {
-    console.error("Error al guardar datos:", err);
-    mostrarMensaje("⚠️ No se pudieron guardar los datos. Revisa la conexión.", true);
-  }
-}
-
-/**
- * Muestra un mensaje de confirmación o error en pantalla.
- */
-function mostrarMensaje(texto, esError = false) {
-  let msg = document.getElementById('licam-msg');
-  if (!msg) {
-    msg = document.createElement('div');
-    msg.id = 'licam-msg';
-    msg.style.position = 'fixed';
-    msg.style.bottom = '20px';
-    msg.style.right = '20px';
-    msg.style.padding = '10px 14px';
-    msg.style.borderRadius = '8px';
-    msg.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
-    msg.style.fontWeight = '500';
-    msg.style.zIndex = 9999;
-    document.body.appendChild(msg);
-  }
-  msg.style.background = esError ? '#f8d7da' : '#d1e7dd';
-  msg.style.color = esError ? '#842029' : '#0f5132';
-  msg.textContent = texto;
-  msg.style.display = 'block';
-  clearTimeout(msg._timeoutId);
-  msg._timeoutId = setTimeout(() => msg.style.display = 'none', 4000);
-}
-
-/**
- * Envía automáticamente los datos de la calculadora tras calcular el riesgo.
- * Esta versión se engancha al final de tu función calculateRisk().
- */
-async function enviarDatosALICAM() {
-  try {
-    const datos = {
-      email: document.getElementById('email').value,
-      edad: document.getElementById('age').value,
-      genero: document.getElementById('gender').value,
-      peso: document.getElementById('weight').value,
-      altura: document.getElementById('height').value,
-      cintura: document.getElementById('waist').value,
-      glucosa: document.getElementById('glucose').value,
-      trigliceridos: document.getElementById('triglycerides').value,
-      hdl: document.getElementById('hdl').value,
-      pas: document.getElementById('pas').value,
-      pad: document.getElementById('pad').value,
-      actividad: document.getElementById('activity').value,
-      fumador: document.getElementById('smoker').value,
-      azucares: document.getElementById('sugar_intake').value,
-      historial_familiar: document.getElementById('family_history').value,
-      resultado_rcm: document.getElementById('rcm-result').textContent,
-      resultado_mahld: document.getElementById('mahld-result').textContent,
-      imc: document.getElementById('bmi-val').textContent,
-      criterios_sm: document.getElementById('sm-count').textContent,
-      fli: document.getElementById('fli-score').textContent,
-      fecha: new Date().toLocaleString()
-    };
-
-    await guardarDatos(datos);
-  } catch (err) {
-    console.error("Error al recolectar datos:", err);
-  }
-}
-
-/**
- * Modifica la función existente calculateRisk()
- * para que, al terminar el cálculo, envíe automáticamente los resultados.
- */
-const originalCalculateRisk = window.calculateRisk;
-window.calculateRisk = function() {
-  originalCalculateRisk();
-  // Espera 1 segundo a que los resultados se actualicen visualmente
-  setTimeout(enviarDatosALICAM, 1000);
-};
-</script>
-
+    </script>
 </body>
 </html>
+
+
 
 
 
