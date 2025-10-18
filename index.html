@@ -700,6 +700,111 @@
             document.getElementById('reset-button-placeholder').classList.toggle('hidden', !isVisible);
         });
     </script>
+    <script>
+/* =========================
+   CONEXIÓN A GOOGLE SHEETS
+   ========================= */
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzzwnez4tqmZu1WUgk-MHXdNktGT52qWWNgxj1UgFMAXx0QlDxqYA0CwA4a3gm7q7Y5/exec";
+
+/**
+ * Envía los datos del formulario o cálculo a Google Sheets.
+ */
+async function guardarDatos(datos) {
+  try {
+    // Desactiva el botón mientras se guarda (opcional)
+    const btn = document.querySelector('#btn-calcular') || document.querySelector('button[type="submit"]');
+    if (btn) btn.disabled = true;
+
+    const response = await fetch(SCRIPT_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(datos)
+    });
+
+    if (btn) btn.disabled = false;
+
+    if (!response.ok) {
+      console.error("Error al enviar datos:", response.status);
+      mostrarMensaje("⚠️ Ocurrió un error al guardar los datos. Intenta de nuevo.", true);
+      return;
+    }
+
+    console.log("Datos enviados correctamente");
+    mostrarMensaje("✅ Datos guardados correctamente en la base de datos.");
+  } catch (err) {
+    console.error("Error en guardarDatos():", err);
+    mostrarMensaje("⚠️ Error de conexión. Verifica tu internet.", true);
+    const btn = document.querySelector('#btn-calcular') || document.querySelector('button[type="submit"]');
+    if (btn) btn.disabled = false;
+  }
+}
+
+/**
+ * Muestra un mensaje visual al usuario (aparece en la esquina inferior derecha)
+ */
+function mostrarMensaje(texto, esError = false) {
+  let msg = document.getElementById('licam-message');
+  if (!msg) {
+    msg = document.createElement('div');
+    msg.id = 'licam-message';
+    msg.style.position = 'fixed';
+    msg.style.bottom = '20px';
+    msg.style.right = '20px';
+    msg.style.padding = '10px 14px';
+    msg.style.borderRadius = '8px';
+    msg.style.color = '#111';
+    msg.style.fontWeight = '500';
+    msg.style.zIndex = 9999;
+    msg.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
+    document.body.appendChild(msg);
+  }
+  msg.style.background = esError ? '#f8d7da' : '#d1e7dd';
+  msg.textContent = texto;
+  msg.style.display = 'block';
+  clearTimeout(msg._timeoutId);
+  msg._timeoutId = setTimeout(() => msg.style.display = 'none', 4000);
+}
+
+/* ===================================
+   INTEGRACIÓN CON TU CALCULADORA
+   ===================================
+   Este código detecta el botón de calcular y
+   envía los datos automáticamente después del cálculo.
+*/
+
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('btn-calcular');
+  if (!btn) {
+    console.warn("⚠️ No se encontró el botón con id='btn-calcular'. Asegúrate de usar ese id en tu HTML.");
+    return;
+  }
+
+  btn.addEventListener('click', async (e) => {
+    e.preventDefault();
+
+    // Obtén los valores de tus inputs (ajusta los IDs si son diferentes)
+    const nombre = (document.getElementById('nombre') || {}).value || '';
+    const edad = (document.getElementById('edad') || {}).value || '';
+    const presion = (document.getElementById('presion') || {}).value || '';
+    const glucosa = (document.getElementById('glucosa') || {}).value || '';
+    const resultado = (document.getElementById('resultado') || {}).textContent || '';
+    const riesgo = (document.getElementById('riesgo') || {}).textContent || '';
+
+    // Valida que haya datos esenciales
+    if (!edad || !presion || !glucosa) {
+      mostrarMensaje("⚠️ Por favor completa todos los campos antes de calcular.", true);
+      return;
+    }
+
+    // Envía los datos a Google Sheets
+    const datos = { nombre, edad, presion, glucosa, resultado, riesgo };
+    await guardarDatos(datos);
+  });
+});
+</script>
 </body>
 </html>
+
 
