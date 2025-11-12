@@ -81,163 +81,91 @@
             overlay.classList.add("hidden");
         });
     </script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Riesgo Cardiometabólico Integral (v2.5 - Diseño Profesional)</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Se recomienda incluir Font Awesome para los íconos de forma externa si es posible -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <style>
-        /* Estilos base y variables de diseño */
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6; /* Fondo más claro y moderno */
-        }
-        /* IPN Accent */
-        .ipn-accent { color: #b91c1c; } /* Rojo Guinda */
-        .ipn-bg { background-color: #b91c1c; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Riesgo Cardiometabólico Integral (v2.0 - Impresión)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilos personalizados para la tesis */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+        }
+        /* Paleta de riesgo */
+        .risk-low { background-color: #d1fae5; color: #065f46; border-color: #34d399; }
+        .risk-moderate { background-color: #fef3c7; color: #92400e; border-color: #fcd34d; }
+        .risk-high { background-color: #fee2e2; color: #991b1b; border-color: #f87171; }
+        .risk-very-high { background-color: #eeb8b8; color: #570a0a; border-color: #c95d5d; } /* Color para Muy Alto Riesgo */
+
+        /* IPN/ESM Accent */
+        .ipn-accent { color: #b91c1c; } /* Rojo Guinda */
         .ipn-border { border-color: #b91c1c; }
-        .ipn-shadow { box-shadow: 0 4px 6px -1px rgba(185, 28, 28, 0.1), 0 2px 4px -2px rgba(185, 28, 28, 0.06); }
-
-        /* Estilo del contenedor principal */
-        .main-container {
-            max-width: 1200px;
-            margin-left: auto;
-            margin-right: auto;
-            background-color: #ffffff;
-            padding: 2.5rem; 
-            border-radius: 1.5rem;
-            box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.15); /* Sombra suave y elevada */
-            border-top: 8px solid #b91c1c; 
-        }
+        .ipn-bg { background-color: #b91c1c; }
+        .shadow-glow {
+            box-shadow: 0 0 15px rgba(185, 28, 28, 0.3);
+        }
         
-        /* Estilos específicos del Aviso de Privacidad como card flotante */
-        #privacy-disclaimer {
-            position: relative;
-            padding: 3rem;
-            border: 3px solid #b91c1c;
-            background-color: #fffcfc;
-            border-radius: 1.5rem;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-        }
-        .disclaimer-content {
-            max-height: 450px;
-            overflow-y: auto;
-            border: 1px solid #e5e7eb;
-            padding: 1.5rem;
-            border-radius: 0.75rem;
-            background-color: #f9fafb;
-            font-size: 0.9rem;
+        /* Estilo para el contenedor principal de la página */
+        .main-container {
+            max-width: 1200px; /* Incrementado para mejor presentación del contenido */
+            margin-left: auto;
+            margin-right: auto;
+            background-color: #ffffff;
+            padding: 2.5rem; /* p-10 */
+            border-radius: 1rem; /* rounded-xl */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* shadow-2xl */
+            border-top: 8px solid #b91c1c; /* border-t-8 ipn-border */
         }
 
-        /* Estilos para inputs y selects */
-        input[type="text"], input[type="number"], input[type="email"], input[type="date"], select {
-            border: 1px solid #d1d5db;
-            padding: 0.75rem 1rem;
-            border-radius: 0.75rem;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        input[type="text"]:focus, input[type="number"]:focus, input[type="email"]:focus, input[type="date"]:focus, select:focus {
-            border-color: #b91c1c;
-            box-shadow: 0 0 0 2px rgba(185, 28, 28, 0.3);
-        }
+        /* ==== (NUEVO) SECCIÓN CSS DE IMPRESIÓN ==== */
+        @media print {
+            /* Oculta todo lo que tenga la clase 'no-print' */
+            .no-print {
+                display: none !important;
+            }
+            
+            /* Resetea el cuerpo para imprimir */
+            body {
+                padding: 0;
+                margin: 0;
+                background-color: #ffffff;
+            }
+            
+            /* Ajusta el contenedor principal para impresión */
+            .main-container {
+                max-width: 100% !important;
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
 
-        /* Paleta de riesgo (mantener) */
-        .risk-low { background-color: #d1fae5; color: #065f46; border-color: #34d399; }
-        .risk-moderate { background-color: #fef3c7; color: #92400e; border-color: #fcd34d; }
-        .risk-high { background-color: #fee2e2; color: #991b1b; border-color: #f87171; }
-        .risk-very-high { background-color: #eeb8b8; color: #570a0a; border-color: #c95d5d; }
-
-        /* ==== SECCIÓN CSS DE IMPRESIÓN ==== */
-        @media print {
-            .no-print, #privacy-disclaimer { display: none !important; }
-            body { padding: 0; margin: 0; background-color: #ffffff; }
-            .main-container { max-width: 100% !important; box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; }
-            header, #results-section, #app-content { display: block !important; }
-            .risk-low, .risk-moderate, .risk-high, .risk-very-high {
-                -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; background-color: inherit;
-            }
-        }
-        /* ==== FIN DE SECCIÓN DE IMPRESIÓN ==== */
-    </style>
+            /* Asegura que el encabezado y los resultados sean visibles */
+            header, #results-section {
+                display: block !important;
+            }
+            
+            /* Asegura que los colores de riesgo se impriman */
+            .risk-low, .risk-moderate, .risk-high, .risk-very-high {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                background-color: inherit;
+            }
+        }
+        /* ==== FIN DE SECCIÓN DE IMPRESIÓN ==== */
+    </style>
 </head>
 <body class="p-4 md:p-8">
 
-    <div class="main-container">
-
-        <!-- ======================================================= -->
-        <!-- === INICIO: AVISO DE PRIVACIDAD (Se muestra primero) === -->
-        <!-- ======================================================= -->
-        <div id="privacy-disclaimer" class="no-print">
-            <h1 class="text-3xl font-bold ipn-accent mb-4 text-center">
-                🛡️ Aviso de Privacidad y Uso de Datos Personales
-            </h1>
-            <p class="text-sm text-gray-700 mb-6 text-center">
-                El Laboratorio de Investigación Cardiometabólica (LICAM) del Instituto Politécnico Nacional (IPN), con domicilio en <span class="font-semibold text-gray-800">[agregar dirección oficial del laboratorio o campus correspondiente]</span>, es responsable del tratamiento de los datos personales que usted proporcione a través de esta Calculadora de Riesgo Cardiometabólico.
-            </p>
-
-            <div class="disclaimer-content text-sm text-gray-600 space-y-3">
-                <p>
-                    <span class="font-bold text-gray-800">Finalidad del tratamiento de los datos</span><br>
-                    Los datos personales recabados —incluyendo información general de salud, presión arterial, niveles de glucosa, antecedentes médicos, hábitos de vida y otros parámetros biométricos— serán utilizados únicamente con fines estadísticos, académicos y de investigación científica relacionados con el estudio del riesgo cardiometabólico en la población. Dichos datos serán analizados de forma anónima y confidencial, sin asociarse a información que permita identificarle personalmente.
-                </p>
-                <p>
-                    <span class="font-bold text-gray-800">Datos personales sensibles</span><br>
-                    Debido a la naturaleza del estudio, se recaban datos personales sensibles relacionados con su estado de salud. Estos datos serán protegidos bajo estrictas medidas de seguridad administrativas, técnicas y físicas para evitar su pérdida, alteración, destrucción, uso indebido o acceso no autorizado.
-                </p>
-                <p>
-                    <span class="font-bold text-gray-800">Transferencia y uso de la información</span><br>
-                    Sus datos no serán compartidos con terceros ajenos al IPN o al LICAM sin su consentimiento expreso. En caso de que los resultados sean utilizados en publicaciones, presentaciones académicas o reportes estadísticos, se emplearán únicamente de forma agrupada y disociada, sin identificar individualmente a los participantes.
-                </p>
-                <p>
-                    <span class="font-bold text-gray-800">Consentimiento</span><br>
-                    Al utilizar esta calculadora y proporcionar sus datos, usted otorga su consentimiento informado para el tratamiento descrito anteriormente. Si no desea que sus datos sean tratados bajo estos términos, puede abstenerse de completar el formulario o solicitar la eliminación de su información.
-                </p>
-                <p>
-                    <span class="font-bold text-gray-800">Derechos ARCO (Acceso, Rectificación, Cancelación y Oposición)</span><br>
-                    Usted tiene derecho a acceder, rectificar, cancelar u oponerse al tratamiento de sus datos personales conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares. Para ejercer estos derechos, puede dirigir una solicitud al correo electrónico: <span class="font-semibold text-red-600">[correo institucional del LICAM o responsable del proyecto]</span>.
-                </p>
-                <p>
-                    <span class="font-bold text-gray-800">Modificaciones al aviso de privacidad</span><br>
-                    Cualquier cambio o actualización al presente aviso se publicará en este mismo medio o en las plataformas oficiales del IPN.
-                </p>
-            </div>
-            
-            <p class="text-xs text-right text-gray-500 mt-4">
-                📅 Última actualización: [fecha de publicación]
-            </p>
-
-            <div class="mt-6 p-4 bg-gray-100 rounded-lg flex flex-col items-center">
-                <label for="accept-checkbox" class="flex items-center space-x-2 cursor-pointer text-lg font-medium text-gray-800">
-                    <input type="checkbox" id="accept-checkbox" class="h-5 w-5 text-red-600 rounded border-gray-300 focus:ring-red-500">
-                    <span>He leído y acepto el Aviso de Privacidad.</span>
-                </label>
-
-                <button id="start-button" disabled class="mt-4 w-full sm:w-1/2 py-3 px-6 border border-transparent rounded-lg shadow-glow text-lg font-medium text-white ipn-bg opacity-50 cursor-not-allowed transition duration-150 ease-in-out">
-                    Continuar al Calculador
-                </button>
-            </div>
-
-            <p class="text-xs text-center text-gray-500 mt-4">
-                © 2025 Laboratorio de Investigación Cardiometabólica (LICAM) – Instituto Politécnico Nacional
-            </p>
-        </div>
-        <!-- ======================================================= -->
-        <!-- === FIN: AVISO DE PRIVACIDAD === -->
-        <!-- ======================================================= -->
-
-        <!-- CONTENIDO PRINCIPAL (Se muestra después de aceptar) -->
-        <div id="app-content" class="hidden">
-        <header class="mb-10 border-b pb-4">
-            <div class="grid grid-cols-3 items-center justify-between gap-4">
-                <!-- Columna 1: Logo ESM -->
+    <div class="main-container">
+        <header class="mb-10 border-b pb-4">
+            <div class="grid grid-cols-3 items-center justify-between">
                 <div class="flex justify-start">
                     <a href="https://www.esm.ipn.mx/" target="_blank" title="Escuela Superior de Medicina - IPN">
-                        <img src="logo_esm.png" alt="Logo ESM" class="h-16 w-16 md:h-20 md:w-20 object-contain shadow-md rounded-xl">
+                        <img src="logo_esm.png" alt="Logo ESM" class="h-16 w-16 md:h-20 md:w-20 object-contain shadow-md">
                     </a>
                 </div>
 
-                <!-- Columna 2: Título Central -->
                 <div class="text-center col-span-1">
                     <h1 class="text-2xl md:text-3xl font-extrabold ipn-accent leading-tight">
                         Calculadora de Riesgo Cardiometabólico
@@ -247,1457 +175,1291 @@
                     </p>
                 </div>
 
-                <!-- Columna 3: Logos IPN, LICAM y Mascota -->
-                <div class="flex justify-end items-center space-x-2 sm:space-x-4">
-                    
-                    <!-- ESPACIO PARA MASCOTA -->
-                    <div id="mascot-header" class="rounded-full overflow-hidden border-2 border-red-300 shadow-md hidden sm:block" title="Mascota LICAM">
-                        <!-- Reemplaza la URL 'https://placehold.co/...' por la URL de tu imagen mascota_licam.png -->
-                        <img src="https://placehold.co/60x60/d9534f/ffffff?text=MASCOTA" onerror="this.onerror=null;this.src='mascota_licam.png';" alt="Mascota del Proyecto" class="h-12 w-12 md:h-16 md:w-16 object-cover rounded-full">
-                    </div>
-
+                <div class="flex justify-end items-center space-x-4">
                     <a href="https://www.ipn.mx/" target="_blank" title="Instituto Politécnico Nacional">
-                        <img src="logo_ipn.png" alt="Logo IPN" class="h-16 w-16 md:h-20 md:w-20 object-contain shadow-lg rounded-xl">
+                        <img src="logo_ipn.png" alt="Logo IPN" class="h-16 w-16 md:h-20 md:w-20 object-contain shadow-lg">
                     </a>
                     <a href="cemiztli.wixsite.com/cardiometabolismo" target="_blank" title="Laboratorio LICAM" class="hidden sm:block">
                         <img src="logo_licam.png" alt="Logo LICAM" class="h-12 w-12 md:h-16 md:w-16 object-contain rounded-full shadow-md">
                     </a>
                 </div>
             </div>
-        </header>
+        </header>
 
-        <form id="calc-form" class="no-print space-y-8">
-            <div id="validation-message" class="hidden p-3 mb-4 rounded-lg bg-red-100 text-red-700 font-semibold border-l-4 border-red-500"></div>
-            <div id="input-form">
-                
-                <!-- SECCIÓN 1: Datos Personales -->
-                <div class="bg-gray-50 p-6 rounded-xl shadow-lg space-y-6">
-                    <h2 class="text-2xl font-bold text-gray-700 border-b-2 ipn-accent/50 pb-2 flex items-center"><i class="fas fa-user-circle mr-3 ipn-accent"></i> 1. Datos Personales</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div>
-                            <label for="full_name" class="block text-sm font-medium text-gray-700">Nombre Completo</label>
-                            <input type="text" id="full_name" placeholder="Nombre(s) Apellido(s)" class="mt-1 block w-full">
+        <form id="calc-form" class="no-print">
+            <div id="validation-message" class="hidden p-3 mb-4 rounded-lg bg-red-100 text-red-700 font-semibold"></div>
+            <div id="input-form">
+                
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4 border-b pb-2">1. Datos Personales</h2>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                    <div>
+                        <label for="full_name" class="block text-sm font-medium text-gray-700">Nombre Completo</label>
+                        <input type="text" id="full_name" placeholder="Nombre(s) Apellido(s)" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 p-2 border">
+                    </div>
+                    <div>
+                        <label for="birth_date" class="block text-sm font-medium text-gray-700">Fecha de Nacimiento</label>
+                        <input type="date" id="birth_date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 p-2 border">
+                    </div>
+                    <div>
+                        <label for="gender" class="block text-sm font-medium text-gray-700">Sexo Biológico</label>
+                        <select id="gender" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md shadow-sm">
+                            <option value="male">Masculino</option>
+                            <option value="female">Femenino</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700">Correo Electrónico (Opcional)</label>
+                        <input type="email" id="email" placeholder="ejemplo@correo.com" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 p-2 border">
+                    </div>
+                </div>
+
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4 border-b pb-2">2. Signos Vitales y Dinamometría</h2>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                    <div>
+                        <label for="hr" class="block text-sm font-medium text-gray-700">Frec. Cardíaca (lpm)</label>
+                        <input type="number" id="hr" placeholder="60-100" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>
+                    <div>
+                        <label for="rr" class="block text-sm font-medium text-gray-700">Frec. Respiratoria (rpm)</label>
+                        <input type="number" id="rr" placeholder="12-20" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>
+                    <div>
+                        <label for="grip_right" class="block text-sm font-medium text-gray-700">Fuerza Agarre Der. (Kg)</label>
+                        <input type="number" step="0.1" id="grip_right" placeholder="30.5" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>
+                    <div>
+                        <label for="grip_left" class="block text-sm font-medium text-gray-700">Fuerza Agarre Izq. (Kg)</label>
+                        <input type="number" step="0.1" id="grip_left" placeholder="29.8" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-semibold text-gray-700 mb-3 border-b pb-1">2.1. Presión Arterial (Medición Principal)</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                    <div>
+                        <label for="pas" class="block text-sm font-medium text-gray-700">Presión Sistólica (mmHg)</label>
+                        <input type="number" id="pas" value="120" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>
+                    <div>
+                        <label for="pad" class="block text-sm font-medium text-gray-700">Presión Diastólica (mmHg)</label>
+                        <input type="number" id="pad" value="80" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>
+                    <div>
+                        <label for="pa_d2_s" class="block text-sm font-medium text-gray-700">PA Día 2 S/D (Opcional)</label>
+                        <div class="flex space-x-2">
+                            <input type="number" id="pa_d2_s" placeholder="Sistólica" class="mt-1 block w-1/2 rounded-md border-gray-300 shadow-sm p-2 border">
+                            <input type="number" id="pa_d2_d" placeholder="Diastólica" class="mt-1 block w-1/2 rounded-md border-gray-300 shadow-sm p-2 border">
                         </div>
-                        <div>
-                            <label for="birth_date" class="block text-sm font-medium text-gray-700">Fecha de Nacimiento</label>
-                            <input type="date" id="birth_date" class="mt-1 block w-full">
-                        </div>
-                        <div>
-                            <label for="gender" class="block text-sm font-medium text-gray-700">Sexo Biológico</label>
-                            <select id="gender" class="mt-1 block w-full">
-                                <option value="male">Masculino</option>
-                                <option value="female">Femenino</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="email" class="block text-sm font-medium text-gray-700">Correo Electrónico (Opcional)</label>
-                            <input type="email" id="email" placeholder="ejemplo@correo.com" class="mt-1 block w-full">
+                    </div>
+                    <div>
+                        <label for="pa_d3_s" class="block text-sm font-medium text-gray-700">PA Día 3 S/D (Opcional)</label>
+                        <div class="flex space-x-2">
+                            <input type="number" id="pa_d3_s" placeholder="Sistólica" class="mt-1 block w-1/2 rounded-md border-gray-300 shadow-sm p-2 border">
+                            <input type="number" id="pa_d3_d" placeholder="Diastólica" class="mt-1 block w-1/2 rounded-md border-gray-300 shadow-sm p-2 border">
                         </div>
                     </div>
                 </div>
 
-                <!-- SECCIÓN 2: Signos Vitales y Dinamometría -->
-                <div class="bg-white p-6 rounded-xl shadow-lg space-y-6 border-l-4 ipn-border">
-                    <h2 class="text-2xl font-bold text-gray-700 border-b-2 ipn-accent/50 pb-2 flex items-center"><i class="fas fa-heartbeat mr-3 ipn-accent"></i> 2. Signos Vitales y Dinamometría</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div>
-                            <label for="hr" class="block text-sm font-medium text-gray-700">Frec. Cardíaca (lpm)</label>
-                            <input type="number" id="hr" placeholder="60-100" class="mt-1 block w-full">
-                        </div>
-                        <div>
-                            <label for="rr" class="block text-sm font-medium text-gray-700">Frec. Respiratoria (rpm)</label>
-                            <input type="number" id="rr" placeholder="12-20" class="mt-1 block w-full">
-                        </div>
-                        <div>
-                            <label for="grip_right" class="block text-sm font-medium text-gray-700">Fuerza Agarre Der. (Kg)</label>
-                            <input type="number" step="0.1" id="grip_right" placeholder="30.5" class="mt-1 block w-full">
-                        </div>
-                        <div>
-                            <label for="grip_left" class="block text-sm font-medium text-gray-700">Fuerza Agarre Izq. (Kg)</label>
-                            <input type="number" step="0.1" id="grip_left" placeholder="29.8" class="mt-1 block w-full">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4 border-b pb-2">3. Antropometría</h2>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                    <div>
+                        <label for="height" class="block text-sm font-medium text-gray-700">Estatura (cm)</label>
+                        <input type="number" id="height" value="170" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>
+                    <div>
+                        <label for="weight" class="block text-sm font-medium text-gray-700">Peso (kg)</label>
+                        <input type="number" id="weight" value="75" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>
+                    <div>
+                        <label for="waist" class="block text-sm font-medium text-gray-700">Perímetro Cintura (cm)</label>
+                        <input type="number" id="waist" value="90" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>
+                    <div>
+                        <label for="hip" class="block text-sm font-medium text-gray-700">Perímetro Cadera (cm)</label>
+                        <input type="number" id="hip" value="100" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>
+                </div>
+
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4 border-b pb-2">4. Parámetros Bioquímicos</h2>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                    <div>
+                        <label for="glucose" class="block text-sm font-medium text-gray-700">Glucosa Ayunas (mg/dL)</label>
+                        <input type="number" id="glucose" value="90" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>
+                    <div>
+                        <label for="hba1c" class="block text-sm font-medium text-gray-700">HbA1c (%) (Opcional)</label>
+                        <input type="number" step="0.1" id="hba1c" placeholder="5.7" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>
+                    <div>
+                        <label for="total_chol" class="block text-sm font-medium text-gray-700">Colesterol Total (mg/dL)</label>
+                        <input type="number" id="total_chol" placeholder="180" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>
+                    <div>
+                        <label for="hdl" class="block text-sm font-medium text-gray-700">Colesterol HDL (mg/dL)</label>
+                        <input type="number" id="hdl" value="45" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>
+                    <div>
+                        <label for="ldl" class="block text-sm font-medium text-gray-700">Colesterol LDL (mg/dL)</label>
+                        <input type="number" id="ldl" placeholder="110" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>
+                    <div>
+                        <label for="triglycerides" class="block text-sm font-medium text-gray-700">Triglicéridos (mg/dL)</label>
+                        <input type="number" id="triglycerides" value="140" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>
+                </div>
+
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4 border-b pb-2">5. Composición Corporal (Opcional, si usa BIA)</h2>
+                <p class="text-sm text-gray-500 -mt-3 mb-3 italic">Llenar solo si tiene datos de una báscula de Bioimpedancia (BIA). Estos campos no se calculan solos.</p>
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-6">
+                    <div>
+                        <label for="bia_fat_p" class="block text-sm font-medium text-gray-700">% Grasa Corporal</label>
+                        <input type="number" step="0.1" id="bia_fat_p" placeholder="25.5" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>
+                    <div>
+                        <label for="bia_muscle_p" class="block text-sm font-medium text-gray-700">% Músculo</label>
+                        <input type="number" step="0.1" id="bia_muscle_p" placeholder="34.0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>
+                    <div>
+                        <label for="bia_visceral_p" class="block text-sm font-medium text-gray-700">% Grasa Visceral</label>
+                        <input type="number" step="0.1" id="bia_visceral_p" placeholder="9" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>
+                    <div>
+                        <label for="bia_water_p" class="block text-sm font-medium text-gray-700">% Agua</label>
+                        <input type="number" step="0.1" id="bia_water_p" placeholder="55.0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>
+                    <div>
+                        <label for="bia_metabolic_age" class="block text-sm font-medium text-gray-700">Edad Metabólica</label>
+                        <input type="number" id="bia_metabolic_age" placeholder="40" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>
+                </div>
+
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4 border-b pb-2">6. Estilo de Vida</h2>
+                <h3 class="text-xl font-semibold text-gray-700 mb-3 border-b pb-1">6.1. Actividad Física</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div>
+                        <label for="activity_days" class="block text-sm font-medium text-gray-700">Días de ejercicio/semana</label>
+                        <select id="activity_days" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                            <option value="0">0 (Sedentario)</option>
+                            <option value="2">1-2 días</option>
+                            <option value="3.5">3-4 días</option>
+                            <option value="5">5 o más días</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="activity_duration" class="block text-sm font-medium text-gray-700">Duración promedio (min/día)</label>
+                        <input type="number" id="activity_duration" placeholder="30" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>
+                    <div>
+                        <label for="activity_intensity" class="block text-sm font-medium text-gray-700">Intensidad Principal</label>
+                        <select id="activity_intensity" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                            <option value="light">Ligera (Caminar)</option>
+                            <option value="moderate">Moderada (Trotar, Bici)</option>
+                            <option value="vigorous">Vigorosa (Correr, HIIT)</option>
+                        </select>
+                    </div>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-700 mb-3 border-b pb-1">6.2. Tabaquismo</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                    <div>
+                        <label for="smoker_status" class="block text-sm font-medium text-gray-700">Estado</label>
+                        <select id="smoker_status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                            <option value="never">Nunca he fumado</option>
+                            <option value="ex_smoker">Ex-fumador</option>
+                            <option value="active">Fumador Actual</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="smoker_passive" class="block text-sm font-medium text-gray-700">Fumador Pasivo</label>
+                        <select id="smoker_passive" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                            <option value="no">No</option>
+                            <option value="yes">Sí (convive con fumadores)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="smoker_years" class="block text-sm font-medium text-gray-700">Años fumando (si aplica)</label>
+                        <input type="number" id="smoker_years" placeholder="10" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>
+                    <div>
+                        <label for="smoker_daily_avg" class="block text-sm font-medium text-gray-700">Cigarrillos/día (promedio)</label>
+                        <input type="number" id="smoker_daily_avg" placeholder="5" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-700 mb-3 border-b pb-1">6.3. Consumo de Alcohol</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                    <div>
+                        <label for="alcohol_freq" class="block text-sm font-medium text-gray-700">Frecuencia de consumo</label>
+                        <select id="alcohol_freq" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                            <option value="none">Nunca o casi nunca</option>
+                            <option value="monthly">1-3 veces al mes</option>
+                            <option value="weekly">1-2 veces por semana</option>
+                            <option value="daily">Casi diario</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="alcohol_dose" class="block text-sm font-medium text-gray-700">Dosis (Bebidas estándar/día)</label>
+                        <input type="number" id="alcohol_dose" placeholder="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                    </div>
+                    <div>
+                        <label for="alcohol_type" class="block text-sm font-medium text-gray-700">Tipo de alcohol principal</label>
+                        <select id="alcohol_type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                            <option value="beer">Cerveza</option>
+                            <option value="wine">Vino</option>
+                            <option value="spirit">Destilados (Tequila, Ron, etc.)</option>
+                            <option value="mixed">Combinado</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4 border-b pb-2">7. Diagnósticos y Tratamiento</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-6">
+                    <div class="p-3 border rounded-md bg-gray-50">
+                        <label class="block text-base font-semibold text-gray-700">Diabetes Mellitus (DM)</label>
+                        <div class="mt-2 space-y-2">
+                            <div>
+                                <input type="radio" id="dm_no" name="dm_status" value="no" checked> <label for="dm_no">No diagnosticado</label>
+                            </div>
+                            <div>
+                                <input type="radio" id="dm_yes" name="dm_status" value="yes"> <label for="dm_yes">Sí diagnosticado</label>
+                            </div>
+                            <label for="med_dm" class="block text-sm font-medium text-gray-700 mt-2">¿Toma Metformina, Glibenclamida, Insulina u otro?</label>
+                            <select id="med_dm" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                                <option value="no">No</option>
+                                <option value="yes_freq">Sí, frecuentemente</option>
+                                <option value="yes_rare">Sí, ocasionalmente</option>
+                            </select>
                         </div>
                     </div>
+                    <div class="p-3 border rounded-md bg-gray-50">
+                        <label class="block text-base font-semibold text-gray-700">Hipertensión (HTA)</label>
+                        <div class="mt-2 space-y-2">
+                            <div>
+                                <input type="radio" id="hta_no" name="hta_status" value="no" checked> <label for="hta_no">No diagnosticado</label>
+                            </div>
+                            <div>
+                                <input type="radio" id="hta_yes" name="hta_status" value="yes"> <label for="hta_yes">Sí diagnosticado</label>
+                            </div>
+                            <label for="med_hta" class="block text-sm font-medium text-gray-700 mt-2">¿Toma Losartán, Captopril, Amlodipino u otro?</label>
+                            <select id="med_hta" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                                <option value="no">No</option>
+                                <option value="yes_freq">Sí, frecuentemente</option>
+                                <option value="yes_rare">Sí, ocasionalmente</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="p-3 border rounded-md bg-gray-50">
+                        <label class="block text-base font-semibold text-gray-700">Dislipidemia (Colesterol/TG altos)</label>
+                        <div class="mt-2 space-y-2">
+                            <div>
+                                <input type="radio" id="dlp_no" name="dlp_status" value="no" checked> <label for="dlp_no">No diagnosticado</label>
+                            </div>
+                            <div>
+                                <input type="radio" id="dlp_yes" name="dlp_status" value="yes"> <label for="dlp_yes">Sí diagnosticado</label>
+                            </div>
+                            <label for="med_dlp" class="block text-sm font-medium text-gray-700 mt-2">¿Toma Estatinas (Atorva, Rosuva) o Fibratos?</label>
+                            <select id="med_dlp" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                                <option value="no">No</option>
+                                <option value="yes_freq">Sí, frecuentemente</option>
+                                <option value="yes_rare">Sí, ocasionalmente</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4 border-b pb-2">8. Historial Cardiovascular</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div>
+                        <label for="history_mi" class="block text-sm font-medium text-gray-700">¿Ha sido diagnosticado con un Infarto?</label>
+                        <select id="history_mi" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                            <option value="no">No</option>
+                            <option value="yes">Sí</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="history_angina" class="block text-sm font-medium text-gray-700">¿Ha sentido dolor opresivo en el pecho al esforzarse (Angina)?</label>
+                        <select id="history_angina" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                            <option value="no">No</option>
+                            <option value="yes">Sí</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="family_history" class="block text-sm font-medium text-gray-700">Antecedentes Familiares (Padres/Hermanos con ECV o DM)</label>
+                        <select id="family_history" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                            <option value="no">No</option>
+                            <option value="yes">Sí</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="sheet-status" class="text-center p-3 mt-4 rounded-lg text-sm hidden"></div>
+
+                <button id="calculate-button" class="w-full mt-4 py-3 px-6 border border-transparent rounded-lg shadow-glow text-lg font-medium text-white ipn-bg hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-150 ease-in-out">
+                    Calcular Riesgo Cardiovascular Integral
+                </button>
+            </div>
+        </form>
+
+        <div id="results-section" class="hidden mt-10">
+            <h2 class="text-3xl font-bold ipn-accent mb-6 border-b-4 ipn-border pb-3">4. Resultados y Plan de Acción</h2>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                <div class="p-6 rounded-xl border-2 space-y-4">
+                    <h3 class="text-xl font-semibold mb-3 ipn-accent">Perfil de Riesgo</h3>
+                    <div id="global-risk-result" class="text-center p-4 rounded-lg font-bold text-2xl mb-4 transition duration-300"></div>
                     
-                    <h3 class="text-xl font-semibold text-gray-700 border-t pt-4 mt-4">2.1. Presión Arterial (Medición Principal)</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div>
-                            <label for="pas" class="block text-sm font-medium text-gray-700">Presión Sistólica (mmHg)</label>
-                            <input type="number" id="pas" value="120" class="mt-1 block w-full">
-                        </div>
-                        <div>
-                            <label for="pad" class="block text-sm font-medium text-gray-700">Presión Diastólica (mmHg)</label>
-                            <input type="number" id="pad" value="80" class="mt-1 block w-full">
-                        </div>
-                        <div>
-                            <label for="pa_d2_s" class="block text-sm font-medium text-gray-700">PA Día 2 S/D (Opcional)</label>
-                            <div class="flex space-x-2">
-                                <input type="number" id="pa_d2_s" placeholder="Sistólica" class="mt-1 block w-1/2">
-                                <input type="number" id="pa_d2_d" placeholder="Diastólica" class="mt-1 block w-1/2">
-                            </div>
-                        </div>
-                        <div>
-                            <label for="pa_d3_s" class="block text-sm font-medium text-gray-700">PA Día 3 S/D (Opcional)</label>
-                            <div class="flex space-x-2">
-                                <input type="number" id="pa_d3_s" placeholder="Sistólica" class="mt-1 block w-1/2">
-                                <input type="number" id="pa_d3_d" placeholder="Diastólica" class="mt-1 block w-1/2">
-                            </div>
-                        </div>
+                    <div>
+                        <h4 class="font-semibold text-gray-700">Métricas Antropométricas:</h4>
+                        <ul class="list-disc list-inside text-sm text-gray-600">
+                            <li><span class="font-medium">Edad:</span> <span id="res-age"></span> años</li>
+                            <li><span class="font-medium">IMC:</span> <span id="res-bmi-val"></span> <span id="res-bmi-class" class="font-bold"></span></li>
+                            <li><span class="font-medium">Índice Cintura-Cadera (ICC):</span> <span id="res-icc-val"></span> <span id="res-icc-class" class="font-bold"></span></li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h4 class="font-semibold text-gray-700">Métricas Bioquímicas (Índices):</h4>
+                        <ul class="list-disc list-inside text-sm text-gray-600">
+                            <li><span class="font-medium">Índice TG/HDL:</span> <span id="res-tg-hdl-val"></span> <span id="res-tg-hdl-class" class="font-bold"></span></li>
+                            <li><span class="font-medium">Índice Col Total/HDL:</span> <span id="res-chol-hdl-val"></span> <span id="res-chol-hdl-class" class="font-bold"></span></li>
+                            <li><span class="font-medium">MASLD (FLI Score):</span> <span id="res-fli-val"></span> <span id="res-fli-class" class="font-bold"></span></li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h4 class="font-semibold text-gray-700">Estilo de Vida y Fuerza:</h4>
+                        <ul class="list-disc list-inside text-sm text-gray-600">
+                            <li><span class="font-medium">Índice Tabáquico (IPA):</span> <span id="res-ipa-val"></span> <span id="res-ipa-class" class="font-bold"></span></li>
+                            <li><span class="font-medium">Actividad Física:</span> <span id="res-activity-class" class="font-bold"></span></li>
+                            <li><span class="font-medium">Fuerza de Agarre:</span> <span id="res-grip-class" class="font-bold"></span></li>
+                        </ul>
                     </div>
                 </div>
 
-                <!-- SECCIÓN 3: Antropometría -->
-                <div class="bg-gray-50 p-6 rounded-xl shadow-lg space-y-6">
-                    <h2 class="text-2xl font-bold text-gray-700 border-b-2 ipn-accent/50 pb-2 flex items-center"><i class="fas fa-ruler-combined mr-3 ipn-accent"></i> 3. Antropometría</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div>
-                            <label for="height" class="block text-sm font-medium text-gray-700">Estatura (cm)</label>
-                            <input type="number" id="height" value="170" class="mt-1 block w-full">
-                        </div>
-                        <div>
-                            <label for="weight" class="block text-sm font-medium text-gray-700">Peso (kg)</label>
-                            <input type="number" id="weight" value="75" class="mt-1 block w-full">
-                        </div>
-                        <div>
-                            <label for="waist" class="block text-sm font-medium text-gray-700">Perímetro Cintura (cm)</label>
-                            <input type="number" id="waist" value="90" class="mt-1 block w-full">
-                        </div>
-                        <div>
-                            <label for="hip" class="block text-sm font-medium text-gray-700">Perímetro Cadera (cm)</label>
-                            <input type="number" id="hip" value="100" class="mt-1 block w-full">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SECCIÓN 4: Parámetros Bioquímicos -->
-                <div class="bg-white p-6 rounded-xl shadow-lg space-y-6 border-l-4 ipn-border">
-                    <h2 class="text-2xl font-bold text-gray-700 border-b-2 ipn-accent/50 pb-2 flex items-center"><i class="fas fa-flask mr-3 ipn-accent"></i> 4. Parámetros Bioquímicos</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div>
-                            <label for="glucose" class="block text-sm font-medium text-gray-700">Glucosa Ayunas (mg/dL)</label>
-                            <input type="number" id="glucose" value="90" class="mt-1 block w-full">
-                        </div>
-                        <div>
-                            <label for="hba1c" class="block text-sm font-medium text-gray-700">HbA1c (%) (Opcional)</label>
-                            <input type="number" step="0.1" id="hba1c" placeholder="5.7" class="mt-1 block w-full">
-                        </div>
-                        <div>
-                            <label for="total_chol" class="block text-sm font-medium text-gray-700">Colesterol Total (mg/dL)</label>
-                            <input type="number" id="total_chol" placeholder="180" class="mt-1 block w-full">
-                        </div>
-                        <div>
-                            <label for="hdl" class="block text-sm font-medium text-gray-700">Colesterol HDL (mg/dL)</label>
-                            <input type="number" id="hdl" value="45" class="mt-1 block w-full">
-                        </div>
-                        <div class="lg:col-span-2">
-                            <label for="ldl" class="block text-sm font-medium text-gray-700">Colesterol LDL (mg/dL)</label>
-                            <input type="number" id="ldl" placeholder="110" class="mt-1 block w-full">
-                        </div>
-                        <div class="lg:col-span-2">
-                            <label for="triglycerides" class="block text-sm font-medium text-gray-700">Triglicéridos (mg/dL)</label>
-                            <input type="number" id="triglycerides" value="140" class="mt-1 block w-full">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SECCIÓN 5: Composición Corporal (Opcional, BIA) -->
-                <div class="bg-gray-50 p-6 rounded-xl shadow-lg space-y-6">
-                    <h2 class="text-2xl font-bold text-gray-700 border-b-2 ipn-accent/50 pb-2 flex items-center"><i class="fas fa-weight-hanging mr-3 ipn-accent"></i> 5. Composición Corporal <span class="text-base text-gray-500 ml-2">(Opcional BIA)</span></h2>
-                    <p class="text-sm text-gray-500 -mt-3 italic">Llenar solo si tiene datos de una báscula de Bioimpedancia (BIA).</p>
-                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
-                        <div>
-                            <label for="bia_fat_p" class="block text-sm font-medium text-gray-700">% Grasa Corporal</label>
-                            <input type="number" step="0.1" id="bia_fat_p" placeholder="25.5" class="mt-1 block w-full">
-                        </div>
-                        <div>
-                            <label for="bia_muscle_p" class="block text-sm font-medium text-gray-700">% Músculo</label>
-                            <input type="number" step="0.1" id="bia_muscle_p" placeholder="34.0" class="mt-1 block w-full">
-                        </div>
-                        <div>
-                            <label for="bia_visceral_p" class="block text-sm font-medium text-gray-700">% Grasa Visceral</label>
-                            <input type="number" step="0.1" id="bia_visceral_p" placeholder="9" class="mt-1 block w-full">
-                        </div>
-                        <div>
-                            <label for="bia_water_p" class="block text-sm font-medium text-gray-700">% Agua</label>
-                            <input type="number" step="0.1" id="bia_water_p" placeholder="55.0" class="mt-1 block w-full">
-                        </div>
-                        <div>
-                            <label for="bia_metabolic_age" class="block text-sm font-medium text-gray-700">Edad Metabólica</label>
-                            <input type="number" id="bia_metabolic_age" placeholder="40" class="mt-1 block w-full">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SECCIÓN 6: Estilo de Vida -->
-                <div class="bg-white p-6 rounded-xl shadow-lg space-y-6 border-l-4 ipn-border">
-                    <h2 class="text-2xl font-bold text-gray-700 border-b-2 ipn-accent/50 pb-2 flex items-center"><i class="fas fa-walking mr-3 ipn-accent"></i> 6. Estilo de Vida</h2>
-                    
-                    <h3 class="text-xl font-semibold text-gray-700 border-b pb-1">6.1. Actividad Física</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div>
-                            <label for="activity_days" class="block text-sm font-medium text-gray-700">Días de ejercicio/semana</label>
-                            <select id="activity_days" class="mt-1 block w-full">
-                                <option value="0">0 (Sedentario)</option>
-                                <option value="2">1-2 días</option>
-                                <option value="3.5">3-4 días</option>
-                                <option value="5">5 o más días</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="activity_duration" class="block text-sm font-medium text-gray-700">Duración promedio (min/día)</label>
-                            <input type="number" id="activity_duration" placeholder="30" class="mt-1 block w-full">
-                        </div>
-                        <div>
-                            <label for="activity_intensity" class="block text-sm font-medium text-gray-700">Intensidad Principal</label>
-                            <select id="activity_intensity" class="mt-1 block w-full">
-                                <option value="light">Ligera (Caminar)</option>
-                                <option value="moderate">Moderada (Trotar, Bici)</option>
-                                <option value="vigorous">Vigorosa (Correr, HIIT)</option>
-                            </select>
-                        </div>
+                <div class="space-y-6">
+                    <div class="p-6 rounded-xl border-2 bg-gray-50">
+                        <h3 class="text-xl font-semibold mb-3 ipn-accent">Factores Clave</h3>
+                        <ul id="risk-factors-list" class="space-y-2 text-sm text-gray-700">
+                            </ul>
                     </div>
 
-                    <h3 class="text-xl font-semibold text-gray-700 border-b pt-4 pb-1">6.2. Tabaquismo</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        <div>
-                            <label for="smoker_status" class="block text-sm font-medium text-gray-700">Estado</label>
-                            <select id="smoker_status" class="mt-1 block w-full">
-                                <option value="never">Nunca he fumado</option>
-                                <option value="ex_smoker">Ex-fumador</option>
-                                <option value="active">Fumador Actual</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="smoker_passive" class="block text-sm font-medium text-gray-700">Fumador Pasivo</label>
-                            <select id="smoker_passive" class="mt-1 block w-full">
-                                <option value="no">No</option>
-                                <option value="yes">Sí (convive con fumadores)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="smoker_years" class="block text-sm font-medium text-gray-700">Años fumando (si aplica)</label>
-                            <input type="number" id="smoker_years" placeholder="10" class="mt-1 block w-full">
-                        </div>
-                        <div>
-                            <label for="smoker_daily_avg" class="block text-sm font-medium text-gray-700">Cigarrillos/día (promedio)</label>
-                            <input type="number" id="smoker_daily_avg" placeholder="5" class="mt-1 block w-full">
-                        </div>
-                    </div>
-
-                    <h3 class="text-xl font-semibold text-gray-700 border-b pt-4 pb-1">6.3. Consumo de Alcohol</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                        <div>
-                            <label for="alcohol_freq" class="block text-sm font-medium text-gray-700">Frecuencia de consumo</label>
-                            <select id="alcohol_freq" class="mt-1 block w-full">
-                                <option value="none">Nunca o casi nunca</option>
-                                <option value="monthly">1-3 veces al mes</option>
-                                <option value="weekly">1-2 veces por semana</option>
-                                <option value="daily">Casi diario</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="alcohol_dose" class="block text-sm font-medium text-gray-700">Dosis (Bebidas estándar/día)</label>
-                            <input type="number" id="alcohol_dose" placeholder="2" class="mt-1 block w-full">
-                        </div>
-                        <div>
-                            <label for="alcohol_type" class="block text-sm font-medium text-gray-700">Tipo de alcohol principal</label>
-                            <select id="alcohol_type" class="mt-1 block w-full">
-                                <option value="beer">Cerveza</option>
-                                <option value="wine">Vino</option>
-                                <option value="spirit">Destilados (Tequila, Ron, etc.)</option>
-                                <option value="mixed">Combinado</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- SECCIÓN 7: Diagnósticos y Tratamiento -->
-                <div class="bg-gray-50 p-6 rounded-xl shadow-lg space-y-6">
-                    <h2 class="text-2xl font-bold text-gray-700 border-b-2 ipn-accent/50 pb-2 flex items-center"><i class="fas fa-notes-medical mr-3 ipn-accent"></i> 7. Diagnósticos y Tratamiento</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <div class="p-4 rounded-lg border bg-white/70">
-                            <label class="block text-base font-bold text-gray-800">Diabetes Mellitus (DM)</label>
-                            <div class="mt-3 space-y-2 text-sm">
-                                <div>
-                                    <input type="radio" id="dm_no" name="dm_status" value="no" checked> <label for="dm_no">No diagnosticado</label>
-                                </div>
-                                <div>
-                                    <input type="radio" id="dm_yes" name="dm_status" value="yes"> <label for="dm_yes">Sí diagnosticado</label>
-                                </div>
-                                <label for="med_dm" class="block text-sm font-medium text-gray-700 pt-2">¿Toma medicación?</label>
-                                <select id="med_dm" class="mt-1 block w-full">
-                                    <option value="no">No</option>
-                                    <option value="yes_freq">Sí, frecuentemente</option>
-                                    <option value="yes_rare">Sí, ocasionalmente</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="p-4 rounded-lg border bg-white/70">
-                            <label class="block text-base font-bold text-gray-800">Hipertensión (HTA)</label>
-                            <div class="mt-3 space-y-2 text-sm">
-                                <div>
-                                    <input type="radio" id="hta_no" name="hta_status" value="no" checked> <label for="hta_no">No diagnosticado</label>
-                                </div>
-                                <div>
-                                    <input type="radio" id="hta_yes" name="hta_status" value="yes"> <label for="hta_yes">Sí diagnosticado</label>
-                                </div>
-                                <label for="med_hta" class="block text-sm font-medium text-gray-700 pt-2">¿Toma medicación?</label>
-                                <select id="med_hta" class="mt-1 block w-full">
-                                    <option value="no">No</option>
-                                    <option value="yes_freq">Sí, frecuentemente</option>
-                                    <option value="yes_rare">Sí, ocasionalmente</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="p-4 rounded-lg border bg-white/70">
-                            <label class="block text-base font-bold text-gray-800">Dislipidemia</label>
-                            <div class="mt-3 space-y-2 text-sm">
-                                <div>
-                                    <input type="radio" id="dlp_no" name="dlp_status" value="no" checked> <label for="dlp_no">No diagnosticado</label>
-                                </div>
-                                <div>
-                                    <input type="radio" id="dlp_yes" name="dlp_status" value="yes"> <label for="dlp_yes">Sí diagnosticado</label>
-                                </div>
-                                <label for="med_dlp" class="block text-sm font-medium text-gray-700 pt-2">¿Toma Estatinas o Fibratos?</label>
-                                <select id="med_dlp" class="mt-1 block w-full">
-                                    <option value="no">No</option>
-                                    <option value="yes_freq">Sí, frecuentemente</option>
-                                    <option value="yes_rare">Sí, ocasionalmente</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SECCIÓN 8: Historial Cardiovascular -->
-                <div class="bg-white p-6 rounded-xl shadow-lg space-y-6 border-l-4 ipn-border">
-                    <h2 class="text-2xl font-bold text-gray-700 border-b-2 ipn-accent/50 pb-2 flex items-center"><i class="fas fa-history mr-3 ipn-accent"></i> 8. Historial Cardiovascular</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div>
-                            <label for="history_mi" class="block text-sm font-medium text-gray-700">¿Ha sido diagnosticado con un Infarto?</label>
-                            <select id="history_mi" class="mt-1 block w-full">
-                                <option value="no">No</option>
-                                <option value="yes">Sí</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="history_angina" class="block text-sm font-medium text-gray-700">¿Ha sentido dolor opresivo en el pecho (Angina)?</label>
-                            <select id="history_angina" class="mt-1 block w-full">
-                                <option value="no">No</option>
-                                <option value="yes">Sí</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="family_history" class="block text-sm font-medium text-gray-700">Antecedentes Familiares (ECV o DM)</label>
-                            <select id="family_history" class="mt-1 block w-full">
-                                <option value="no">No</option>
-                                <option value="yes">Sí</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="sheet-status" class="text-center p-3 mt-4 rounded-lg text-sm hidden"></div>
-
-                <button id="calculate-button" class="w-full mt-6 py-3 px-6 border border-transparent rounded-lg shadow-lg text-xl font-extrabold text-white ipn-bg hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-150 ease-in-out transform hover:scale-[1.005]">
-                    Calcular Riesgo Cardiovascular Integral
-                </button>
-            </div>
-        </form>
-
-        <div id="results-section" class="hidden mt-10">
-            <h2 class="text-3xl font-bold ipn-accent mb-6 border-b-4 ipn-border pb-3">4. Resultados y Plan de Acción</h2>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-                <div class="p-6 rounded-xl border-2 space-y-4 shadow-md bg-white">
-                    <h3 class="text-xl font-semibold mb-3 ipn-accent border-b pb-2">Perfil de Riesgo</h3>
-                    <div id="global-risk-result" class="text-center p-4 rounded-lg font-bold text-2xl mb-4 transition duration-300"></div>
-                    
-                    <div>
-                        <h4 class="font-semibold text-gray-700 border-b border-gray-200 pb-1">Métricas Antropométricas:</h4>
-                        <ul class="list-disc list-inside text-sm text-gray-600 mt-2 space-y-1">
-                            <li><span class="font-medium">Edad:</span> <span id="res-age"></span> años</li>
-                            <li><span class="font-medium">IMC:</span> <span id="res-bmi-val"></span> <span id="res-bmi-class" class="font-bold"></span></li>
-                            <li><span class="font-medium">Índice Cintura-Cadera (ICC):</span> <span id="res-icc-val"></span> <span id="res-icc-class" class="font-bold"></span></li>
-                        </ul>
-                    </div>
-
-                    <div>
-                        <h4 class="font-semibold text-gray-700 border-b border-gray-200 pb-1 pt-3">Métricas Bioquímicas (Índices):</h4>
-                        <ul class="list-disc list-inside text-sm text-gray-600 mt-2 space-y-1">
-                            <li><span class="font-medium">Índice TG/HDL:</span> <span id="res-tg-hdl-val"></span> <span id="res-tg-hdl-class" class="font-bold"></span></li>
-                            <li><span class="font-medium">Índice Col Total/HDL:</span> <span id="res-chol-hdl-val"></span> <span id="res-chol-hdl-class" class="font-bold"></span></li>
-                            <li><span class="font-medium">MASLD (FLI Score):</span> <span id="res-fli-val"></span> <span id="res-fli-class" class="font-bold"></span></li>
-                        </ul>
-                    </div>
-
-                    <div>
-                        <h4 class="font-semibold text-gray-700 border-b border-gray-200 pb-1 pt-3">Estilo de Vida y Fuerza:</h4>
-                        <ul class="list-disc list-inside text-sm text-gray-600 mt-2 space-y-1">
-                            <li><span class="font-medium">Índice Tabáquico (IPA):</span> <span id="res-ipa-val"></span> <span id="res-ipa-class" class="font-bold"></span></li>
-                            <li><span class="font-medium">Actividad Física:</span> <span id="res-activity-class" class="font-bold"></span></li>
-                            <li><span class="font-medium">Fuerza de Agarre:</span> <span id="res-grip-class" class="font-bold"></span></li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="space-y-6">
-                    <div class="p-6 rounded-xl border-2 bg-gray-50 shadow-md">
-                        <h3 class="text-xl font-semibold mb-3 ipn-accent border-b pb-2">Factores Clave</h3>
-                        <ul id="risk-factors-list" class="space-y-2 text-sm text-gray-700 list-disc ml-5">
-                            </ul>
-                    </div>
-
-                    <div class="p-6 rounded-xl border-2 border-green-500 bg-green-50 shadow-md">
-                        <h3 class="text-2xl font-bold mb-4 text-green-700">Plan de Acción Personalizado</h3>
-                        <ul id="recommendations-list" class="space-y-3 text-gray-800 list-disc ml-5">
-                            </ul>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-8 no-print">
-                <button id="print-button" class="w-full py-2 px-4 border border-blue-600 rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition duration-150 ease-in-out">
-                    Imprimir Reporte (PDF)
-                </button>
-            </div>
-
-            <div class="mt-8 text-center border-t pt-4">
-                <p class="text-xs text-gray-500 italic">**Nota Importante:** Esta herramienta es parte de un proyecto de tesis y no sustituye la evaluación médica profesional. Consulte a su médico para un diagnóstico y tratamiento precisos.</p>
-            </div>
-        </div>
-
-        <div class="border-t pt-4 mt-8 no-print"></div> 
-        <div id="project-info" class="p-4 bg-gray-50 rounded-lg text-sm no-print shadow-inner">
-           <h3 class="font-bold text-lg ipn-accent mb-4 border-b pb-1 flex items-center">
-                <i class="fas fa-info-circle mr-3"></i> Información del Proyecto y Colaboradores
-            </h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Columna 1: Presenta e Institución -->
-                <div class="bg-white p-6 rounded-xl shadow-md space-y-3">
-                    <h4 class="text-lg font-bold text-gray-800 border-b pb-2 flex items-center">
-                        <i class="fas fa-graduation-cap mr-3 ipn-accent"></i> Presenta y Asesoría
-                    </h4>
-                    <p class="text-sm text-gray-700"><strong>Edsel Yahvi Méndez Hernández</strong></p>
-                    <p class="text-sm text-gray-600">Asesora Externa: Dra. Nayelli Nájera García</p>
-                    <p class="text-sm text-gray-600">Asesor Interno (Docente): Dr. Bustos García Juan Roberto Israel</p>
-                    <p class="font-semibold text-gray-700 mt-3">Institución:</p>
-                    <p class="text-sm text-gray-600">
-                        <a href="https://www.esm.ipn.mx/" target="_blank" class="ipn-accent hover:text-red-800 font-semibold underline">
-                            Escuela Superior de Medicina (ESM) - IPN
-                        </a>
-                    </p>
-                </div>
-
-                <!-- Columna 2: Laboratorio -->
-                <div class="bg-white p-6 rounded-xl shadow-md space-y-3">
-                    <h4 class="text-lg font-bold text-gray-800 border-b pb-2 flex items-center">
-                        <i class="fas fa-microscope mr-3 ipn-accent"></i> Laboratorio Colaborador (LICAM)
-                    </h4>
-                    <p class="text-gray-600 text-sm">Investigación Integral Cardiometabólica (IPN)</p>
-                </div>
-
-                <!-- Columna 3: Contacto y Redes -->
-                <div class="bg-white p-6 rounded-xl shadow-md space-y-3">
-                    <h4 class="text-lg font-bold text-gray-800 border-b pb-2 flex items-center">
-                        <i class="fas fa-address-card mr-3 ipn-accent"></i> Contacto y Redes
-                    </h4>
-                    <div class="text-sm text-gray-600 space-y-2">
-                        <p class="flex items-start">
-                            <i class="fas fa-map-marker-alt w-4 mr-2 mt-1 ipn-accent/80"></i>
-                            <span><span class="font-semibold">Ubicación:</span> Plan de San Luis y Díaz Mirón s/n Col. Casco de Santo Tomás, Miguel Hidalgo, 11340, CDMX.</span>
-                        </p>
-                        <p class="flex items-center">
-                            <i class="fas fa-envelope w-4 mr-2 ipn-accent/80"></i>
-                            <span><span class="font-semibold">Correo:</span> nnajerag@ipn.mx</span>
-                        </p>
-                        <p class="flex items-center">
-                            <i class="fas fa-phone w-4 mr-2 ipn-accent/80"></i>
-                            <span><span class="font-semibold">Teléfono:</span> 55 5729 6300 ext 62820</span>
-                        </p>
-                        <div class="border-t pt-3 mt-3">
-                            <p class="flex items-center space-x-4">
-                                <i class="fas fa-globe w-4 mr-2 ipn-accent/80"></i>
-                                <a href="cemiztli.wixsite.com/cardiometabolismo" target="_blank" class="ipn-accent hover:text-red-800 font-semibold underline">
-                                    Sitio Web
-                                </a>
-                                <a href="https://www.facebook.com/licam.ipn" target="_blank" class="ipn-accent hover:text-red-800 font-semibold underline">
-                                    Facebook
-                                </a>
-                                <a href="https://www.instagram.com/ipn_licam_lab" target="_blank" class="text-pink-600 hover:text-pink-800 font-semibold underline">
-                                    Instagram
-                                </a>
-                            </p>
-                        </div>
+                    <div class="p-6 rounded-xl border-2 border-green-500 bg-green-50">
+                        <h3 class="text-2xl font-bold mb-4 text-green-700">Plan de Acción Personalizado</h3>
+                        <ul id="recommendations-list" class="space-y-3 text-gray-800 list-disc ml-5">
+                            </ul>
                     </div>
                 </div>
             </div>
-         </div>
-    </div>
 
-    <button type="button" id="reset-button" class="mt-4 py-2 px-4 border ipn-border rounded-lg shadow-sm text-sm font-medium ipn-accent bg-white hover:bg-red-50 transition duration-150 ease-in-out fixed top-8 right-8 hidden no-print">
-        &larr; Calcular Nuevo
-    </button>
-
-
-    <script>
-        // =======================================================
-        // === CALCULADORA DE RIESGO INTEGRAL V2 - LOGIC.JS ====
-        // =======================================================
-        
-        // --- CONFIGURACIÓN DE INTEGRACIÓN CON GOOGLE SHEETS (IMPORTANTE) ---
-        // ¡ACTUALIZADO CON TU ÚLTIMA URL DE DESPLIEGUE!
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbweuEciVBAMuQgFMJe6HQrH4Q3v4aAKyhlZUr45lAIiZCseb095Hy8ljd2NDOvv42ODIw/exec";
-        // --------------------------------------------------------------------
-        
-        // --- CONSTANTES GLOBALES Y PUNTOS DE CORTE (Basados en IMSS y Guías) ---
-        const CONSTANTS = {
-            // IMSS (1000167606.jpg)
-            IMC: {
-                NORMAL: 25,
-                SOBREPESO: 30,
-                OBESIDAD_I: 35
-            },
-            GLUCOSA: {
-                NORMAL: 100,
-                PREDIABETES: 126
-            },
-            HBA1C: { // Añadido desde guías estándar
-                NORMAL: 5.7,
-                PREDIABETES: 6.5
-            },
-            TRIGLICERIDOS: {
-                NORMAL: 150,
-                LIMITE: 200
-            },
-            COLESTEROL_TOTAL: {
-                NORMAL: 200,
-                LIMITE: 240
-            },
-            HDL_HOMBRES: {
-                NORMAL: 40 // Riesgo si < 40
-            },
-            HDL_MUJERES: {
-                NORMAL: 50 // Riesgo si < 50
-            },
-            LDL: { // Añadido desde guías estándar
-                NORMAL: 100,
-                LIMITE: 130,
-                ALTO: 160
-            },
-            CINTURA_HOMBRES: {
-                NORMAL: 90 // Riesgo si >= 90
-            },
-            CINTURA_MUJERES: {
-                RIESGO_ALTO: 0.85 // > 0.85 es Riesgo Alto en mujeres
-            },
-            INDICE_TG_HDL: { // Triglicéridos / HDL
-                ALTO_RIESGO: 3.5 // > 3.5 sugiere alta Resistencia a Insulina
-            },
-            INDICE_COL_HDL: { // Colesterol Total / HDL
-                ALTO_RIESGO: 5.0 // > 5.0 es Alto Riesgo
-            },
-            IPA: { // Índice Paquete-Año
-                RIESGO_LEVE: 10
-            },
-            FLI_MASLD: { // Fatty Liver Index
-                BAJO: 30,
-                ALTO: 60
-            }
-        };
-
-        // --- TABLA DE DINAMOMETRÍA (1000167605.jpg) ---
-        const DYNAMOMETRY_P10 = {
-            hombres: {
-                "20-29": 33.9, 
-                "30-39": 36.6,
-                "40-49": 34.3,
-                "50-59": 30.2,
-                "60-69": 26.5,
-                "70-99": 22.8, 
-            },
-            mujeres: {
-                "20-29": 19.5,
-                "30-39": 20.7,
-                "40-49": 19.8,
-                "50-59": 16.6,
-                "60-69": 19.6, 
-                "70-99": 13.0, 
-            }
-        };
-
-        /**
-         * Función Principal: Se ejecuta cuando se presiona el botón "Calcular"
-         */
-        async function calculateRisk_v2() {
-            const validationDiv = document.getElementById('validation-message');
-            validationDiv.classList.add('hidden');
-            document.getElementById('sheet-status').classList.add('hidden');
-            
-            console.log("Iniciando cálculo y envío de datos v2...");
-            
-            // 1. Recolección y Cálculos de Edad
-            const inputs = getUserInputs_v2();
-            if (!inputs) {
-                validationDiv.textContent = "⚠️ Por favor, complete todos los campos obligatorios (Sección 1-4) con valores numéricos válidos (ej: edad, peso, estatura, glucosa, PAS/PAD).";
-                validationDiv.classList.remove('hidden');
-                return;
-            }
-
-            // 2. Cálculos de Métricas Automáticas (IMC, ICC, Índices, etc.)
-            const metrics = calculateMetrics(inputs);
-
-            // 3. Chequeo de Comorbilidades (Lógica de Diagnóstico vs Medicamento)
-            const healthStatus = checkComorbidities(inputs);
-
-            // 4. Cálculo del Score de Riesgo Heurístico (El "Cerebro")
-            const riskProfile = calculateHeuristicScore_v2(inputs, metrics, healthStatus);
-            
-            // 5. Envío de Datos a Google Sheets (Asíncrono)
-            await sendDataToSheets(inputs, metrics, riskProfile);
-            
-            // 6. Generación de Resultados en la UI
-            generateResults_v2(inputs, metrics, riskProfile);
-            
-            // 7. Guardar resultados en variable global para 'copiar'
-            window.lastResultData_v2 = { inputs, metrics, riskProfile };
-
-            // 8. Ocultar formulario y mostrar resultados
-            document.getElementById('input-form').classList.add('hidden');
-            document.getElementById('results-section').classList.remove('hidden');
-            document.getElementById('reset-button').classList.remove('hidden');
-            window.scrollTo(0, 0);
-
-            console.log("Cálculo finalizado. Perfil de Riesgo:", riskProfile);
-        }
-
-        /**
-         * PASO 5.1: Envía los datos de entrada y resultados calculados a Google Sheets.
-         */
-        async function sendDataToSheets(inputs, metrics, riskProfile) {
-            const statusDiv = document.getElementById('sheet-status');
-            statusDiv.textContent = "Enviando datos a la base de datos (Google Sheets)...";
-            statusDiv.className = "text-center p-3 mt-4 rounded-lg text-sm bg-blue-100 text-blue-800";
-            statusDiv.classList.remove('hidden');
-            
-            // Consolidar todos los datos relevantes en un solo objeto para el POST
-            const dataToSend = {
-                timestamp: new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' }),
-                fullName: inputs.full_name || 'Sin nombre',
-                email: inputs.email || '',
-                gender: inputs.gender === 'male' ? 'Masculino' : 'Femenino',
-                age: inputs.age,
-                
-                // Signos y Antropometría
-                paSistolica: inputs.pa_used.s,
-                paDiastolica: inputs.pa_used.d,
-                paSource: inputs.pa_used.source,
-                hr: inputs.hr,
-                rr: inputs.rr,
-                weight: inputs.weight,
-                height_cm: inputs.height_cm,
-                waist: inputs.waist,
-                hip: inputs.hip,
-                
-                // Métricas calculadas
-                bmi: metrics.bmi,
-                bmiClass: metrics.bmi_class,
-                icc: metrics.icc,
-                iccClass: metrics.icc_class,
-                fliScore: metrics.fli_score,
-                fliClass: metrics.fli_class,
-                gripFactorText: riskProfile.grip_factor_text,
-
-                // Bioquímicos
-                glucose: inputs.glucose,
-                hba1c: inputs.hba1c,
-                totalChol: inputs.total_chol,
-                hdl: inputs.hdl,
-                ldl: inputs.ldl,
-                triglycerides: inputs.triglycerides,
-                tgHdlIndex: metrics.tg_hdl,
-                cholHdlIndex: metrics.chol_hdl,
-
-                // Estilo de Vida
-                activity: `${inputs.activity_days} días/${inputs.activity_duration} min (${inputs.activity_intensity})`,
-                smokerStatus: inputs.smoker_status,
-                ipaScore: metrics.ipa,
-                alcoholFreq: inputs.alcohol_freq,
-
-                // Comorbilidades
-                dmStatus: inputs.dm_status,
-                medDm: inputs.med_dm,
-                htaStatus: inputs.hta_status,
-                medHta: inputs.med_hta,
-                dlpStatus: inputs.dlp_status,
-                medDlp: inputs.med_dlp,
-                historyMI: inputs.history_mi,
-                familyHistory: inputs.family_history,
-                
-                // Resultados de Riesgo
-                riskScore: riskProfile.score,
-                riskLevel: riskProfile.level,
-                riskFactorsList: riskProfile.factors.map(f => f.text).join(' | '),
-            };
-            
-            try {
-                // Usamos fetch con 'no-cors' para Apps Script POST
-                const response = await fetch(WEB_APP_URL, {
-                    method: 'POST',
-                    mode: 'no-cors', 
-                    cache: 'no-cache',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(dataToSend)
-                });
-                
-                // Asumimos éxito debido a 'no-cors'.
-                const statusDiv = document.getElementById('sheet-status');
-                statusDiv.textContent = "✅ Datos guardados en Sheets con éxito.";
-                statusDiv.className = "text-center p-3 mt-4 rounded-lg text-sm bg-green-100 text-green-800";
-                
-            } catch (error) {
-                console.error("Error al enviar datos a Google Sheets. La aplicación local sigue funcionando.", error);
-                const statusDiv = document.getElementById('sheet-status');
-                statusDiv.textContent = "❌ Error al guardar datos en Sheets. Revise la consola. El cálculo local se completó.";
-                statusDiv.className = "text-center p-3 mt-4 rounded-lg text-sm bg-red-100 text-red-800";
-            }
-        }
-
-
-        /**
-         * PASO 1: Recolecta todos los datos del formulario HTML.
-         */
-        function getUserInputs_v2() {
-            
-            const getVal = (id) => document.getElementById(id)?.value || null;
-            const getNum = (id) => parseFloat(document.getElementById(id)?.value) || null;
-            const getRad = (name) => document.querySelector(`input[name="${name}"]:checked`)?.value || "no";
-
-            // --- Helper: Calcular Edad ---
-            const getAge = (birthDateString) => {
-                if (!birthDateString) return null;
-                const today = new Date();
-                const birthDate = new Date(birthDateString);
-                let age = today.getFullYear() - birthDate.getFullYear();
-                const m = today.getMonth() - birthDate.getMonth();
-                if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-                    age--;
-                }
-                return age;
-            };
-
-            const inputs = {
-                // Sección 1
-                full_name: getVal('full_name'),
-                birth_date: getVal('birth_date'),
-                age: getAge(getVal('birth_date')),
-                gender: getVal('gender'),
-                email: getVal('email'),
-                // Sección 2
-                hr: getNum('hr'),
-                rr: getNum('rr'),
-                grip_right: getNum('grip_right'),
-                grip_left: getNum('grip_left'),
-                // Sección 2.1 - Promedio de PA
-                pa_used: getAverageBP(getNum('pas'), getNum('pad')),
-                // Sección 3
-                height_cm: getNum('height'),
-                weight: getNum('weight'),
-                waist: getNum('waist'),
-                hip: getNum('hip'),
-                // Sección 4
-                glucose: getNum('glucose'),
-                hba1c: getNum('hba1c'),
-                total_chol: getNum('total_chol'),
-                hdl: getNum('hdl'),
-                ldl: getNum('ldl'),
-                triglycerides: getNum('triglycerides'),
-                // Sección 5 (BIA) - No se usan para el cálculo principal, solo para logging si se completan
-                // Sección 6.1 (Actividad)
-                activity_days: getNum('activity_days'),
-                activity_duration: getNum('activity_duration'),
-                activity_intensity: getVal('activity_intensity'),
-                // Sección 6.2 (Tabaquismo)
-                smoker_status: getVal('smoker_status'),
-                smoker_passive: getVal('smoker_passive'),
-                smoker_years: getNum('smoker_years'),
-                smoker_daily_avg: getNum('smoker_daily_avg'),
-                // Sección 6.3 (Alcohol)
-                alcohol_freq: getVal('alcohol_freq'),
-                alcohol_dose: getNum('alcohol_dose'),
-                // Sección 7 (Comorbilidades)
-                dm_status: getRad('dm_status'),
-                med_dm: getVal('med_dm'),
-                hta_status: getRad('hta_status'),
-                med_hta: getVal('med_hta'),
-                dlp_status: getRad('dlp_status'),
-                med_dlp: getVal('med_dlp'),
-                // Sección 8 (Historial)
-                history_mi: getVal('history_mi'),
-                history_angina: getVal('history_angina'),
-                family_history: getVal('family_history')
-            };
-
-            // Validación básica (Campos obligatorios - Secciones 1 a 4)
-            if (!inputs.age || inputs.age < 0 || !inputs.height_cm || !inputs.weight || !inputs.waist || !inputs.hip || !inputs.glucose || !inputs.total_chol || !inputs.hdl || !inputs.triglycerides || !inputs.pa_used) {
-                return null; // Faltan datos clave
-            }
-            
-            return inputs;
-        }
-
-        /**
-         * Helper para PASO 1: Calcula el promedio de PA si existe.
-         */
-        function getAverageBP(pas, pad) {
-            const bp_readings = [];
-            
-            // Lectura principal (obligatoria)
-            if (pas && pad) {
-                bp_readings.push({ s: pas, d: pad });
-            } else {
-                return null; // Si no hay lectura principal, no se puede calcular
-            }
-
-            // Lecturas opcionales
-            const s2 = parseFloat(document.getElementById('pa_d2_s').value);
-            const d2 = parseFloat(document.getElementById('pa_d2_d').value);
-            if (!isNaN(s2) && !isNaN(d2) && s2 > 0 && d2 > 0) bp_readings.push({ s: s2, d: d2 });
-
-            const s3 = parseFloat(document.getElementById('pa_d3_s').value);
-            const d3 = parseFloat(document.getElementById('pa_d3_d').value);
-            if (!isNaN(s3) && !isNaN(d3) && s3 > 0 && d3 > 0) bp_readings.push({ s: s3, d: d3 });
-
-            const total_s = bp_readings.reduce((sum, reading) => sum + reading.s, 0);
-            const total_d = bp_readings.reduce((sum, reading) => sum + reading.d, 0);
-            
-            return {
-                s: Math.round(total_s / bp_readings.length),
-                d: Math.round(total_d / bp_readings.length),
-                source: bp_readings.length > 1 ? `Promedio de ${bp_readings.length} tomas` : "Toma única"
-            };
-        }
-
-
-        /**
-         * PASO 2: Calcula métricas automáticas (IMC, ICC, Índices, FLI, IPA).
-         */
-        function calculateMetrics(inputs) {
-            const metrics = {};
-            const { weight, height_cm, waist, hip, triglycerides, hdl, total_chol, smoker_status, smoker_daily_avg, smoker_years } = inputs;
-
-            // 1. IMC (Índice de Masa Corporal)
-            const height_m = height_cm / 100;
-            metrics.bmi = parseFloat((weight / (height_m * height_m)).toFixed(1));
-            metrics.bmi_class = getBmiClass(metrics.bmi);
-
-            // 2. ICC (Índice Cintura-Cadera)
-            metrics.icc = parseFloat((waist / hip).toFixed(2));
-            metrics.icc_class = getIccClass(metrics.icc, inputs.gender);
-
-            // 3. Índice TG/HDL
-            metrics.tg_hdl = parseFloat((triglycerides / hdl).toFixed(2));
-            metrics.tg_hdl_class = metrics.tg_hdl >= CONSTANTS.INDICE_TG_HDL.ALTO_RIESGO ? "Alto Riesgo" : "Normal";
-
-            // 4. Índice Col Total/HDL
-            metrics.chol_hdl = parseFloat((total_chol / hdl).toFixed(2));
-            metrics.chol_hdl_class = metrics.chol_hdl >= CONSTANTS.INDICE_COL_HDL.ALTO_RIESGO ? "Alto Riesgo" : "Normal";
-
-            // 5. IPA (Índice Paquete-Año)
-            if (smoker_status === 'active' && smoker_daily_avg > 0 && smoker_years > 0) {
-                metrics.ipa = parseFloat(((smoker_daily_avg / 20) * smoker_years).toFixed(1));
-                metrics.ipa_class = metrics.ipa >= CONSTANTS.IPA.RIESGO_LEVE ? "Riesgo Elevado" : "Riesgo Bajo";
-            } else {
-                metrics.ipa = 0;
-                metrics.ipa_class = "No aplica";
-            }
-
-            // 6. FLI (Fatty Liver Index)
-            const ln_tg = Math.log(triglycerides);
-            const ln_waist = Math.log(waist);
-            const X = (0.953 * ln_tg) + (0.139 * metrics.bmi) + (0.718 * ln_waist) - 13.9;
-            metrics.fli_score = parseFloat(((Math.exp(X) / (1 + Math.exp(X))) * 100).toFixed(1));
-            metrics.fli_class = metrics.fli_score >= CONSTANTS.FLI_MASLD.ALTO ? "Alto Riesgo" : (metrics.fli_score >= CONSTANTS.FLI_MASLD.BAJO ? "Riesgo Moderado" : "Bajo Riesgo");
-            
-            return metrics;
-        }
-
-        // Helpers para Paso 2
-        function getBmiClass(bmi) {
-            if (bmi < 18.5) return "Bajo Peso";
-            if (bmi < CONSTANTS.IMC.NORMAL) return "Normal";
-            if (bmi < CONSTANTS.IMC.SOBREPESO) return "Sobrepeso";
-            if (bmi < CONSTANTS.IMC.OBESIDAD_I) return "Obesidad Grado I";
-            return "Obesidad Grado II+";
-        }
-        function getIccClass(icc, gender) {
-            const cutoff = gender === 'male' ? CONSTANTS.ICC_HOMBRES.RIESGO_ALTO : CONSTANTS.ICC_MUJERES.RIESGO_ALTO;
-            return icc >= cutoff ? "Riesgo Cardiovascular Alto" : "Riesgo Normal";
-        }
-
-
-        /**
-         * PASO 3: Verifica comorbilidades (Lógica de Diagnóstico vs Medicamento).
-         */
-        function checkComorbidities(inputs) {
-            const status = {
-                dm: "no",
-                hta: "no",
-                dlp: "no"
-            };
-
-            // Diabetes
-            if (inputs.dm_status === 'yes') {
-                status.dm = "diagnosticada";
-            } else if (inputs.med_dm === 'yes_freq') {
-                status.dm = "tratada_no_dx"; // Lógica solicitada
-            }
-
-            // Hipertensión
-            if (inputs.hta_status === 'yes') {
-                status.hta = "diagnosticada";
-            } else if (inputs.med_hta === 'yes_freq') {
-                status.hta = "tratada_no_dx"; // Lógica solicitada
-            }
-            
-            // Dislipidemia
-            if (inputs.dlp_status === 'yes') {
-                status.dlp = "diagnosticada";
-            } else if (inputs.med_dlp === 'yes_freq') {
-                status.dlp = "tratada_no_dx"; // Lógica solicitada
-            }
-
-            return status;
-        }
-
-        /**
-         * PASO 4: Calcula el Score de Riesgo Heurístico (El "Cerebro").
-         */
-        function calculateHeuristicScore_v2(inputs, metrics, healthStatus) {
-            let score = 0;
-            const riskFactors = []; // Lista de texto de factores de riesgo
-            let gripFactor = { text: "Fuerza de Agarre No Medida", class: "risk-moderate" }; // Default
-
-            // A. Edad y Sexo (Base Risk)
-            if (inputs.age >= 45 && inputs.gender === 'male') {
-                score += 10;
-            } else if (inputs.age >= 55 && inputs.gender === 'female') {
-                score += 10;
-            }
-
-            // B. Historial Cardiovascular (Máxima Ponderación)
-            if (inputs.history_mi === 'yes') {
-                score += 50; // Evento previo es el predictor más fuerte
-                riskFactors.push({ text: "Infarto Previo Diagnosticado", class: "risk-very-high" });
-            }
-            if (inputs.history_angina === 'yes') {
-                score += 30; // Síntomas de angina
-                riskFactors.push({ text: "Síntomas de Angina de Pecho", class: "risk-high" });
-            }
-
-            // C. Comorbilidades (Usando la lógica del Paso 3)
-            if (healthStatus.dm === 'diagnosticada') {
-                score += 30;
-                riskFactors.push({ text: "Diabetes Mellitus Diagnosticada", class: "risk-high" });
-            } else if (healthStatus.dm === 'tratada_no_dx' || (inputs.hba1c && inputs.hba1c >= CONSTANTS.HBA1C.PREDIABETES) || inputs.glucose >= CONSTANTS.GLUCOSA.PREDIABETES) {
-                score += 20;
-                riskFactors.push({ text: "Estado de Prediabetes o DM no controlada", class: "risk-high" });
-            }
-
-            if (healthStatus.hta === 'diagnosticada') {
-                score += 25;
-                riskFactors.push({ text: "Hipertensión Diagnosticada", class: "risk-high" });
-            } else if (healthStatus.hta === 'tratada_no_dx' || inputs.pa_used.s >= 140 || inputs.pa_used.d >= 90) {
-                score += 20;
-                riskFactors.push({ text: `Presión Arterial Elevada (${inputs.pa_used.s}/${inputs.pa_used.d} mmHg)`, class: "risk-high" });
-            } else if (inputs.pa_used.s >= 130 || inputs.pa_used.d >= 85) {
-                score += 10;
-                riskFactors.push({ text: `Presión Arterial Límite (${inputs.pa_used.s}/${inputs.pa_used.d} mmHg)`, class: "risk-moderate" });
-            }
-
-            // D. Parámetros Bioquímicos (Dislipidemia)
-            if (inputs.ldl) { // Solo si se proveyó LDL
-                 if (inputs.ldl >= CONSTANTS.LDL.ALTO) {
-                     score += 20;
-                     riskFactors.push({ text: `Colesterol LDL Muy Alto (>${CONSTANTS.LDL.ALTO})`, class: "risk-high" });
-                } else if (inputs.ldl >= CONSTANTS.LDL.LIMITE) {
-                     score += 10;
-                     riskFactors.push({ text: `Colesterol LDL Límite (>${CONSTANTS.LDL.LIMITE})`, class: "risk-moderate" });
-                }
-            }
-
-            if (metrics.tg_hdl >= CONSTANTS.INDICE_TG_HDL.ALTO_RIESGO) {
-                score += 15;
-                riskFactors.push({ text: `Índice TG/HDL Elevado (>${CONSTANTS.INDICE_TG_HDL.ALTO_RIESGO})`, class: "risk-high" });
-            } else if (inputs.triglycerides >= CONSTANTS.TRIGLICERIDOS.LIMITE) {
-                score += 5;
-                riskFactors.push({ text: `Triglicéridos Límite (>${CONSTANTS.TRIGLICERIDOS.LIMITE})`, class: "risk-moderate" });
-            }
-
-            if (metrics.chol_hdl >= CONSTANTS.INDICE_COL_HDL.ALTO_RIESGO) {
-                score += 10;
-                riskFactors.push({ text: `Índice Col/HDL Elevado (>${CONSTANTS.INDICE_COL_HDL.ALTO_RIESGO})`, class: "risk-moderate" });
-            }
-
-            // E. Antropometría
-            // LÓGICA < 18 AÑOS: Solo se suma si es mayor de edad.
-            if (inputs.age >= 18) {
-                if (metrics.bmi >= CONSTANTS.IMC.OBESIDAD_I) {
-                    score += 20;
-                    riskFactors.push({ text: `Obesidad General (IMC >${CONSTANTS.IMC.OBESIDAD_I})`, class: "risk-high" });
-                } else if (metrics.bmi >= CONSTANTS.IMC.SOBREPESO) {
-                    score += 10;
-                    riskFactors.push({ text: `Sobrepeso (IMC >${CONSTANTS.IMC.NORMAL})`, class: "risk-moderate" });
-                }
-            } else {
-                 riskFactors.push({ text: `IMC (${metrics.bmi}) no usado para score (menor de 18)`, class: "risk-moderate" });
-            }
-            // ICC (Obesidad Abdominal)
-            if (metrics.icc_class === "Riesgo Cardiovascular Alto") {
-                score += 15;
-                riskFactors.push({ text: `Obesidad Abdominal (ICC Alto: ${metrics.icc})`, class: "risk-high" });
-            }
-
-            // F. Dinamometría (Sarcopenia/Fragilidad)
-            const [newScore, dynFactor] = checkDynamometry(inputs, score);
-            if (dynFactor) {
-                score = newScore;
-                riskFactors.push(dynFactor);
-                gripFactor = dynFactor; // Para mostrar en el resumen
-            }
-
-            // G. Estilo de Vida
-            if (metrics.ipa >= CONSTANTS.IPA.RIESGO_LEVE) {
-                score += 20;
-                riskFactors.push({ text: `Tabaquismo Activo (IPA: ${metrics.ipa})`, class: "risk-high" });
-            } else if (inputs.smoker_passive === 'yes') {
-                score += 5;
-                riskFactors.push({ text: "Fumador Pasivo", class: "risk-moderate" });
-            }
-
-            // Actividad Física (Meta 150 min/sem moderada)
-            const totalActivity = (inputs.activity_days * inputs.activity_duration) || 0;
-            if (totalActivity < 150 && inputs.activity_intensity !== 'vigorous') {
-                score += 10;
-                riskFactors.push({ text: "Sedentarismo (No cumple 150 min/sem)", class: "risk-moderate" });
-            }
-
-            // Alcohol
-            if (inputs.alcohol_freq === 'daily' && inputs.alcohol_dose >= 2) {
-                score += 10;
-                riskFactors.push({ text: "Consumo de Alcohol de Riesgo", class: "risk-moderate" });
-            }
-
-            // H. Historial Familiar
-            if (inputs.family_history === 'yes') {
-                score += 10;
-                riskFactors.push({ text: "Antecedentes Familiares Positivos", class: "risk-moderate" });
-            }
-
-            // I. Riesgo Hepático (MASLD)
-            if (metrics.fli_class === "Alto Riesgo") {
-                score += 10; // El riesgo hepático aumenta el riesgo CV
-                riskFactors.push({ text: `Alto Riesgo de MASLD (Hígado Graso)`, class: "risk-high" });
-            }
-
-            // Clasificación Final del Score
-            let riskLevel = "";
-            let riskClass = "";
-            if (score >= 100 || inputs.history_mi === 'yes' || inputs.history_angina === 'yes') {
-                riskLevel = "MUY ALTO RIESGO";
-                riskClass = "risk-very-high";
-            } else if (score >= 60) {
-                riskLevel = "ALTO RIESGO";
-                riskClass = "risk-high";
-            } else if (score >= 30) {
-                riskLevel = "RIESGO MODERADO";
-                riskClass = "risk-moderate";
-            } else {
-                riskLevel = "RIESGO BAJO";
-                riskClass = "risk-low";
-            }
-
-            return {
-                score: Math.round(score),
-                level: riskLevel,
-                css_class: riskClass,
-                factors: riskFactors,
-                grip_factor_text: gripFactor.text // Texto resumen de dinamometría
-            };
-        }
-
-        // Helper para Paso 4: Dinamometría
-        function checkDynamometry(inputs, currentScore) {
-            const { age, gender, grip_right, grip_left } = inputs;
-            if ((!grip_right || grip_right === 0) && (!grip_left || grip_left === 0) || !age) return [currentScore, null];
-
-            const maxGrip = Math.max(grip_right || 0, grip_left || 0);
-            
-            // 1. Obtener rango de edad de la tabla
-            let ageRange;
-            if (age <= 29) ageRange = "20-29";
-            else if (age <= 39) ageRange = "30-39";
-            else if (age <= 49) ageRange = "40-49";
-            else if (age <= 59) ageRange = "50-59";
-            else if (age <= 69) ageRange = "60-69";
-            else ageRange = "70-99";
-
-            // 2. Obtener el P10 (punto de corte)
-            const p10_cutoff = DYNAMOMETRY_P10[gender === 'male' ? 'hombres' : 'mujeres'][ageRange];
-
-            // 3. Evaluar
-            if (maxGrip < p10_cutoff) {
-                const factor = {
-                    text: `Baja Fuerza Muscular (Dinamometría < ${p10_cutoff} Kg)`,
-                    class: "risk-high"
-                };
-                // Aumenta el score porque la sarcopenia es un factor de riesgo CV grave
-                return [currentScore + 15, factor];
-            } else {
-                const factor = {
-                    text: `Fuerza Muscular Normal (Dinamometría > P10)`,
-                    class: "risk-low"
-                };
-                // No suma score, solo es informativo
-                return [currentScore, factor];
-            }
-        }
-
-
-        /**
-         * PASO 6: Muestra los resultados en el HTML.
-         */
-        function generateResults_v2(inputs, metrics, riskProfile) {
-            // 1. Nivel de Riesgo Global
-            const riskDiv = document.getElementById('global-risk-result');
-            riskDiv.innerHTML = `${riskProfile.level} (Score: ${riskProfile.score})`;
-            riskDiv.className = `text-center p-4 rounded-lg font-bold text-2xl mb-4 transition duration-300 ${riskProfile.css_class}`;
-
-            // 2. Llenar Métricas Calculadas
-            document.getElementById('res-age').textContent = inputs.age;
-            document.getElementById('res-bmi-val').textContent = metrics.bmi;
-            document.getElementById('res-bmi-class').textContent = `(${metrics.bmi_class})`;
-            document.getElementById('res-icc-val').textContent = metrics.icc;
-            document.getElementById('res-icc-class').textContent = `(${metrics.icc_class})`;
-
-            document.getElementById('res-tg-hdl-val').textContent = metrics.tg_hdl;
-            document.getElementById('res-tg-hdl-class').textContent = `(${metrics.tg_hdl_class})`;
-            document.getElementById('res-chol-hdl-val').textContent = metrics.chol_hdl;
-            document.getElementById('res-chol-hdl-class').textContent = `(${metrics.chol_hdl_class})`;
-            
-            document.getElementById('res-fli-val').textContent = metrics.fli_score;
-            document.getElementById('res-fli-class').textContent = `(${metrics.fli_class})`;
-
-            document.getElementById('res-ipa-val').textContent = metrics.ipa;
-            document.getElementById('res-ipa-class').textContent = `(${metrics.ipa_class})`;
-            
-            const totalActivity = (inputs.activity_days * inputs.activity_duration) || 0;
-            document.getElementById('res-activity-class').textContent = totalActivity >= 150 ? "Activo (Cumple meta)" : "Sedentario/Insuficiente";
-            
-            document.getElementById('res-grip-class').textContent = riskProfile.grip_factor_text;
-
-
-            // 3. Llenar Lista de Factores de Riesgo
-            const factorsList = document.getElementById('risk-factors-list');
-            factorsList.innerHTML = ""; // Limpiar lista
-            if (riskProfile.factors.length === 0) {
-                factorsList.innerHTML = '<li class="text-green-600">¡Felicidades! No se detectaron factores de riesgo mayores.</li>';
-            } else {
-                riskProfile.factors.forEach(factor => {
-                    let colorClass = "text-gray-700";
-                    if (factor.class === 'risk-very-high' || factor.class === 'risk-high') colorClass = "text-red-600 font-bold";
-                    if (factor.class === 'risk-moderate') colorClass = "text-yellow-700 font-semibold";
-                    if (factor.class === 'risk-low') colorClass = "text-green-600";
-                    
-                    factorsList.innerHTML += `<li class="${colorClass}">${factor.text}</li>`;
-                });
-            }
-
-            // 4. Llenar Recomendaciones (Personalizadas)
-            const recList = document.getElementById('recommendations-list');
-            recList.innerHTML = ""; // Limpiar lista
-            
-            // Recomendaciones basadas en los peores factores
-            if (riskProfile.level === "MUY ALTO RIESGO" || riskProfile.level === "ALTO RIESGO") {
-                 recList.innerHTML += `<li class="font-bold text-red-700">Atención Prioritaria: Su perfil indica un riesgo cardiovascular elevado. Es fundamental consultar a un médico especialista a la brevedad.</li>`;
-            }
-            if (riskProfile.factors.some(f => f.text.includes("Diabetes") || f.text.includes("Prediabetes"))) {
-                 recList.innerHTML += `<li>Controlar la glucosa y HbA1c es su prioridad #1. Requiere manejo médico y un plan de alimentación estricto.</li>`;
-            }
-            if (riskProfile.factors.some(f => f.text.includes("Tabaquismo"))) {
-                 recList.innerHTML += `<li class="font-bold">El cese del tabaquismo es la intervención aislada más importante que puede hacer. Busque apoyo profesional para dejar de fumar.</li>`;
-            }
-            if (riskProfile.factors.some(f => f.text.includes("Obesidad Abdominal") || f.text.includes("Sobrepeso"))) {
-                 recList.innerHTML += `<li>La pérdida de peso (5-10% inicial) mejorará drásticamente su presión arterial, glucosa y lípidos. Enfoque en reducir grasa visceral.</li>`;
-            }
-             if (riskProfile.factors.some(f => f.text.includes("Baja Fuerza Muscular"))) {
-                 recList.innerHTML += `<li>Su fuerza es baja (riesgo de sarcopenia). Se recomienda iniciar un **programa de ejercicio de fuerza** (pesas, ligas, lagartijas) 2-3 veces por semana, supervisado.</li>`;
-            }
-            if (riskProfile.factors.some(f => f.text.includes("Sedentarismo"))) {
-                 recList.innerHTML += `<li>Su nivel de actividad es insuficiente. Intente cumplir la meta de 150 minutos de actividad moderada (caminar rápido) por semana.</li>`;
-            }
-            if (riskProfile.factors.some(f => f.text.includes("MASLD"))) {
-                 recList.innerHTML += `<li>Su riesgo de Hígado Graso es alto. La intervención principal es la **pérdida de peso** y la **reducción drástica de azúcares y harinas refinadas**.</li>`;
-            }
-            if (recList.innerHTML === "") {
-                recList.innerHTML = '<li>¡Excelente perfil! Mantenga un estilo de vida saludable y realice chequeos preventivos anuales.</li>';
-            }
-        }
+            <div class="mt-8 no-print">
+                <button id="print-button" class="w-full py-2 px-4 border border-blue-600 rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition duration-150 ease-in-out">
+                    Imprimir Reporte (PDF)
+                </button>
+            </div>
+
+            <div class="mt-8 text-center border-t pt-4">
+                <p class="text-xs text-gray-500 italic">**Nota Importante:** Esta herramienta es parte de un proyecto de tesis y no sustituye la evaluación médica profesional. Consulte a su médico para un diagnóstico y tratamiento precisos.</p>
+            </div>
+        </div>
+
+        <div class="border-t pt-4 mt-8 no-print"></div> 
+        <div id="project-info" class="p-4 bg-gray-50 rounded-lg text-sm no-print">
+             <h3 class="font-bold text-lg ipn-accent mb-2 border-b pb-1">Información del Proyecto y Colaboradores</h3>
+             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <div>
+                     <p class="font-semibold text-gray-700">Presenta y Asesoría:</p>
+                     <p class="text-gray-600"><strong>Edsel Yahvi Méndez Hernández</strong></p>
+                     <p class="text-gray-600">Asesora Externa: Dra. Nayelli Nájera García</p>
+                     <p class="text-gray-600">Asesor Interno (Docente): Dr. Bustos García Juan Roberto Israel</p>
+                     <p class="font-semibold text-gray-700 mt-2">Institución:</p>
+                     <p class="text-gray-600">
+                         <a href="https://www.esm.ipn.mx/" target="_blank" class="ipn-accent hover:text-red-800 font-semibold underline">
+                              Escuela Superior de Medicina (ESM) - IPN
+                         </a>
+                     </p>
+                 </div>
+                 <div>
+                     <p class="font-semibold text-gray-700">Laboratorio Colaborador (LICAM):</p>
+                     <p class="text-gray-600">Investigación Integral Cardiometabólica (IPN)</p>
+                     
+                     <p class="font-semibold text-gray-700 mt-2">Contacto y Ubicación:</p>
+                     <p class="text-gray-600">
+                         <span class="font-medium">Ubicación:</span> Plan de San Luis y Díaz Mirón s/n Col. Casco de Santo Tomás, Miguel Hidalgo, 11340, Ciudad de México, CDMX.
+                     </p>
+                     <p class="text-gray-600">
+                         <span class="font-medium">Correo:</span> nnajerag@ipn.mx
+                     </p>
+                     <p class="text-gray-600">
+                         <span class="font-medium">Teléfono:</span> 55 5729 6300 ext 62820
+                     </p>
+                     <p class="text-gray-600 mt-2">
+                         <span class="font-medium">Sitio Web/Redes:</span> 
+                         <a href="cemiztli.wixsite.com/cardiometabolismo" target="_blank" class="ipn-accent hover:text-red-800 font-semibold underline">
+                              cemiztli.wixsite.com/cardiometabolismo
+                         </a>,
+                         <a href="https://www.facebook.com/licam.ipn" target="_blank" class="ipn-accent hover:text-red-800 font-semibold underline">
+                              Facebook
+                         </a>,
+                         <a href="https://www.instagram.com/ipn_licam_lab" target="_blank" class="text-pink-600 hover:text-pink-800 font-semibold underline">
+                              Instagram
+                         </a>
+                     </p>
+                 </div>
+             </div>
+         </div>
+    </div>
+
+    <button type="button" id="reset-button" class="mt-4 py-2 px-4 border ipn-border rounded-lg shadow-sm text-sm font-medium ipn-accent bg-white hover:bg-red-50 transition duration-150 ease-in-out fixed top-8 right-8 hidden no-print">
+        &larr; Calcular Nuevo
+    </button>
+
+
+    <script>
+        // =======================================================
+        // === CALCULADORA DE RIESGO INTEGRAL V2 - LOGIC.JS ====
+        // =======================================================
+        
+        // --- CONFIGURACIÓN DE INTEGRACIÓN CON GOOGLE SHEETS (IMPORTANTE) ---
+        // ¡ACTUALIZADO CON TU ÚLTIMA URL DE DESPLIEGUE!
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbweuEciVBAMuQgFMJe6HQrH4Q3v4aAKyhlZUr45lAIiZCseb095Hy8ljd2NDOvv42ODIw/exec";
+        // --------------------------------------------------------------------
+        
+        // --- CONSTANTES GLOBALES Y PUNTOS DE CORTE (Basados en IMSS y Guías) ---
+        const CONSTANTS = {
+            // IMSS (1000167606.jpg)
+            IMC: {
+                NORMAL: 25,
+                SOBREPESO: 30,
+                OBESIDAD_I: 35
+            },
+            GLUCOSA: {
+                NORMAL: 100,
+                PREDIABETES: 126
+            },
+            HBA1C: { // Añadido desde guías estándar
+                NORMAL: 5.7,
+                PREDIABETES: 6.5
+            },
+            TRIGLICERIDOS: {
+                NORMAL: 150,
+                LIMITE: 200
+            },
+            COLESTEROL_TOTAL: {
+                NORMAL: 200,
+                LIMITE: 240
+            },
+            HDL_HOMBRES: {
+                NORMAL: 40 // Riesgo si < 40
+            },
+            HDL_MUJERES: {
+                NORMAL: 50 // Riesgo si < 50
+            },
+            LDL: { // Añadido desde guías estándar
+                NORMAL: 100,
+                LIMITE: 130,
+                ALTO: 160
+            },
+            CINTURA_HOMBRES: {
+                NORMAL: 90 // Riesgo si >= 90
+            },
+            CINTURA_MUJERES: {
+                NORMAL: 80 // Riesgo si >= 80
+            },
+            // Guías Estándar (No en las imágenes)
+            ICC_HOMBRES: { // Índice Cintura-Cadera
+                RIESGO_ALTO: 0.95 // > 0.95 es Riesgo Alto en hombres
+            },
+            ICC_MUJERES: {
+                RIESGO_ALTO: 0.85 // > 0.85 es Riesgo Alto en mujeres
+            },
+            INDICE_TG_HDL: { // Triglicéridos / HDL
+                ALTO_RIESGO: 3.5 // > 3.5 sugiere alta Resistencia a Insulina
+            },
+            INDICE_COL_HDL: { // Colesterol Total / HDL
+                ALTO_RIESGO: 5.0 // > 5.0 es Alto Riesgo
+            },
+            IPA: { // Índice Paquete-Año
+                RIESGO_LEVE: 10
+            },
+            FLI_MASLD: { // Fatty Liver Index
+                BAJO: 30,
+                ALTO: 60
+            }
+        };
+
+        // --- TABLA DE DINAMOMETRÍA (1000167605.jpg) ---
+        const DYNAMOMETRY_P10 = {
+            hombres: {
+                "20-29": 33.9, 
+                "30-39": 36.6,
+                "40-49": 34.3,
+                "50-59": 30.2,
+                "60-69": 26.5,
+                "70-99": 22.8, 
+            },
+            mujeres: {
+                "20-29": 19.5,
+                "30-39": 20.7,
+                "40-49": 19.8,
+                "50-59": 16.6,
+                "60-69": 19.6, 
+                "70-99": 13.0, 
+            }
+        };
+
+        /**
+         * Función Principal: Se ejecuta cuando se presiona el botón "Calcular"
+         */
+        async function calculateRisk_v2() {
+            const validationDiv = document.getElementById('validation-message');
+            validationDiv.classList.add('hidden');
+            document.getElementById('sheet-status').classList.add('hidden');
+            
+            console.log("Iniciando cálculo y envío de datos v2...");
+            
+            // 1. Recolección y Cálculos de Edad
+            const inputs = getUserInputs_v2();
+            if (!inputs) {
+                validationDiv.textContent = "⚠️ Por favor, complete todos los campos obligatorios (Sección 1-4) con valores numéricos válidos (ej: edad, peso, estatura, glucosa, PAS/PAD).";
+                validationDiv.classList.remove('hidden');
+                return;
+            }
+
+            // 2. Cálculos de Métricas Automáticas (IMC, ICC, Índices, etc.)
+            const metrics = calculateMetrics(inputs);
+
+            // 3. Chequeo de Comorbilidades (Lógica de Diagnóstico vs Medicamento)
+            const healthStatus = checkComorbidities(inputs);
+
+            // 4. Cálculo del Score de Riesgo Heurístico (El "Cerebro")
+            const riskProfile = calculateHeuristicScore_v2(inputs, metrics, healthStatus);
+            
+            // 5. Envío de Datos a Google Sheets (Asíncrono)
+            await sendDataToSheets(inputs, metrics, riskProfile);
+            
+            // 6. Generación de Resultados en la UI
+            generateResults_v2(inputs, metrics, riskProfile);
+            
+            // 7. Guardar resultados en variable global para 'copiar'
+            window.lastResultData_v2 = { inputs, metrics, riskProfile };
+
+            // 8. Ocultar formulario y mostrar resultados
+            document.getElementById('input-form').classList.add('hidden');
+            document.getElementById('results-section').classList.remove('hidden');
+            document.getElementById('reset-button').classList.remove('hidden');
+            window.scrollTo(0, 0);
+
+            console.log("Cálculo finalizado. Perfil de Riesgo:", riskProfile);
+        }
+
+        /**
+         * PASO 5.1: Envía los datos de entrada y resultados calculados a Google Sheets.
+         */
+        async function sendDataToSheets(inputs, metrics, riskProfile) {
+            const statusDiv = document.getElementById('sheet-status');
+            statusDiv.textContent = "Enviando datos a la base de datos (Google Sheets)...";
+            statusDiv.className = "text-center p-3 mt-4 rounded-lg text-sm bg-blue-100 text-blue-800";
+            statusDiv.classList.remove('hidden');
+            
+            // Consolidar todos los datos relevantes en un solo objeto para el POST
+            const dataToSend = {
+                timestamp: new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' }),
+                fullName: inputs.full_name || 'Sin nombre',
+                email: inputs.email || '',
+                gender: inputs.gender === 'male' ? 'Masculino' : 'Femenino',
+                age: inputs.age,
+                
+                // Signos y Antropometría
+                paSistolica: inputs.pa_used.s,
+                paDiastolica: inputs.pa_used.d,
+                paSource: inputs.pa_used.source,
+                hr: inputs.hr,
+                rr: inputs.rr,
+                weight: inputs.weight,
+                height_cm: inputs.height_cm,
+                waist: inputs.waist,
+                hip: inputs.hip,
+                
+                // Métricas calculadas
+                bmi: metrics.bmi,
+                bmiClass: metrics.bmi_class,
+                icc: metrics.icc,
+                iccClass: metrics.icc_class,
+                fliScore: metrics.fli_score,
+                fliClass: metrics.fli_class,
+                gripFactorText: riskProfile.grip_factor_text,
+
+                // Bioquímicos
+                glucose: inputs.glucose,
+                hba1c: inputs.hba1c,
+                totalChol: inputs.total_chol,
+                hdl: inputs.hdl,
+                ldl: inputs.ldl,
+                triglycerides: inputs.triglycerides,
+                tgHdlIndex: metrics.tg_hdl,
+                cholHdlIndex: metrics.chol_hdl,
+
+                // Estilo de Vida
+                activity: `${inputs.activity_days} días/${inputs.activity_duration} min (${inputs.activity_intensity})`,
+                smokerStatus: inputs.smoker_status,
+                ipaScore: metrics.ipa,
+                alcoholFreq: inputs.alcohol_freq,
+
+                // Comorbilidades
+                dmStatus: inputs.dm_status,
+                medDm: inputs.med_dm,
+                htaStatus: inputs.hta_status,
+                medHta: inputs.med_hta,
+                dlpStatus: inputs.dlp_status,
+                medDlp: inputs.med_dlp,
+                historyMI: inputs.history_mi,
+                familyHistory: inputs.family_history,
+                
+                // Resultados de Riesgo
+                riskScore: riskProfile.score,
+                riskLevel: riskProfile.level,
+                riskFactorsList: riskProfile.factors.map(f => f.text).join(' | '),
+            };
+            
+            try {
+                // Usamos fetch con 'no-cors' para Apps Script POST
+                const response = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', 
+                    cache: 'no-cache',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(dataToSend)
+                });
+                
+                // Asumimos éxito debido a 'no-cors'.
+                statusDiv.textContent = "✅ Datos guardados en Sheets con éxito.";
+                statusDiv.className = "text-center p-3 mt-4 rounded-lg text-sm bg-green-100 text-green-800";
+                
+            } catch (error) {
+                console.error("Error al enviar datos a Google Sheets. La aplicación local sigue funcionando.", error);
+                statusDiv.textContent = "❌ Error al guardar datos en Sheets. Revise la consola. El cálculo local se completó.";
+                statusDiv.className = "text-center p-3 mt-4 rounded-lg text-sm bg-red-100 text-red-800";
+            }
+        }
 
 
         /**
-         * Lógica para controlar el flujo de la pantalla de disclaimer.
+         * PASO 1: Recolecta todos los datos del formulario HTML.
          */
-        function handleDisclaimerAcceptance() {
-            const disclaimerDiv = document.getElementById('privacy-disclaimer');
-            const appContentDiv = document.getElementById('app-content');
-            const checkbox = document.getElementById('accept-checkbox');
-            const startButton = document.getElementById('start-button');
-
-            // 1. Manejo del botón de "Continuar"
-            checkbox.addEventListener('change', () => {
-                if (checkbox.checked) {
-                    startButton.disabled = false;
-                    startButton.classList.remove('opacity-50', 'cursor-not-allowed');
-                } else {
-                    startButton.disabled = true;
-                    startButton.classList.add('opacity-50', 'cursor-not-allowed');
-                }
-            });
-
-            // 2. Manejo del clic en el botón de inicio
-            startButton.addEventListener('click', (e) => {
-                e.preventDefault();
-                if (checkbox.checked) {
-                    // Ocultar disclaimer y mostrar la app principal
-                    disclaimerDiv.classList.add('hidden');
-                    appContentDiv.classList.remove('hidden');
-                    window.scrollTo(0, 0);
-                } else {
-                    // Muestra mensaje de validación (aunque el botón debe estar deshabilitado)
-                    const validationDiv = document.getElementById('validation-message');
-                    validationDiv.textContent = "Debe aceptar el Aviso de Privacidad para continuar.";
-                    validationDiv.classList.remove('hidden');
-                }
-            });
+        function getUserInputs_v2() {
             
-            // Asegura que la pantalla correcta se muestre al inicio.
-            disclaimerDiv.classList.remove('hidden');
-            appContentDiv.classList.add('hidden');
+            const getVal = (id) => document.getElementById(id)?.value || null;
+            const getNum = (id) => parseFloat(document.getElementById(id)?.value) || null;
+            const getRad = (name) => document.querySelector(`input[name="${name}"]:checked`)?.value || "no";
+
+            // --- Helper: Calcular Edad ---
+            const getAge = (birthDateString) => {
+                if (!birthDateString) return null;
+                const today = new Date();
+                const birthDate = new Date(birthDateString);
+                let age = today.getFullYear() - birthDate.getFullYear();
+                const m = today.getMonth() - birthDate.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                    age--;
+                }
+                return age;
+            };
+
+            const inputs = {
+                // Sección 1
+                full_name: getVal('full_name'),
+                birth_date: getVal('birth_date'),
+                age: getAge(getVal('birth_date')),
+                gender: getVal('gender'),
+                email: getVal('email'),
+                // Sección 2
+                hr: getNum('hr'),
+                rr: getNum('rr'),
+                grip_right: getNum('grip_right'),
+                grip_left: getNum('grip_left'),
+                // Sección 2.1 - Promedio de PA
+                pa_used: getAverageBP(getNum('pas'), getNum('pad')),
+                // Sección 3
+                height_cm: getNum('height'),
+                weight: getNum('weight'),
+                waist: getNum('waist'),
+                hip: getNum('hip'),
+                // Sección 4
+                glucose: getNum('glucose'),
+                hba1c: getNum('hba1c'),
+                total_chol: getNum('total_chol'),
+                hdl: getNum('hdl'),
+                ldl: getNum('ldl'),
+                triglycerides: getNum('triglycerides'),
+                // Sección 5 (BIA) - No se usan para el cálculo principal, solo para logging si se completan
+                // Sección 6.1 (Actividad)
+                activity_days: getNum('activity_days'),
+                activity_duration: getNum('activity_duration'),
+                activity_intensity: getVal('activity_intensity'),
+                // Sección 6.2 (Tabaquismo)
+                smoker_status: getVal('smoker_status'),
+                smoker_passive: getVal('smoker_passive'),
+                smoker_years: getNum('smoker_years'),
+                smoker_daily_avg: getNum('smoker_daily_avg'),
+                // Sección 6.3 (Alcohol)
+                alcohol_freq: getVal('alcohol_freq'),
+                alcohol_dose: getNum('alcohol_dose'),
+                // Sección 7 (Comorbilidades)
+                dm_status: getRad('dm_status'),
+                med_dm: getVal('med_dm'),
+                hta_status: getRad('hta_status'),
+                med_hta: getVal('med_hta'),
+                dlp_status: getRad('dlp_status'),
+                med_dlp: getVal('med_dlp'),
+                // Sección 8 (Historial)
+                history_mi: getVal('history_mi'),
+                history_angina: getVal('history_angina'),
+                family_history: getVal('family_history')
+            };
+
+            // Validación básica (Campos obligatorios - Secciones 1 a 4)
+            if (!inputs.age || inputs.age < 0 || !inputs.height_cm || !inputs.weight || !inputs.waist || !inputs.hip || !inputs.glucose || !inputs.total_chol || !inputs.hdl || !inputs.triglycerides || !inputs.pa_used) {
+                return null; // Faltan datos clave
+            }
+            
+            return inputs;
         }
 
-        /**
-         * Función para resetear el formulario (v2)
-         */
-        function resetForm() {
-            // Restablece la visibilidad para volver al disclaimer
-            document.getElementById('privacy-disclaimer').classList.remove('hidden');
-            document.getElementById('app-content').classList.add('hidden');
+        /**
+         * Helper para PASO 1: Calcula el promedio de PA si existe.
+         */
+        function getAverageBP(pas, pad) {
+            const bp_readings = [];
+            
+            // Lectura principal (obligatoria)
+            if (pas && pad) {
+                bp_readings.push({ s: pas, d: pad });
+            } else {
+                return null; // Si no hay lectura principal, no se puede calcular
+            }
 
-            // Restablece el estado de consentimiento
-            document.getElementById('accept-checkbox').checked = false;
-            const startButton = document.getElementById('start-button');
-            startButton.disabled = true;
-            startButton.classList.add('opacity-50', 'cursor-not-allowed');
+            // Lecturas opcionales
+            const s2 = parseFloat(document.getElementById('pa_d2_s').value);
+            const d2 = parseFloat(document.getElementById('pa_d2_d').value);
+            if (!isNaN(s2) && !isNaN(d2) && s2 > 0 && d2 > 0) bp_readings.push({ s: s2, d: d2 });
 
-            // Vuelve al formulario y oculta los resultados
-            document.getElementById('input-form').classList.remove('hidden');
-            document.getElementById('results-section').classList.add('hidden');
-            document.getElementById('reset-button').classList.add('hidden');
-            document.getElementById('sheet-status').classList.add('hidden');
-            
-            // Limpia los campos del formulario
-            document.getElementById('calc-form').reset();
-            window.scrollTo(0, 0);
-        }
+            const s3 = parseFloat(document.getElementById('pa_d3_s').value);
+            const d3 = parseFloat(document.getElementById('pa_d3_d').value);
+            if (!isNaN(s3) && !isNaN(d3) && s3 > 0 && d3 > 0) bp_readings.push({ s: s3, d: d3 });
 
-        /**
-         * Función de copiado (v2) - Se mantiene en el script, pero no se usa
-         */
-        function copyResults_v2() {
-            if (!window.lastResultData_v2) {
-                // Reemplazando alert()
-                document.getElementById('validation-message').textContent = "No hay resultados para copiar. Por favor, calcula primero.";
-                document.getElementById('validation-message').classList.remove('hidden');
-                return;
-            }
-            
-            const { inputs, metrics, riskProfile } = window.lastResultData_v2;
-            
-            // Generar texto plano
-            let text = `--- PERFIL DE RIESGO CARDIOMETABÓLICO INTEGRAL ---\n`;
-            text += `Nombre: ${inputs.full_name || 'No provisto'}\n`;
-            text += `Edad: ${inputs.age} años\n`;
-            text += `Fecha: ${new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' })}\n\n`;
-            
-            text += `== RIESGO GLOBAL ==\n`;
-            text += `NIVEL: ${riskProfile.level}\n`;
-            text += `SCORE: ${riskProfile.score} puntos\n\n`;
-            
-            text += `== MÉTRICAS CLAVE ==\n`;
-            text += `IMC: ${metrics.bmi} (${metrics.bmi_class})\n`;
-            text += `Índice Cintura-Cadera (ICC): ${metrics.icc} (${metrics.icc_class})\n`;
-            text += `Índice TG/HDL: ${metrics.tg_hdl} (${metrics.tg_hdl_class})\n`;
-            text += `Índice Col Total/HDL: ${metrics.chol_hdl} (${metrics.chol_hdl_class})\n`;
-            text += `Riesgo MASLD (FLI): ${metrics.fli_score} (${metrics.fli_class})\n`;
-            text += `Índice Tabáquico (IPA): ${metrics.ipa} (${metrics.ipa_class})\n`;
-            text += `Fuerza de Agarre: ${riskProfile.grip_factor_text}\n`;
-            text += `Presión Arterial Usada: ${inputs.pa_used.s}/${inputs.pa_used.d} mmHg (${inputs.pa_used.source})\n\n`;
-            
-            text += `== FACTORES DE RIESGO DETECTADOS ==\n`;
-            if (riskProfile.factors.length > 0) {
-                riskProfile.factors.forEach(f => {
-                    text += `- ${f.text}\n`;
-                });
-            } else {
-                text += `- Ningún factor de riesgo mayor detectado.\n`;
-            }
-            
-            text += `\n== PLAN DE ACCIÓN RECOMENDADO ==\n`;
-            const recListItems = document.getElementById('recommendations-list').children;
-            Array.from(recListItems).forEach(item => {
-                text += `* ${item.textContent}\n`;
-            });
-            
-            text += `\n**Nota Importante:** Esta herramienta no sustituye la evaluación médica profesional.`;
-            
-            // Copiar al portapapeles
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text).then(() => {
-                    // Reemplazando alert() con un mensaje de estado temporal
-                    const statusDiv = document.getElementById('sheet-status');
-                    statusDiv.textContent = "¡Resultados copiados al portapapeles!";
-                    statusDiv.className = "text-center p-3 mt-4 rounded-lg text-sm bg-blue-100 text-blue-800";
-                    statusDiv.classList.remove('hidden');
-                    setTimeout(() => statusDiv.classList.add('hidden'), 3000);
-
-                }).catch(err => {
-                    console.error('Error al copiar: ', err);
-                    // Reemplazando alert() con un mensaje de estado
-                    document.getElementById('validation-message').textContent = "Error al copiar. Revisa la consola.";
-                    document.getElementById('validation-message').classList.remove('hidden');
-                });
-            } else {
-                // Fallback para navegadores antiguos
-                const textarea = document.createElement('textarea');
-                textarea.value = text;
-                document.body.appendChild(textarea);
-                textarea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textarea);
-                
-                // Reemplazando alert() con un mensaje de estado temporal
-                const statusDiv = document.getElementById('sheet-status');
-                statusDiv.textContent = "¡Resultados copiados al portapapeles! (modo fallback)";
-                statusDiv.className = "text-center p-3 mt-4 rounded-lg text-sm bg-blue-100 text-blue-800";
-                statusDiv.classList.remove('hidden');
-                setTimeout(() => statusDiv.classList.add('hidden'), 3000);
-            }
-        }
+            const total_s = bp_readings.reduce((sum, reading) => sum + reading.s, 0);
+            const total_d = bp_readings.reduce((sum, reading) => sum + reading.d, 0);
+            
+            return {
+                s: Math.round(total_s / bp_readings.length),
+                d: Math.round(total_d / bp_readings.length),
+                source: bp_readings.length > 1 ? `Promedio de ${bp_readings.length} tomas` : "Toma única"
+            };
+        }
 
 
         /**
-         * Lógica para controlar el flujo de la pantalla de disclaimer.
+         * PASO 2: Calcula métricas automáticas (IMC, ICC, Índices, FLI, IPA).
          */
-        function handleDisclaimerAcceptance() {
-            const disclaimerDiv = document.getElementById('privacy-disclaimer');
-            const appContentDiv = document.getElementById('app-content');
-            const checkbox = document.getElementById('accept-checkbox');
-            const startButton = document.getElementById('start-button');
+        function calculateMetrics(inputs) {
+            const metrics = {};
+            const { weight, height_cm, waist, hip, triglycerides, hdl, total_chol, smoker_status, smoker_daily_avg, smoker_years } = inputs;
 
-            // 1. Manejo del botón de "Continuar"
-            checkbox.addEventListener('change', () => {
-                if (checkbox.checked) {
-                    startButton.disabled = false;
-                    startButton.classList.remove('opacity-50', 'cursor-not-allowed');
-                } else {
-                    startButton.disabled = true;
-                    startButton.classList.add('opacity-50', 'cursor-not-allowed');
-                }
-            });
+            // 1. IMC (Índice de Masa Corporal)
+            const height_m = height_cm / 100;
+            metrics.bmi = parseFloat((weight / (height_m * height_m)).toFixed(1));
+            metrics.bmi_class = getBmiClass(metrics.bmi);
 
-            // 2. Manejo del clic en el botón de inicio
-            startButton.addEventListener('click', (e) => {
-                e.preventDefault();
-                if (checkbox.checked) {
-                    // Ocultar disclaimer y mostrar la app principal
-                    disclaimerDiv.classList.add('hidden');
-                    appContentDiv.classList.remove('hidden');
-                    window.scrollTo(0, 0);
-                } else {
-                    // Muestra mensaje de validación (aunque el botón debe estar deshabilitado)
-                    const validationDiv = document.getElementById('validation-message');
-                    validationDiv.textContent = "Debe aceptar el Aviso de Privacidad para continuar.";
-                    validationDiv.classList.remove('hidden');
-                }
-            });
+            // 2. ICC (Índice Cintura-Cadera)
+            metrics.icc = parseFloat((waist / hip).toFixed(2));
+            metrics.icc_class = getIccClass(metrics.icc, inputs.gender);
+
+            // 3. Índice TG/HDL
+            metrics.tg_hdl = parseFloat((triglycerides / hdl).toFixed(2));
+            metrics.tg_hdl_class = metrics.tg_hdl >= CONSTANTS.INDICE_TG_HDL.ALTO_RIESGO ? "Alto Riesgo" : "Normal";
+
+            // 4. Índice Col Total/HDL
+            metrics.chol_hdl = parseFloat((total_chol / hdl).toFixed(2));
+            metrics.chol_hdl_class = metrics.chol_hdl >= CONSTANTS.INDICE_COL_HDL.ALTO_RIESGO ? "Alto Riesgo" : "Normal";
+
+            // 5. IPA (Índice Paquete-Año)
+            if (smoker_status === 'active' && smoker_daily_avg > 0 && smoker_years > 0) {
+                metrics.ipa = parseFloat(((smoker_daily_avg / 20) * smoker_years).toFixed(1));
+                metrics.ipa_class = metrics.ipa >= CONSTANTS.IPA.RIESGO_LEVE ? "Riesgo Elevado" : "Riesgo Bajo";
+            } else {
+                metrics.ipa = 0;
+                metrics.ipa_class = "No aplica";
+            }
+
+            // 6. FLI (Fatty Liver Index)
+            const ln_tg = Math.log(triglycerides);
+            const ln_waist = Math.log(waist);
+            const X = (0.953 * ln_tg) + (0.139 * metrics.bmi) + (0.718 * ln_waist) - 13.9;
+            metrics.fli_score = parseFloat(((Math.exp(X) / (1 + Math.exp(X))) * 100).toFixed(1));
+            metrics.fli_class = metrics.fli_score >= CONSTANTS.FLI_MASLD.ALTO ? "Alto Riesgo" : (metrics.fli_score >= CONSTANTS.FLI_MASLD.BAJO ? "Riesgo Moderado" : "Bajo Riesgo");
             
-            // Asegura que la pantalla correcta se muestre al inicio.
-            disclaimerDiv.classList.remove('hidden');
-            appContentDiv.classList.add('hidden');
+            return metrics;
         }
 
-        /**
-         * Función para resetear el formulario (v2)
-         */
-        function resetForm() {
-            // Restablece la visibilidad para volver al disclaimer
-            document.getElementById('privacy-disclaimer').classList.remove('hidden');
-            document.getElementById('app-content').classList.add('hidden');
+        // Helpers para Paso 2
+        function getBmiClass(bmi) {
+            if (bmi < 18.5) return "Bajo Peso";
+            if (bmi < CONSTANTS.IMC.NORMAL) return "Normal";
+            if (bmi < CONSTANTS.IMC.SOBREPESO) return "Sobrepeso";
+            if (bmi < CONSTANTS.IMC.OBESIDAD_I) return "Obesidad Grado I";
+            return "Obesidad Grado II+";
+        }
+        function getIccClass(icc, gender) {
+            const cutoff = gender === 'male' ? CONSTANTS.ICC_HOMBRES.RIESGO_ALTO : CONSTANTS.ICC_MUJERES.RIESGO_ALTO;
+            return icc >= cutoff ? "Riesgo Cardiovascular Alto" : "Riesgo Normal";
+        }
 
-            // Restablece el estado de consentimiento
-            document.getElementById('accept-checkbox').checked = false;
-            const startButton = document.getElementById('start-button');
-            startButton.disabled = true;
-            startButton.classList.add('opacity-50', 'cursor-not-allowed');
 
-            // Vuelve al formulario y oculta los resultados
-            document.getElementById('input-form').classList.remove('hidden');
-            document.getElementById('results-section').classList.add('hidden');
-            document.getElementById('reset-button').classList.add('hidden');
-            document.getElementById('sheet-status').classList.add('hidden');
-            
+        /**
+         * PASO 3: Verifica comorbilidades (Lógica de Diagnóstico vs Medicamento).
+         */
+        function checkComorbidities(inputs) {
+            const status = {
+                dm: "no",
+                hta: "no",
+                dlp: "no"
+            };
+
+            // Diabetes
+            if (inputs.dm_status === 'yes') {
+                status.dm = "diagnosticada";
+            } else if (inputs.med_dm === 'yes_freq') {
+                status.dm = "tratada_no_dx"; // Lógica solicitada
+            }
+
+            // Hipertensión
+            if (inputs.hta_status === 'yes') {
+                status.hta = "diagnosticada";
+            } else if (inputs.med_hta === 'yes_freq') {
+                status.hta = "tratada_no_dx"; // Lógica solicitada
+            }
+            
+            // Dislipidemia
+            if (inputs.dlp_status === 'yes') {
+                status.dlp = "diagnosticada";
+            } else if (inputs.med_dlp === 'yes_freq') {
+                status.dlp = "tratada_no_dx"; // Lógica solicitada
+            }
+
+            return status;
+        }
+
+        /**
+         * PASO 4: Calcula el Score de Riesgo Heurístico (El "Cerebro").
+         */
+        function calculateHeuristicScore_v2(inputs, metrics, healthStatus) {
+            let score = 0;
+            const riskFactors = []; // Lista de texto de factores de riesgo
+            let gripFactor = { text: "Fuerza de Agarre No Medida", class: "risk-moderate" }; // Default
+
+            // A. Edad y Sexo (Base Risk)
+            if (inputs.age >= 45 && inputs.gender === 'male') {
+                score += 10;
+            } else if (inputs.age >= 55 && inputs.gender === 'female') {
+                score += 10;
+            }
+
+            // B. Historial Cardiovascular (Máxima Ponderación)
+            if (inputs.history_mi === 'yes') {
+                score += 50; // Evento previo es el predictor más fuerte
+                riskFactors.push({ text: "Infarto Previo Diagnosticado", class: "risk-very-high" });
+            }
+            if (inputs.history_angina === 'yes') {
+                score += 30; // Síntomas de angina
+                riskFactors.push({ text: "Síntomas de Angina de Pecho", class: "risk-high" });
+            }
+
+            // C. Comorbilidades (Usando la lógica del Paso 3)
+            if (healthStatus.dm === 'diagnosticada') {
+                score += 30;
+                riskFactors.push({ text: "Diabetes Mellitus Diagnosticada", class: "risk-high" });
+            } else if (healthStatus.dm === 'tratada_no_dx' || (inputs.hba1c && inputs.hba1c >= CONSTANTS.HBA1C.PREDIABETES) || inputs.glucose >= CONSTANTS.GLUCOSA.PREDIABETES) {
+                score += 20;
+                riskFactors.push({ text: "Estado de Prediabetes o DM no controlada", class: "risk-high" });
+            }
+
+            if (healthStatus.hta === 'diagnosticada') {
+                score += 25;
+                riskFactors.push({ text: "Hipertensión Diagnosticada", class: "risk-high" });
+            } else if (healthStatus.hta === 'tratada_no_dx' || inputs.pa_used.s >= 140 || inputs.pa_used.d >= 90) {
+                score += 20;
+                riskFactors.push({ text: `Presión Arterial Elevada (${inputs.pa_used.s}/${inputs.pa_used.d} mmHg)`, class: "risk-high" });
+            } else if (inputs.pa_used.s >= 130 || inputs.pa_used.d >= 85) {
+                score += 10;
+                riskFactors.push({ text: `Presión Arterial Límite (${inputs.pa_used.s}/${inputs.pa_used.d} mmHg)`, class: "risk-moderate" });
+            }
+
+            // D. Parámetros Bioquímicos (Dislipidemia)
+            if (inputs.ldl) { // Solo si se proveyó LDL
+                 if (inputs.ldl >= CONSTANTS.LDL.ALTO) {
+                     score += 20;
+                     riskFactors.push({ text: `Colesterol LDL Muy Alto (>${CONSTANTS.LDL.ALTO})`, class: "risk-high" });
+                } else if (inputs.ldl >= CONSTANTS.LDL.LIMITE) {
+                     score += 10;
+                     riskFactors.push({ text: `Colesterol LDL Límite (>${CONSTANTS.LDL.LIMITE})`, class: "risk-moderate" });
+                }
+            }
+
+            if (metrics.tg_hdl >= CONSTANTS.INDICE_TG_HDL.ALTO_RIESGO) {
+                score += 15;
+                riskFactors.push({ text: `Índice TG/HDL Elevado (>${CONSTANTS.INDICE_TG_HDL.ALTO_RIESGO})`, class: "risk-high" });
+            } else if (inputs.triglycerides >= CONSTANTS.TRIGLICERIDOS.LIMITE) {
+                score += 5;
+                riskFactors.push({ text: `Triglicéridos Límite (>${CONSTANTS.TRIGLICERIDOS.LIMITE})`, class: "risk-moderate" });
+            }
+
+            if (metrics.chol_hdl >= CONSTANTS.INDICE_COL_HDL.ALTO_RIESGO) {
+                score += 10;
+                riskFactors.push({ text: `Índice Col/HDL Elevado (>${CONSTANTS.INDICE_COL_HDL.ALTO_RIESGO})`, class: "risk-moderate" });
+            }
+
+            // E. Antropometría
+            // LÓGICA < 18 AÑOS: Solo se suma si es mayor de edad.
+            if (inputs.age >= 18) {
+                if (metrics.bmi >= CONSTANTS.IMC.OBESIDAD_I) {
+                    score += 20;
+                    riskFactors.push({ text: `Obesidad General (IMC >${CONSTANTS.IMC.OBESIDAD_I})`, class: "risk-high" });
+                } else if (metrics.bmi >= CONSTANTS.IMC.SOBREPESO) {
+                    score += 10;
+                    riskFactors.push({ text: `Sobrepeso (IMC >${CONSTANTS.IMC.NORMAL})`, class: "risk-moderate" });
+                }
+            } else {
+                 riskFactors.push({ text: `IMC (${metrics.bmi}) no usado para score (menor de 18)`, class: "risk-moderate" });
+            }
+            // ICC (Obesidad Abdominal)
+            if (metrics.icc_class === "Riesgo Cardiovascular Alto") {
+                score += 15;
+                riskFactors.push({ text: `Obesidad Abdominal (ICC Alto: ${metrics.icc})`, class: "risk-high" });
+            }
+
+            // F. Dinamometría (Sarcopenia/Fragilidad)
+            const [newScore, dynFactor] = checkDynamometry(inputs, score);
+            if (dynFactor) {
+                score = newScore;
+                riskFactors.push(dynFactor);
+                gripFactor = dynFactor; // Para mostrar en el resumen
+            }
+
+            // G. Estilo de Vida
+            if (metrics.ipa >= CONSTANTS.IPA.RIESGO_LEVE) {
+                score += 20;
+                riskFactors.push({ text: `Tabaquismo Activo (IPA: ${metrics.ipa})`, class: "risk-high" });
+            } else if (inputs.smoker_passive === 'yes') {
+                score += 5;
+                riskFactors.push({ text: "Fumador Pasivo", class: "risk-moderate" });
+            }
+
+            // Actividad Física (Meta 150 min/sem moderada)
+            const totalActivity = (inputs.activity_days * inputs.activity_duration) || 0;
+            if (totalActivity < 150 && inputs.activity_intensity !== 'vigorous') {
+                score += 10;
+                riskFactors.push({ text: "Sedentarismo (No cumple 150 min/sem)", class: "risk-moderate" });
+            }
+
+            // Alcohol
+            if (inputs.alcohol_freq === 'daily' && inputs.alcohol_dose >= 2) {
+                score += 10;
+                riskFactors.push({ text: "Consumo de Alcohol de Riesgo", class: "risk-moderate" });
+            }
+
+            // H. Historial Familiar
+            if (inputs.family_history === 'yes') {
+                score += 10;
+                riskFactors.push({ text: "Antecedentes Familiares Positivos", class: "risk-moderate" });
+            }
+
+            // I. Riesgo Hepático (MASLD)
+            if (metrics.fli_class === "Alto Riesgo") {
+                score += 10; // El riesgo hepático aumenta el riesgo CV
+                riskFactors.push({ text: `Alto Riesgo de MASLD (Hígado Graso)`, class: "risk-high" });
+            }
+
+            // Clasificación Final del Score
+            let riskLevel = "";
+            let riskClass = "";
+            if (score >= 100 || inputs.history_mi === 'yes' || inputs.history_angina === 'yes') {
+                riskLevel = "MUY ALTO RIESGO";
+                riskClass = "risk-very-high";
+            } else if (score >= 60) {
+                riskLevel = "ALTO RIESGO";
+                riskClass = "risk-high";
+            } else if (score >= 30) {
+                riskLevel = "RIESGO MODERADO";
+                riskClass = "risk-moderate";
+            } else {
+                riskLevel = "RIESGO BAJO";
+                riskClass = "risk-low";
+            }
+
+            return {
+                score: Math.round(score),
+                level: riskLevel,
+                css_class: riskClass,
+                factors: riskFactors,
+                grip_factor_text: gripFactor.text // Texto resumen de dinamometría
+            };
+        }
+
+        // Helper para Paso 4: Dinamometría
+        function checkDynamometry(inputs, currentScore) {
+            const { age, gender, grip_right, grip_left } = inputs;
+            if ((!grip_right || grip_right === 0) && (!grip_left || grip_left === 0) || !age) return [currentScore, null];
+
+            const maxGrip = Math.max(grip_right || 0, grip_left || 0);
+            
+            // 1. Obtener rango de edad de la tabla
+            let ageRange;
+            if (age <= 29) ageRange = "20-29";
+            else if (age <= 39) ageRange = "30-39";
+            else if (age <= 49) ageRange = "40-49";
+            else if (age <= 59) ageRange = "50-59";
+            else if (age <= 69) ageRange = "60-69";
+            else ageRange = "70-99";
+
+            // 2. Obtener el P10 (punto de corte)
+            const p10_cutoff = DYNAMOMETRY_P10[gender === 'male' ? 'hombres' : 'mujeres'][ageRange];
+
+            // 3. Evaluar
+            if (maxGrip < p10_cutoff) {
+                const factor = {
+                    text: `Baja Fuerza Muscular (Dinamometría < ${p10_cutoff} Kg)`,
+                    class: "risk-high"
+                };
+                // Aumenta el score porque la sarcopenia es un factor de riesgo CV grave
+                return [currentScore + 15, factor];
+            } else {
+                const factor = {
+                    text: `Fuerza Muscular Normal (Dinamometría > P10)`,
+                    class: "risk-low"
+                };
+                // No suma score, solo es informativo
+                return [currentScore, factor];
+            }
+        }
+
+
+        /**
+         * PASO 6: Muestra los resultados en el HTML.
+         */
+        function generateResults_v2(inputs, metrics, riskProfile) {
+            // 1. Nivel de Riesgo Global
+            const riskDiv = document.getElementById('global-risk-result');
+            riskDiv.innerHTML = `${riskProfile.level} (Score: ${riskProfile.score})`;
+            riskDiv.className = `text-center p-4 rounded-lg font-bold text-2xl mb-4 transition duration-300 ${riskProfile.css_class}`;
+
+            // 2. Llenar Métricas Calculadas
+            document.getElementById('res-age').textContent = inputs.age;
+            document.getElementById('res-bmi-val').textContent = metrics.bmi;
+            document.getElementById('res-bmi-class').textContent = `(${metrics.bmi_class})`;
+            document.getElementById('res-icc-val').textContent = metrics.icc;
+            document.getElementById('res-icc-class').textContent = `(${metrics.icc_class})`;
+
+            document.getElementById('res-tg-hdl-val').textContent = metrics.tg_hdl;
+            document.getElementById('res-tg-hdl-class').textContent = `(${metrics.tg_hdl_class})`;
+            document.getElementById('res-chol-hdl-val').textContent = metrics.chol_hdl;
+            document.getElementById('res-chol-hdl-class').textContent = `(${metrics.chol_hdl_class})`;
+            
+            document.getElementById('res-fli-val').textContent = metrics.fli_score;
+            document.getElementById('res-fli-class').textContent = `(${metrics.fli_class})`;
+
+            document.getElementById('res-ipa-val').textContent = metrics.ipa;
+            document.getElementById('res-ipa-class').textContent = `(${metrics.ipa_class})`;
+            
+            const totalActivity = (inputs.activity_days * inputs.activity_duration) || 0;
+            document.getElementById('res-activity-class').textContent = totalActivity >= 150 ? "Activo (Cumple meta)" : "Sedentario/Insuficiente";
+            
+            document.getElementById('res-grip-class').textContent = riskProfile.grip_factor_text;
+
+
+            // 3. Llenar Lista de Factores de Riesgo
+            const factorsList = document.getElementById('risk-factors-list');
+            factorsList.innerHTML = ""; // Limpiar lista
+            if (riskProfile.factors.length === 0) {
+                factorsList.innerHTML = '<li class="text-green-600">¡Felicidades! No se detectaron factores de riesgo mayores.</li>';
+            } else {
+                riskProfile.factors.forEach(factor => {
+                    let colorClass = "text-gray-700";
+                    if (factor.class === 'risk-very-high' || factor.class === 'risk-high') colorClass = "text-red-600 font-bold";
+                    if (factor.class === 'risk-moderate') colorClass = "text-yellow-700 font-semibold";
+                    if (factor.class === 'risk-low') colorClass = "text-green-600";
+                    
+                    factorsList.innerHTML += `<li class="${colorClass}">${factor.text}</li>`;
+                });
+            }
+
+            // 4. Llenar Recomendaciones (Personalizadas)
+            const recList = document.getElementById('recommendations-list');
+            recList.innerHTML = ""; // Limpiar lista
+            
+            // Recomendaciones basadas en los peores factores
+            if (riskProfile.level === "MUY ALTO RIESGO" || riskProfile.level === "ALTO RIESGO") {
+                 recList.innerHTML += `<li class="font-bold text-red-700">Atención Prioritaria: Su perfil indica un riesgo cardiovascular elevado. Es fundamental consultar a un médico especialista a la brevedad.</li>`;
+            }
+            if (riskProfile.factors.some(f => f.text.includes("Diabetes") || f.text.includes("Prediabetes"))) {
+                 recList.innerHTML += `<li>Controlar la glucosa y HbA1c es su prioridad #1. Requiere manejo médico y un plan de alimentación estricto.</li>`;
+            }
+            if (riskProfile.factors.some(f => f.text.includes("Tabaquismo"))) {
+                 recList.innerHTML += `<li class="font-bold">El cese del tabaquismo es la intervención aislada más importante que puede hacer. Busque apoyo profesional para dejar de fumar.</li>`;
+            }
+            if (riskProfile.factors.some(f => f.text.includes("Obesidad Abdominal") || f.text.includes("Sobrepeso"))) {
+                 recList.innerHTML += `<li>La pérdida de peso (5-10% inicial) mejorará drásticamente su presión arterial, glucosa y lípidos. Enfoque en reducir grasa visceral.</li>`;
+            }
+             if (riskProfile.factors.some(f => f.text.includes("Baja Fuerza Muscular"))) {
+                 recList.innerHTML += `<li>Su fuerza es baja (riesgo de sarcopenia). Se recomienda iniciar un **programa de ejercicio de fuerza** (pesas, ligas, lagartijas) 2-3 veces por semana, supervisado.</li>`;
+            }
+            if (riskProfile.factors.some(f => f.text.includes("Sedentarismo"))) {
+                 recList.innerHTML += `<li>Su nivel de actividad es insuficiente. Intente cumplir la meta de 150 minutos de actividad moderada (caminar rápido) por semana.</li>`;
+            }
+            if (riskProfile.factors.some(f => f.text.includes("MASLD"))) {
+                 recList.innerHTML += `<li>Su riesgo de Hígado Graso es alto. La intervención principal es la **pérdida de peso** y la **reducción drástica de azúcares y harinas refinadas**.</li>`;
+            }
+            if (recList.innerHTML === "") {
+                recList.innerHTML = '<li>¡Excelente perfil! Mantenga un estilo de vida saludable y realice chequeos preventivos anuales.</li>';
+            }
+        }
+
+
+        /**
+         * Función para resetear el formulario (v2)
+         */
+        function resetForm() {
+            document.getElementById('input-form').classList.remove('hidden');
+            document.getElementById('results-section').classList.add('hidden');
+            document.getElementById('reset-button').classList.add('hidden');
+            document.getElementById('sheet-status').classList.add('hidden');
             // Limpia los campos del formulario
-            document.getElementById('calc-form').reset();
-            window.scrollTo(0, 0);
-        }
+            document.getElementById('calc-form').reset();
+            window.scrollTo(0, 0);
+        }
 
-        // --- Inicializador ---
-        // Asegura que el DOM esté cargado antes de asignar los botones
-        document.addEventListener('DOMContentLoaded', () => {
-            
-            // ** Inicializa la lógica del Aviso de Privacidad **
-            handleDisclaimerAcceptance();
+        /**
+         * Función de copiado (v2) - Se mantiene en el script, pero no se usa
+         */
+        function copyResults_v2() {
+            if (!window.lastResultData_v2) {
+                // Reemplazando alert()
+                document.getElementById('validation-message').textContent = "No hay resultados para copiar. Por favor, calcula primero.";
+                document.getElementById('validation-message').classList.remove('hidden');
+                return;
+            }
+            
+            const { inputs, metrics, riskProfile } = window.lastResultData_v2;
+            
+            // Generar texto plano
+            let text = `--- PERFIL DE RIESGO CARDIOMETABÓLICO INTEGRAL ---\n`;
+            text += `Nombre: ${inputs.full_name || 'No provisto'}\n`;
+            text += `Edad: ${inputs.age} años\n`;
+            text += `Fecha: ${new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' })}\n\n`;
+            
+            text += `== RIESGO GLOBAL ==\n`;
+            text += `NIVEL: ${riskProfile.level}\n`;
+            text += `SCORE: ${riskProfile.score} puntos\n\n`;
+            
+            text += `== MÉTRICAS CLAVE ==\n`;
+            text += `IMC: ${metrics.bmi} (${metrics.bmi_class})\n`;
+            text += `Índice Cintura-Cadera (ICC): ${metrics.icc} (${metrics.icc_class})\n`;
+            text += `Índice TG/HDL: ${metrics.tg_hdl} (${metrics.tg_hdl_class})\n`;
+            text += `Índice Col Total/HDL: ${metrics.chol_hdl} (${metrics.chol_hdl_class})\n`;
+            text += `Riesgo MASLD (FLI): ${metrics.fli_score} (${metrics.fli_class})\n`;
+            text += `Índice Tabáquico (IPA): ${metrics.ipa} (${metrics.ipa_class})\n`;
+            text += `Fuerza de Agarre: ${riskProfile.grip_factor_text}\n`;
+            text += `Presión Arterial Usada: ${inputs.pa_used.s}/${inputs.pa_used.d} mmHg (${inputs.pa_used.source})\n\n`;
+            
+            text += `== FACTORES DE RIESGO DETECTADOS ==\n`;
+            if (riskProfile.factors.length > 0) {
+                riskProfile.factors.forEach(f => {
+                    text += `- ${f.text}\n`;
+                });
+            } else {
+                text += `- Ningún factor de riesgo mayor detectado.\n`;
+            }
+            
+            text += `\n== PLAN DE ACCIÓN RECOMENDADO ==\n`;
+            const recListItems = document.getElementById('recommendations-list').children;
+            Array.from(recListItems).forEach(item => {
+                text += `* ${item.textContent}\n`;
+            });
+            
+            text += `\n**Nota Importante:** Esta herramienta no sustituye la evaluación médica profesional.`;
+            
+            // Copiar al portapapeles
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    // Reemplazando alert() con un mensaje de estado temporal
+                    const statusDiv = document.getElementById('sheet-status');
+                    statusDiv.textContent = "¡Resultados copiados al portapapeles!";
+                    statusDiv.className = "text-center p-3 mt-4 rounded-lg text-sm bg-blue-100 text-blue-800";
+                    statusDiv.classList.remove('hidden');
+                    setTimeout(() => statusDiv.classList.add('hidden'), 3000);
 
-            // Asigna la función v2 (ahora async) al botón de cálculo
-            const calcButton = document.getElementById('calculate-button');
-            if (calcButton) {
-                calcButton.onclick = async (e) => { // Importante: Hacer la función async
-                    e.preventDefault(); // Previene que el formulario se envíe
-                    await calculateRisk_v2();
-                };
-            }
+                }).catch(err => {
+                    console.error('Error al copiar: ', err);
+                    // Reemplazando alert() con un mensaje de estado
+                    document.getElementById('validation-message').textContent = "Error al copiar. Revisa la consola.";
+                    document.getElementById('validation-message').classList.remove('hidden');
+                });
+            } else {
+                // Fallback para navegadores antiguos
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                
+                // Reemplazando alert() con un mensaje de estado temporal
+                const statusDiv = document.getElementById('sheet-status');
+                statusDiv.textContent = "¡Resultados copiados al portapapeles! (modo fallback)";
+                statusDiv.className = "text-center p-3 mt-4 rounded-lg text-sm bg-blue-100 text-blue-800";
+                statusDiv.classList.remove('hidden');
+                setTimeout(() => statusDiv.classList.add('hidden'), 3000);
+            }
+        }
 
-            // Asigna la función de reseteo
-            const resetButton = document.getElementById('reset-button');
-            if (resetButton) {
-                resetButton.onclick = resetForm;
-            }
 
-            // Asigna la función de impresión
-            const printButton = document.getElementById('print-button');
-            if (printButton) {
-                printButton.onclick = (e) => {
-                    e.preventDefault(); // Prevenir cualquier acción default del botón
-                    window.print();
-                };
-            }
-        });
+        // --- Inicializador ---
+        // Asegura que el DOM esté cargado antes de asignar los botones
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // Asigna la función v2 (ahora async) al botón de cálculo
+            const calcButton = document.getElementById('calculate-button');
+            if (calcButton) {
+                calcButton.onclick = async (e) => { // Importante: Hacer la función async
+                    e.preventDefault(); // Previene que el formulario se envíe
+                    await calculateRisk_v2();
+                };
+            }
 
-    </script>
-    
+            // Asigna la función de reseteo
+            const resetButton = document.getElementById('reset-button');
+            if (resetButton) {
+                resetButton.onclick = resetForm;
+            }
+
+            // (MODIFICADO) Se comenta la función de copiado
+            /*
+            const copyButton = document.getElementById('copy-button');
+            if (copyButton) {
+                copyButton.onclick = copyResults_v2;
+            }
+            */
+
+            // (NUEVO) Asigna la función de impresión al nuevo botón
+            const printButton = document.getElementById('print-button');
+            if (printButton) {
+                printButton.onclick = (e) => {
+                    e.preventDefault(); // Prevenir cualquier acción default del botón
+                    window.print();
+                };
+            }
+        });
+
+    </script>
+    
 </body>
 </html>
-
