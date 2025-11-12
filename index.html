@@ -1,6 +1,86 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Riesgo Cardiometabólico Integral (v2.0 - Impresión)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .ipn-accent { color: #b91c1c; }
+        .ipn-border { border-color: #b91c1c; }
+        .ipn-bg { background-color: #b91c1c; }
+        .shadow-glow {
+            box-shadow: 0 0 15px rgba(185, 28, 28, 0.3);
+        }
+        .main-container {
+            max-width: 1200px;
+            margin: auto;
+            background-color: #fff;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+            border-top: 8px solid #b91c1c;
+        }
+        @media print { .no-print { display: none !important; } }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <!-- === AVISO DE PRIVACIDAD (OBLIGATORIO ANTES DE FORMULARIO) === -->
+    <div id="privacy-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-90 flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-3xl p-8 mx-4 border-t-8 ipn-border overflow-y-auto max-h-[90vh]">
+            <h2 class="text-2xl md:text-3xl font-extrabold ipn-accent mb-4 text-center">Aviso de Privacidad y Uso de Datos Personales</h2>
+            <p class="text-gray-700 text-sm leading-relaxed mb-3">
+                El <strong>Laboratorio de Investigación Cardiometabólica (LICAM)</strong> del <strong>Instituto Politécnico Nacional (IPN)</strong>, es responsable del tratamiento de los datos personales que usted proporcione en esta <strong>Calculadora de Riesgo Cardiometabólico</strong>.
+            </p>
+            <p class="text-gray-700 text-sm leading-relaxed mb-3">
+                Sus datos serán utilizados <strong>únicamente con fines estadísticos, académicos y de investigación científica</strong> para el análisis de riesgo cardiometabólico en la población participante del Segundo Simposio de Medicina. 
+                La información será manejada de forma <strong>anónima y confidencial</strong>, conforme a la <em>Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP)</em>.
+            </p>
+            <ul class="text-gray-700 text-sm list-disc ml-5 mb-3">
+                <li>No se compartirá su información con terceros ajenos al IPN.</li>
+                <li>Los resultados serán presentados de manera agrupada y sin identificar individualmente a los participantes.</li>
+                <li>Usted puede ejercer sus derechos ARCO (Acceso, Rectificación, Cancelación y Oposición) contactando a: <strong>nnajerag@ipn.mx</strong>.</li>
+            </ul>
+            <p class="text-gray-700 text-sm leading-relaxed mb-3">
+                Al continuar, usted declara haber leído y comprendido este aviso, otorgando su consentimiento para el uso descrito de sus datos con fines de investigación y análisis científico.
+            </p>
+
+            <div class="flex items-center justify-center space-x-2 mt-6">
+                <input type="checkbox" id="acceptPrivacy" class="h-5 w-5 text-red-600 border-gray-300 rounded">
+                <label for="acceptPrivacy" class="text-sm text-gray-800 select-none">He leído y acepto el Aviso de Privacidad.</label>
+            </div>
+            <div class="mt-6 flex justify-center">
+                <button id="continueBtn" disabled class="bg-gray-400 cursor-not-allowed text-white font-semibold py-2 px-6 rounded-lg shadow-md transition-all duration-300">
+                    Continuar al Formulario
+                </button>
+            </div>
+            <p class="text-xs text-gray-500 mt-4 text-center italic">Última actualización: noviembre 2025 · © LICAM-IPN</p>
+        </div>
+    </div>
+
+    <script>
+        // === Lógica del Aviso de Privacidad ===
+        const checkbox = document.getElementById("acceptPrivacy");
+        const continueBtn = document.getElementById("continueBtn");
+        const overlay = document.getElementById("privacy-overlay");
+
+        checkbox.addEventListener("change", () => {
+            continueBtn.disabled = !checkbox.checked;
+            continueBtn.classList.toggle("bg-gray-400", !checkbox.checked);
+            continueBtn.classList.toggle("cursor-not-allowed", !checkbox.checked);
+            continueBtn.classList.toggle("bg-red-700", checkbox.checked);
+            continueBtn.classList.toggle("hover:bg-red-800", checkbox.checked);
+        });
+
+        continueBtn.addEventListener("click", () => {
+            overlay.classList.add("hidden");
+        });
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculadora de Riesgo Cardiometabólico Integral (v2.5 - Diseño Profesional)</title>
@@ -1620,3 +1700,4 @@
     
 </body>
 </html>
+
