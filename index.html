@@ -60,7 +60,7 @@
         let judgeData = null; 
         const JUDGE_STORAGE_KEY = 'symposium_judge_data'; 
         
-        // ¡URL de Google Sheets App Web configurada!
+        // ¡URL de Google Sheets App Web configurada! (Corregida)
         const GOOGLE_SHEETS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzatgCyA9JOC5NGiaVhyWzBG9V69-jzlyPAW03HtI-_pMKd3K5N8zxai1dUuKNcf_s0/exec';
 
         // Estructura de datos predefinida para la simulación
@@ -82,26 +82,19 @@
         // --- Utilidades de Persistencia Local ---
         const saveJudgeDataToLocal = (data) => {
             try {
-                const dataToStore = { ...data, uid: auth.currentUser?.uid };
-                localStorage.setItem(JUDGE_STORAGE_KEY, JSON.stringify(dataToStore));
+                // No usamos auth.currentUser?.uid aquí para persistencia sin dependencia de Firebase Auth
+                localStorage.setItem(JUDGE_STORAGE_KEY, JSON.stringify(data));
             } catch (e) {
                 console.error("Error saving judge data to localStorage:", e);
             }
         };
 
-        const loadJudgeDataFromLocal = (currentUid) => {
+        const loadJudgeDataFromLocal = () => {
             try {
                 const data = localStorage.getItem(JUDGE_STORAGE_KEY);
                 if (!data) return null;
                 
                 const parsedData = JSON.parse(data);
-                
-                if (parsedData.uid && parsedData.uid !== currentUid) {
-                    console.warn("UID mismatch between localStorage and Firebase Auth. Clearing local data.");
-                    clearJudgeDataLocal();
-                    return null;
-                }
-                
                 return parsedData;
             } catch (e) {
                 console.error("Error loading judge data from localStorage:", e);
@@ -149,23 +142,16 @@
         // --- FUNCIONES DE AUTENTICACIÓN ---
 
         const setupAuth = () => {
-            onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    currentUserId = user.uid;
-                    
-                    judgeData = loadJudgeDataFromLocal(user.uid);
+             // FIX: Ya no usamos onAuthStateChanged para Login simulado. 
+             // Intentamos cargar la data local inmediatamente.
+            judgeData = loadJudgeDataFromLocal();
 
-                    if (judgeData && judgeData.id) {
-                        showDashboard(user.uid);
-                        return;
-                    }
-                } 
-                
-                currentUserId = null;
-                judgeData = null;
-                clearJudgeDataLocal();
+            if (judgeData && judgeData.id && judgeData.simulatedUserId) {
+                currentUserId = judgeData.simulatedUserId;
+                showDashboard(currentUserId);
+            } else {
                 showLogin();
-            });
+            }
         };
         
         // Simulación de autenticación con usuario/contraseña predefinidos
@@ -183,31 +169,30 @@
 
             if (userEntry) {
                 try {
-                    if (auth.currentUser) {
-                        await signOut(auth);
-                    }
-                    clearJudgeDataLocal();
-                    
-                    const userCredential = await retryOperation(() => signInAnonymously(auth));
-                    const newUserId = userCredential.user.uid;
+                    // ** FIX CLAVE: Saltar Firebase Auth para evitar errores de red en servidores externos. **
+                    // Generar un ID de usuario simulado y único para usarlo con Firestore.
+                    // Usamos el ID del juez estático más un hash de tiempo para evitar colisiones leves en persistencia.
+                    const simulatedUserId = userEntry.id + '-' + Date.now();
                     
                     const newJudgeData = {
                         id: userEntry.id, 
                         name: userEntry.name,
                         role: userEntry.role,
-                        lastLogin: new Date().toISOString()
+                        lastLogin: new Date().toISOString(),
+                        simulatedUserId: simulatedUserId // ID única para la colección de Firestore
                     };
 
                     judgeData = newJudgeData;
-                    currentUserId = newUserId; 
+                    currentUserId = simulatedUserId; // Usar el ID simulado para Firestore
                     saveJudgeDataToLocal(newJudgeData);
 
-                    showDashboard(newUserId); 
+                    showDashboard(simulatedUserId); 
                     
                     loginBtn.textContent = 'Éxito';
                 } catch (error) {
-                    console.error("Error during simulated login (after retries):", error);
-                    errorMsg.textContent = 'Error de conexión. Intente de nuevo.';
+                    // Si hay un error, lo más probable es que sea un problema de localStorage o de JS, no de red.
+                    console.error("Error durante el login simulado:", error);
+                    errorMsg.textContent = 'Error interno. Intente de nuevo.';
                     loginBtn.disabled = false;
                     loginBtn.textContent = 'Iniciar Sesión';
                 }
@@ -220,9 +205,11 @@
 
         const handleLogout = async () => {
             try {
-                await signOut(auth);
+                // Simulación de cierre de sesión
                 clearJudgeDataLocal();
                 judgeData = null;
+                currentUserId = null;
+                showLogin();
             } catch (error) {
                 console.error("Error signing out:", error);
             }
@@ -610,7 +597,6 @@
 
             try {
                 // El modo 'no-cors' no permite ver la respuesta, pero garantiza que la petición se envíe.
-                // Es el método estándar para interactuar con App Script Web Apps.
                 const response = await fetch(GOOGLE_SHEETS_WEB_APP_URL, {
                     method: 'POST',
                     mode: 'no-cors', 
@@ -752,6 +738,7 @@
             csvContent += headers.join(',') + '\r\n';
 
             try {
+                // FIX: Usar el ID simulado para la ruta de Firestore
                 const evaluationsColRef = collection(db, `artifacts/${appId}/users/${currentUserId}/evaluations`);
                 const querySnapshot = await getDocs(evaluationsColRef);
 
