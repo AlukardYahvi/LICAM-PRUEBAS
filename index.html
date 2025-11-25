@@ -40,6 +40,21 @@
             border-color: #059669; /* Green 600 */
             box-shadow: 0 0 0 1px rgba(5, 150, 105, 0.5);
         }
+        .password-container {
+            position: relative;
+        }
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #6b7280; /* Gray 500 */
+            transition: color 0.15s;
+        }
+        .toggle-password:hover {
+            color: #10b981; /* Green 500 */
+        }
     </style>
     <!-- Firebase SDKs -->
     <script type="module">
@@ -60,7 +75,7 @@
         let judgeData = null; 
         const JUDGE_STORAGE_KEY = 'symposium_judge_data'; 
         
-        // ¡URL de Google Sheets App Web configurada! (Corregida)
+        // ¡URL de Google Sheets App Web configurada! (INTEGRADA)
         const GOOGLE_SHEETS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzatgCyA9JOC5NGiaVhyWzBG9V69-jzlyPAW03HtI-_pMKd3K5N8zxai1dUuKNcf_s0/exec';
 
         // Estructura de datos predefinida para la simulación
@@ -82,7 +97,6 @@
         // --- Utilidades de Persistencia Local ---
         const saveJudgeDataToLocal = (data) => {
             try {
-                // No usamos auth.currentUser?.uid aquí para persistencia sin dependencia de Firebase Auth
                 localStorage.setItem(JUDGE_STORAGE_KEY, JSON.stringify(data));
             } catch (e) {
                 console.error("Error saving judge data to localStorage:", e);
@@ -142,16 +156,22 @@
         // --- FUNCIONES DE AUTENTICACIÓN ---
 
         const setupAuth = () => {
-             // FIX: Ya no usamos onAuthStateChanged para Login simulado. 
-             // Intentamos cargar la data local inmediatamente.
-            judgeData = loadJudgeDataFromLocal();
+            // FIX: Utilizamos onAuthStateChanged para gestionar la persistencia y la carga inicial.
+            onAuthStateChanged(auth, (user) => {
+                judgeData = loadJudgeDataFromLocal();
 
-            if (judgeData && judgeData.id && judgeData.simulatedUserId) {
-                currentUserId = judgeData.simulatedUserId;
-                showDashboard(currentUserId);
-            } else {
-                showLogin();
-            }
+                if (user && judgeData && judgeData.id) {
+                    // Si hay sesión de Firebase Auth y data de juez en localStorage (persistente)
+                    currentUserId = user.uid;
+                    showDashboard(currentUserId);
+                } else {
+                    // Si no hay sesión o no hay data de juez, forzamos la pantalla de login.
+                    currentUserId = null;
+                    judgeData = null;
+                    clearJudgeDataLocal();
+                    showLogin();
+                }
+            });
         };
         
         // Simulación de autenticación con usuario/contraseña predefinidos
@@ -169,30 +189,35 @@
 
             if (userEntry) {
                 try {
-                    // ** FIX CLAVE: Saltar Firebase Auth para evitar errores de red en servidores externos. **
-                    // Generar un ID de usuario simulado y único para usarlo con Firestore.
-                    // Usamos el ID del juez estático más un hash de tiempo para evitar colisiones leves en persistencia.
-                    const simulatedUserId = userEntry.id + '-' + Date.now();
+                    // 1. Cerrar sesión existente
+                    if (auth.currentUser) {
+                        await signOut(auth);
+                    }
+                    clearJudgeDataLocal();
+                    
+                    // 2. Autenticación anónima con reintento (necesaria para Firestore)
+                    const userCredential = await retryOperation(() => signInAnonymously(auth));
+                    const newUserId = userCredential.user.uid;
                     
                     const newJudgeData = {
                         id: userEntry.id, 
                         name: userEntry.name,
                         role: userEntry.role,
-                        lastLogin: new Date().toISOString(),
-                        simulatedUserId: simulatedUserId // ID única para la colección de Firestore
+                        pass: userEntry.pass, // Guardar la contraseña para mostrarla en el Dashboard
+                        lastLogin: new Date().toISOString()
                     };
 
                     judgeData = newJudgeData;
-                    currentUserId = simulatedUserId; // Usar el ID simulado para Firestore
+                    currentUserId = newUserId; 
                     saveJudgeDataToLocal(newJudgeData);
 
-                    showDashboard(simulatedUserId); 
+                    // 3. Mostrar Dashboard inmediatamente después de Auth exitosa.
+                    showDashboard(newUserId); 
                     
                     loginBtn.textContent = 'Éxito';
                 } catch (error) {
-                    // Si hay un error, lo más probable es que sea un problema de localStorage o de JS, no de red.
-                    console.error("Error durante el login simulado:", error);
-                    errorMsg.textContent = 'Error interno. Intente de nuevo.';
+                    console.error("Error durante el login simulado (Firebase Auth):", error);
+                    errorMsg.textContent = 'Error de conexión. Intente de nuevo.';
                     loginBtn.disabled = false;
                     loginBtn.textContent = 'Iniciar Sesión';
                 }
@@ -205,13 +230,34 @@
 
         const handleLogout = async () => {
             try {
-                // Simulación de cierre de sesión
+                // Cerrar sesión de Firebase Auth y limpiar localStorage
+                await signOut(auth);
                 clearJudgeDataLocal();
                 judgeData = null;
                 currentUserId = null;
                 showLogin();
             } catch (error) {
                 console.error("Error signing out:", error);
+            }
+        };
+        
+        // Función para alternar la visibilidad de la contraseña
+        const togglePasswordVisibility = () => {
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.getElementById('toggle-password-icon');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                // Ícono de ojo abierto
+                toggleIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.173.13.399.13.784 0 1.183A15.423 15.423 0 0112 19.5c-4.638 0-8.573-3.007-9.963-7.173z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>`;
+            } else {
+                passwordInput.type = 'password';
+                 // Ícono de ojo cerrado
+                toggleIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.98.083A10.096 10.096 0 0112 4.5c4.638 0 8.573 3.007 9.963 7.173a1.012 1.012 0 010 .639C20.577 16.49 16.64 19.5 12 19.5c-2.43 0-4.663-.957-6.386-2.522m2.483-2.483a3 3 0 014.243-4.243m-1.488 4.735l.983-.983A3 3 0 0112 12c.57.008 1.134.12 1.666.347m-.003-3.99A3 3 0 0012 9c-.57 0-1.134.12-1.666.347M5.074 4.074a1.01 1.01 0 00-1.43 1.43l13.626 13.626a1.01 1.01 0 001.43-1.43L5.074 4.074z" />
+                </svg>`;
             }
         };
 
@@ -236,9 +282,15 @@
                                 <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Usuario</label>
                                 <input type="text" id="username" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500" value="juez1" placeholder="ej. juez1">
                             </div>
-                            <div>
+                            <div class="password-container">
                                 <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
-                                <input type="password" id="password" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500" value="simposio2025" placeholder="*******">
+                                <input type="password" id="password" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 pr-10" value="simposio2025" placeholder="*******">
+                                <span id="toggle-password-icon" class="toggle-password" title="Mostrar contraseña">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5h.008v.008h-.008v-.008zm1.5 6a7.5 7.5 0 00-9-9" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c1.898 0 3.659.576 5.148 1.572m-1.554 1.554a7.5 7.5 0 01-9.988 9.988M21.964 12.322a1.012 1.012 0 010 .639C20.577 16.49 16.64 19.5 12 19.5c-1.898 0-3.659-.576-5.148-1.572" />
+                                    </svg>
+                                </span>
                             </div>
                             <button id="login-btn" class="w-full bg-green-600 text-white p-3 rounded-lg font-semibold hover:bg-green-700 transition duration-150 shadow-md">
                                 Iniciar Sesión
@@ -249,6 +301,7 @@
                 </div>
             `;
             document.getElementById('login-btn').addEventListener('click', handleLogin);
+            document.getElementById('toggle-password-icon').addEventListener('click', togglePasswordVisibility);
         };
 
         const showDashboard = (userId) => {
@@ -561,6 +614,7 @@
 
                 if (input.type === 'radio') {
                     if (input.checked) {
+                        // FIX: Solo se considera el radio button marcado para ese grupo
                         score = parseInt(input.value) || 0;
                         currentScores[criteriaId] = { score, criteriaType, input };
                     }
@@ -738,7 +792,7 @@
             csvContent += headers.join(',') + '\r\n';
 
             try {
-                // FIX: Usar el ID simulado para la ruta de Firestore
+                // Usar el ID real o simulado para la ruta de Firestore
                 const evaluationsColRef = collection(db, `artifacts/${appId}/users/${currentUserId}/evaluations`);
                 const querySnapshot = await getDocs(evaluationsColRef);
 
