@@ -17,6 +17,7 @@
             background-image: url('assets/simposio_background.jpg'); 
             background-size: cover;
             background-position: center;
+            background-attachment: fixed; /* Hace que el fondo se quede fijo */
             position: relative;
         }
         /* Capa de oscuridad sobre el fondo para mejorar contraste del login */
@@ -40,17 +41,19 @@
         .password-container { position: relative; }
         .toggle-password { position:absolute; right:12px; top:50%; transform:translateY(-50%); cursor:pointer; color:#6b7280; transition:color .15s; z-index: 10; }
         .toggle-password:hover { color:#10b981; }
+        /* Animación para el botón de login */
+        .login-btn-active { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(126, 34, 206, 0.4); }
     </style>
 
     <!-- Firebase y Lógica de la Aplicación -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, collection, getDocs, onSnapshot, query, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // ------------------ CONFIGURA AQUÍ ------------------
         const firebaseConfig = null; // Reemplaza null con tu objeto de configuración de Firebase si usas Firestore
         
-        // ¡URL de Google Sheets configurada con tu ID de implementación!
+        // URL de Google Sheets configurada
         const GOOGLE_SHEETS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzatgCyA9JOC5NGiaVhyWzBG9V69-jzlyPAW03HtI-_pMKd3K5N8zxai1dUuKNcf_s0/exec';
         // ----------------------------------------------------
 
@@ -94,18 +97,18 @@
             { id: 'P008', title: 'Diagnóstico Molecular de la Tuberculosis Resistente a Fármacos', assignedTo: 'juez_h', status: 'Pendiente' },
             { id: 'P009', title: 'Efecto de la Dieta Mediterránea en el Microbioma Intestinal', assignedTo: 'juez_i', status: 'Pendiente' },
             { id: 'P010', title: 'Terapia Génica para Distrofias Musculares: Avances y Desafíos', assignedTo: 'juez_j', status: 'Pendiente' },
-            { id: 'P011', title: 'Aplicación de Realidad Virtual en el Tratamiento del Dolor Crónico', assignedTo: 'juez_j', status: 'Pendiente' }, // Asignado a Juez 10
-            { id: 'P012', title: 'Estudio Farmacocinético de un Nuevo Antiviral en Pacientes Críticos', assignedTo: 'juez_a', status: 'Pendiente' }, // Asignado a Juez 1
-            { id: 'P013', title: 'Evaluación del Impacto de la Contaminación Ambiental en la Salud Respiratoria', assignedTo: 'juez_b', status: 'Pendiente' }, // Asignado a Juez 2
-            { id: 'P014', title: 'Avances en Vacunas de ARN Mensajero contra Patógenos Emergentes', assignedTo: 'juez_c', status: 'Pendiente' }, // Asignado a Juez 3
-            { id: 'P015', title: 'Uso de Células Madre en la Regeneración de Tejido Hepático Dañado', assignedTo: 'juez_d', status: 'Pendiente' }, // Asignado a Juez 4
-            { id: 'P016', title: 'Modelos Predictivos de Reingreso Hospitalario Basados en Machine Learning', assignedTo: 'juez_e', status: 'Pendiente' }, // Asignado a Juez 5
-            { id: 'P017', title: 'Desarrollo de Biosensores para la Detección Temprana de Sepsis', assignedTo: 'juez_f', status: 'Pendiente' }, // Asignado a Juez 6
-            { id: 'P018', title: 'Impacto de la Telemedicina en la Gestión de Enfermedades Crónicas', assignedTo: 'juez_g', status: 'Pendiente' }, // Asignado a Juez 7
-            { id: 'P019', title: 'Factores de Riesgo Genéticos Asociados a la Enfermedad de Alzheimer', assignedTo: 'juez_h', status: 'Pendiente' }, // Asignado a Juez 8
-            { id: 'P020', title: 'Optimización de Protocolos de Trasplante de Médula Ósea', assignedTo: 'juez_i', status: 'Pendiente' }, // Asignado a Juez 9
-            { id: 'P021', title: 'Análisis de Biomarcadores de Estrés Oxidativo en Neonatos Prematuros', assignedTo: 'juez_k', status: 'Pendiente' }, // Asignado a Juez 11
-            { id: 'P022', title: 'Estudio de la Resistencia a Insulina en Población Adolescente', assignedTo: 'juez_k', status: 'Pendiente' }, // Asignado a Juez 11
+            { id: 'P011', title: 'Aplicación de Realidad Virtual en el Tratamiento del Dolor Crónico', assignedTo: 'juez_j', status: 'Pendiente' }, 
+            { id: 'P012', title: 'Estudio Farmacocinético de un Nuevo Antiviral en Pacientes Críticos', assignedTo: 'juez_a', status: 'Pendiente' }, 
+            { id: 'P013', title: 'Evaluación del Impacto de la Contaminación Ambiental en la Salud Respiratoria', assignedTo: 'juez_b', status: 'Pendiente' }, 
+            { id: 'P014', title: 'Avances en Vacunas de ARN Mensajero contra Patógenos Emergentes', assignedTo: 'juez_c', status: 'Pendiente' }, 
+            { id: 'P015', title: 'Uso de Células Madre en la Regeneración de Tejido Hepático Dañado', assignedTo: 'juez_d', status: 'Pendiente' }, 
+            { id: 'P016', title: 'Modelos Predictivos de Reingreso Hospitalario Basados en Machine Learning', assignedTo: 'juez_e', status: 'Pendiente' }, 
+            { id: 'P017', title: 'Desarrollo de Biosensores para la Detección Temprana de Sepsis', assignedTo: 'juez_f', status: 'Pendiente' }, 
+            { id: 'P018', title: 'Impacto de la Telemedicina en la Gestión de Enfermedades Crónicas', assignedTo: 'juez_g', status: 'Pendiente' }, 
+            { id: 'P019', title: 'Factores de Riesgo Genéticos Asociados a la Enfermedad de Alzheimer', assignedTo: 'juez_h', status: 'Pendiente' }, 
+            { id: 'P020', title: 'Optimización de Protocolos de Trasplante de Médula Ósea', assignedTo: 'juez_i', status: 'Pendiente' }, 
+            { id: 'P021', title: 'Análisis de Biomarcadores de Estrés Oxidativo en Neonatos Prematuros', assignedTo: 'juez_k', status: 'Pendiente' }, 
+            { id: 'P022', title: 'Estudio de la Resistencia a Insulina en Población Adolescente', assignedTo: 'juez_k', status: 'Pendiente' }, 
         ];
 
         // Criterios de evaluación (Mantenido igual)
@@ -166,7 +169,12 @@
             judgeData = loadJudgeDataFromLocal();
             if (judgeData && judgeData.id) {
                 currentUserId = judgeData.id;
-                showDashboard(currentUserId);
+                // Redirigir según el rol
+                if (judgeData.role === 'admin') {
+                    showAdminDashboard();
+                } else {
+                    showDashboard(currentUserId);
+                }
             } else {
                 showLogin();
             }
@@ -186,6 +194,7 @@
             errorMsg.textContent = '';
             loginBtn.disabled = true;
             loginBtn.textContent = 'Iniciando...';
+            loginBtn.classList.add('login-btn-active');
 
             const userEntry = predefinedUsers.find(u => u.user === user && u.pass === pass);
 
@@ -200,12 +209,20 @@
                 judgeData = newJudgeData;
                 currentUserId = newJudgeData.id;
                 saveJudgeDataToLocal(newJudgeData);
-                showDashboard(currentUserId);
+                
+                // Redirigir según el rol
+                if (userEntry.role === 'admin') {
+                    showAdminDashboard();
+                } else {
+                    showDashboard(currentUserId);
+                }
+                
                 loginBtn.textContent = 'Éxito';
             } else {
                 errorMsg.textContent = 'Usuario o contraseña incorrectos.';
                 loginBtn.disabled = false;
                 loginBtn.textContent = 'Iniciar Sesión';
+                loginBtn.classList.remove('login-btn-active');
             }
         };
 
@@ -234,13 +251,13 @@
             document.getElementById('app-container').innerHTML = `
                 <div id="login-bg" class="min-h-screen flex items-center justify-center p-4">
                     <!-- Contenedor del formulario, posicionado sobre la capa oscura -->
-                    <div class="relative z-10 w-full max-w-md bg-white p-8 rounded-xl shadow-2xl border-t-8 border-purple-800">
+                    <div class="relative z-10 w-full max-w-md bg-white p-8 rounded-xl shadow-2xl border-t-8 border-purple-800 transform transition duration-500 hover:scale-[1.01]">
                         <div class="text-center mb-8">
                             <div class="flex justify-center space-x-4 mb-4">
-                                <!-- Logos Cargados de assets/ -->
-                                <img src="assets/logo_ipn.png" alt="Logo IPN" class="h-10 w-auto">
-                                <img src="assets/logo_esm.jpg" alt="Logo ESM" class="h-10 w-10 rounded-full shadow-md">
-                                <img src="assets/logo_licam.png" alt="Logo LICAM" class="h-10 w-auto">
+                                <!-- Logos - Asegúrate que los nombres de archivo coincidan en tu carpeta assets/ -->
+                                <img src="assets/logo_ipn.png" alt="Logo IPN" class="h-10 w-auto object-contain">
+                                <img src="assets/logo_esm.jpg" alt="Logo ESM" class="h-10 w-10 rounded-full shadow-md object-cover">
+                                <img src="assets/logo_licam.png" alt="Logo LICAM" class="h-10 w-auto object-contain">
                             </div>
                             <h1 class="text-3xl font-extrabold text-gray-800">2° Simposio de Investigación</h1>
                             <p class="text-gray-500 font-semibold">Evaluación de Trabajos Libres</p>
@@ -255,7 +272,7 @@
                                 <input type="password" id="password" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-purple-600 focus:border-purple-600 pr-10" value="simposio2025" placeholder="*******">
                                 <span id="toggle-password-icon" class="toggle-password" title="Mostrar contraseña" style="user-select:none;">&#128584;</span>
                             </div>
-                            <button id="login-btn" class="w-full bg-purple-800 text-white p-3 rounded-lg font-semibold hover:bg-purple-900 transition duration-150 shadow-md">
+                            <button id="login-btn" class="w-full bg-purple-800 text-white p-3 rounded-lg font-semibold hover:bg-purple-900 transition duration-150 shadow-md transform hover:login-btn-active">
                                 Iniciar Sesión
                             </button>
                             <p id="login-error" class="text-sm text-red-600 text-center mt-2"></p>
@@ -268,13 +285,13 @@
         };
 
         const showDashboard = (userId) => {
-            if (!judgeData) return showLogin();
+            if (!judgeData || judgeData.role !== 'judge') return showLogin();
 
             document.getElementById('app-container').innerHTML = `
                 <div class="min-h-screen bg-gray-50">
                     <header class="bg-white shadow-md p-4 sticky top-0 z-10">
                         <div class="flex justify-between items-center max-w-6xl mx-auto">
-                            <h1 class="text-xl font-bold text-purple-800">Panel de Evaluación</h1>
+                            <h1 class="text-xl font-bold text-purple-800">Panel de Evaluación - Juez</h1>
                             <div class="flex items-center space-x-4">
                                 <span class="hidden sm:inline text-sm text-gray-600">Juez: ${judgeData.name} (${judgeData.id})</span>
                                 <button id="export-csv-btn" class="text-xs bg-blue-600 text-white px-3 py-1 rounded-full hover:bg-blue-700 transition shadow-sm">
@@ -285,7 +302,7 @@
                         </div>
                     </header>
                     <main class="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8">
-                        <h2 class="text-2xl font-semibold text-gray-800 mb-6">Mis Trabajos Asignados</h2>
+                        <h2 class="text-2xl font-semibold text-gray-800 mb-6 border-b pb-2">Mis Trabajos Asignados</h2>
                         <div id="poster-list" class="space-y-4">
                             <div class="text-center py-8 text-gray-500">Cargando trabajos...</div>
                             <!-- La lista de carteles se carga dinámicamente, filtrada por el ID del juez -->
@@ -299,7 +316,133 @@
             loadAssignedPosters(userId);
         };
 
-        // ---------------- CARGAR TRABAJOS ASIGNADOS (Filtrado por Judge ID) ----------------
+        // ---------------- ADMIN DASHBOARD ----------------
+        const showAdminDashboard = () => {
+            if (!judgeData || judgeData.role !== 'admin') return showLogin();
+            
+            document.getElementById('app-container').innerHTML = `
+                <div class="min-h-screen bg-gray-50">
+                    <header class="bg-white shadow-md p-4 sticky top-0 z-10">
+                        <div class="flex justify-between items-center max-w-6xl mx-auto">
+                            <h1 class="text-xl font-bold text-purple-800">Panel de Administración</h1>
+                            <div class="flex items-center space-x-4">
+                                <span class="hidden sm:inline text-sm text-gray-600">Admin: ${judgeData.name} (${judgeData.id})</span>
+                                <button id="admin-export-all-btn" class="text-xs bg-blue-600 text-white px-3 py-1 rounded-full hover:bg-blue-700 transition shadow-sm">
+                                    Exportar TODAS las Evaluaciones (CSV)
+                                </button>
+                                <button id="logout-btn" class="text-sm bg-red-600 text-white px-3 py-1 rounded-full hover:bg-red-700 transition shadow-sm">Salir</button>
+                            </div>
+                        </div>
+                    </header>
+                    <main class="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8">
+                        <h2 class="text-2xl font-semibold text-gray-800 mb-6 border-b pb-2">Resumen de Progreso de Evaluación</h2>
+                        <div id="admin-summary" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                            <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-purple-500">
+                                <p class="text-sm font-medium text-gray-500">Total de Trabajos</p>
+                                <p id="total-posters" class="text-3xl font-bold text-gray-800 animate-pulse">...</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-green-500">
+                                <p class="text-sm font-medium text-gray-500">Evaluaciones Completadas</p>
+                                <p id="completed-evals" class="text-3xl font-bold text-green-600 animate-pulse">...</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-yellow-500">
+                                <p class="text-sm font-medium text-gray-500">Promedio de Jueces/Trabajo</p>
+                                <p id="avg-judgments" class="text-3xl font-bold text-yellow-600 animate-pulse">...</p>
+                            </div>
+                        </div>
+
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Estado Detallado de los Jueces</h3>
+                        <div id="judge-status-list" class="space-y-4">
+                            <div class="text-center py-8 text-gray-500">Cargando datos de jueces...</div>
+                        </div>
+                    </main>
+                </div>
+            `;
+            document.getElementById('logout-btn').addEventListener('click', handleLogout);
+            document.getElementById('admin-export-all-btn').addEventListener('click', exportAllEvaluationsToCSV);
+            loadAdminData();
+        };
+        
+        // ---------------- LÓGICA DEL ADMIN DASHBOARD ----------------
+        const loadAdminData = async () => {
+            const judgeStatusList = document.getElementById('judge-status-list');
+            
+            if (!db || typeof collection !== 'function') {
+                judgeStatusList.innerHTML = '<div class="text-center py-8 text-red-600">Error: Firestore no está configurado para cargar datos administrativos.</div>';
+                document.getElementById('total-posters').textContent = predefinedPosters.length;
+                document.getElementById('completed-evals').textContent = 'N/A';
+                document.getElementById('avg-judgments').textContent = 'N/A';
+                return;
+            }
+            
+            // Mapeo de trabajos asignados por Juez
+            const assignments = {};
+            predefinedPosters.forEach(poster => {
+                if (!assignments[poster.assignedTo]) {
+                    assignments[poster.assignedTo] = { assigned: 0, completed: 0, judgeName: predefinedUsers.find(u => u.id === poster.assignedTo)?.name || poster.assignedTo, id: poster.assignedTo };
+                }
+                assignments[poster.assignedTo].assigned++;
+            });
+            
+            const judgesToTrack = predefinedUsers.filter(u => u.role === 'judge');
+            let totalCompletedEvals = 0;
+            const allEvaluations = [];
+
+            // Obtener el estado de cada juez (asincrónicamente)
+            const judgePromises = judgesToTrack.map(async (judge) => {
+                const judgeAssignment = assignments[judge.id] || { assigned: 0, completed: 0, judgeName: judge.name, id: judge.id };
+                
+                // Intentar leer las evaluaciones guardadas por el juez
+                try {
+                    const evalsColRef = collection(db, `artifacts/${appId}/users/${judge.id}/evaluations`);
+                    const querySnapshot = await getDocs(evalsColRef);
+                    
+                    judgeAssignment.completed = querySnapshot.size;
+                    totalCompletedEvals += querySnapshot.size;
+
+                    querySnapshot.forEach(docSnap => allEvaluations.push(docSnap.data()));
+
+                } catch (error) {
+                    console.error(`Error fetching evals for ${judge.id}:`, error);
+                    judgeAssignment.error = true;
+                }
+                return judgeAssignment;
+            });
+
+            const results = await Promise.all(judgePromises);
+            
+            // Renderizar resumen
+            document.getElementById('total-posters').textContent = predefinedPosters.length;
+            document.getElementById('completed-evals').textContent = totalCompletedEvals;
+            document.getElementById('avg-judgments').textContent = (totalCompletedEvals / predefinedPosters.length).toFixed(2);
+            
+            // Renderizar la lista de jueces
+            judgeStatusList.innerHTML = results.map(judge => {
+                const percentage = judge.assigned > 0 ? ((judge.completed / judge.assigned) * 100).toFixed(0) : 100;
+                const progressColor = percentage == 100 ? 'bg-green-500' : (percentage > 0 ? 'bg-yellow-500' : 'bg-red-500');
+                
+                return `
+                    <div class="bg-white p-4 rounded-lg shadow-md flex items-center justify-between">
+                        <div class="flex flex-col">
+                            <p class="font-bold text-gray-700">${judge.judgeName} (${judge.id})</p>
+                            ${judge.error ? '<p class="text-xs text-red-500">Error al cargar evaluaciones</p>' : ''}
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <div class="text-sm font-semibold text-gray-600">${judge.completed} / ${judge.assigned} completados</div>
+                            <div class="w-24 bg-gray-200 rounded-full h-2.5">
+                                <div class="h-2.5 rounded-full ${progressColor} transition-all duration-500" style="width: ${percentage}%;"></div>
+                            </div>
+                            <span class="text-sm font-bold text-purple-700">${percentage}%</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Guardar todas las evaluaciones para la exportación del Admin (opcional, si es necesario exportar todo)
+            window.allEvaluationsData = allEvaluations; 
+        };
+
+        // ---------------- CARGAR TRABAJOS ASIGNADOS (Juez) ----------------
         const loadAssignedPosters = (judgeId) => {
             const listContainer = document.getElementById('poster-list');
             const staticJudgeId = judgeData?.id;
@@ -309,7 +452,7 @@
                 return;
             }
 
-            // AQUI ESTÁ EL FILTRO CRUCIAL: Solo muestra los trabajos donde assignedTo coincide con el ID del juez
+            // Filtro CRUCIAL: Solo muestra los trabajos donde assignedTo coincide con el ID del juez
             const assignedPosters = predefinedPosters.filter(p => p.assignedTo === staticJudgeId);
             
             if (assignedPosters.length === 0) {
@@ -344,12 +487,12 @@
             const totalScore = evaluationData?.totalScore !== undefined ? evaluationData.totalScore : 'N/A';
             const isEvaluated = !!evaluationData && totalScore !== 'N/A';
             const statusText = isEvaluated ? 'Ver Evaluación' : (hasError ? 'Error' : 'Evaluar');
-            const scoreColor = isEvaluated ? 'bg-green-600 text-white' : 'bg-yellow-100 text-yellow-800';
+            const scoreColor = isEvaluated ? 'bg-green-600 text-white' : 'bg-yellow-500 text-gray-800'; // Color ajustado para ser más dinámico
 
             let card = document.getElementById(`poster-card-${poster.id}`);
             if (!card) {
                 const newCardHTML = `
-                    <div id="poster-card-${poster.id}" class="bg-white p-5 rounded-xl shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center transition hover:shadow-xl ${isEvaluated ? 'border-l-4 border-green-600' : 'border-l-4 border-gray-200'}">
+                    <div id="poster-card-${poster.id}" class="bg-white p-5 rounded-xl shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center transform transition duration-200 hover:shadow-xl hover:scale-[1.01] cursor-pointer ${isEvaluated ? 'border-l-4 border-green-600' : 'border-l-4 border-purple-400'}">
                         <div>
                             <p class="text-sm font-medium text-gray-500">${poster.id}</p>
                             <h3 class="text-lg font-semibold text-gray-800">${poster.title}</h3>
@@ -371,7 +514,7 @@
                 listContainer.insertAdjacentHTML('beforeend', newCardHTML);
             } else {
                 // Actualizar la tarjeta existente
-                card.className = `bg-white p-5 rounded-xl shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center transition hover:shadow-xl ${isEvaluated ? 'border-l-4 border-green-600' : 'border-l-4 border-gray-200'}`;
+                card.className = `bg-white p-5 rounded-xl shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center transform transition duration-200 hover:shadow-xl hover:scale-[1.01] cursor-pointer ${isEvaluated ? 'border-l-4 border-green-600' : 'border-l-4 border-purple-400'}`;
                 const span = card.querySelector('span');
                 if (span) {
                     span.className = `px-3 py-1 text-xs font-medium rounded-full ${scoreColor}`;
@@ -399,7 +542,7 @@
             });
         };
 
-        // ---------------- Evaluación (Lógica se mantiene igual) ----------------
+        // ---------------- Lógica de Evaluación se mantiene igual ----------------
         const handleEvaluateClick = (event) => {
             const posterId = event.currentTarget.dataset.posterId;
             const posterTitle = event.currentTarget.dataset.posterTitle;
@@ -470,11 +613,11 @@
                                             let inputField = '';
                                             if (c.type === '3-point' && c.options) {
                                                 inputField = `
-                                                    <div class="flex space-x-2">
+                                                    <div class="grid grid-cols-3 gap-2">
                                                         ${c.options.map(option => {
                                                             const isChecked = savedScore == option;
                                                             return `
-                                                            <div class="flex-1">
+                                                            <div class="col-span-1">
                                                                 <input type="radio" id="${c.id}-score-${option}" name="${c.id}" value="${option}" class="hidden peer" ${isChecked ? 'checked' : ''} data-max="${c.max}" data-type="${c.type}" required />
                                                                 <label for="${c.id}-score-${option}" class="score-option block p-3 text-center rounded-lg font-bold text-gray-700 hover:bg-purple-50 peer-checked:selected transition duration-150 ${isChecked ? 'selected' : ''}">
                                                                     ${option} Pts
@@ -519,7 +662,7 @@
                                 <label for="observations" class="block text-md font-medium text-gray-700 mb-2">Observaciones y Comentarios Adicionales (Opcional)</label>
                                 <textarea id="observations" rows="4" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500">${evaluation.observations || ''}</textarea>
 
-                                <button type="submit" id="save-evaluation-btn" class="mt-6 w-full bg-green-600 text-white p-4 rounded-lg font-semibold text-lg hover:bg-green-700 transition duration-150 shadow-lg">
+                                <button type="submit" id="save-evaluation-btn" class="mt-6 w-full bg-green-600 text-white p-4 rounded-lg font-semibold text-lg hover:bg-green-700 transition duration-150 shadow-lg transform hover:scale-[1.01]">
                                     ${saveButtonText}
                                 </button>
                                 <p id="save-status" class="text-center mt-3 text-sm font-medium"></p>
@@ -595,7 +738,6 @@
                 return;
             }
             try {
-                // Se renombra judgeId a staticJudgeId para el GAS (como lo requiere tu script)
                 const payload = {
                     ...evaluationData,
                     staticJudgeId: evaluationData.judgeId, 
@@ -684,7 +826,8 @@
 
         const setupFormHandlers = (posterId) => {
             const backBtn = document.getElementById('back-to-dashboard');
-            if (backBtn) backBtn.addEventListener('click', ()=> showDashboard(judgeData.id));
+            // Redirige al panel correcto basado en el rol del juez, aunque solo los jueces llegan aquí
+            if (backBtn) backBtn.addEventListener('click', ()=> judgeData.role === 'admin' ? showAdminDashboard() : showDashboard(judgeData.id));
             
             document.querySelectorAll('#criteria-list input').forEach(input => {
                 input.addEventListener('input', handleInputVisualFeedback);
@@ -695,32 +838,94 @@
             if (form) form.addEventListener('submit', saveEvaluation);
             calculateScore(); 
         };
+        
+        // ---------------- EXPORTACIÓN CSV ADMIN ----------------
+        const exportAllEvaluationsToCSV = async () => {
+             if (!judgeData || judgeData.role !== 'admin') { 
+                alert('Solo el Administrador puede realizar esta exportación.'); 
+                return; 
+             }
+             if (!db || typeof collection !== 'function') {
+                alert('Firestore no configurado. No se pueden exportar los datos.');
+                return;
+             }
+             
+            const exportBtn = document.getElementById('admin-export-all-btn');
+            exportBtn.disabled = true; exportBtn.textContent = 'Recolectando datos...';
 
-        // ---------------- Exportar CSV (se mantiene la lógica) ----------------
+            const criteriaMapping = evaluationCriteria.map(c => ({ 
+                id: c.id, 
+                name: c.name.replace(/\s/g, '_').replace(/[\(\)]/g, '').replace(/\./g, '') 
+            }));
+
+            let csvContent = "data:text/csv;charset=utf-8,";
+            let headers = ['Judge_ID','Judge_Name','Poster_ID','Poster_Title','Total_Score','Observations', 'Timestamp', ...criteriaMapping.map(c=>c.name)];
+            csvContent += headers.join(',') + '\r\n';
+
+            try {
+                const allEvals = [];
+                const judgeIds = predefinedUsers.filter(u => u.role === 'judge').map(u => u.id);
+
+                // Recorrer las colecciones de evaluaciones de cada juez
+                for (const judgeId of judgeIds) {
+                    const evalsColRef = collection(db, `artifacts/${appId}/users/${judgeId}/evaluations`);
+                    const querySnapshot = await getDocs(evalsColRef);
+                    querySnapshot.forEach(docSnap => {
+                        const data = docSnap.data();
+                        allEvals.push(data);
+                    });
+                }
+                
+                allEvals.forEach(data => {
+                    const poster = predefinedPosters.find(p => p.id === data.posterId);
+                    const posterTitle = poster ? poster.title.replace(/,/g,'') : 'Unknown Title';
+                    
+                    let row = [
+                        data.judgeId,
+                        `"${data.judgeName.replace(/"/g,'""')}"`,
+                        data.posterId,
+                        `"${posterTitle}"`,
+                        data.totalScore,
+                        `"${(data.observations||'').replace(/"/g,'""').replace(/(\r\n|\n|\r)/gm,' ')}"`,
+                        data.timestamp
+                    ];
+                    criteriaMapping.forEach(c => { row.push(data.scores?.[c.id] || 0); });
+                    csvContent += row.join(',') + '\r\n';
+                });
+
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `evaluaciones_ADMIN_${new Date().toISOString().slice(0,10)}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                exportBtn.textContent = 'Exportación Exitosa';
+                exportBtn.classList.replace('bg-blue-600','bg-green-600');
+                setTimeout(()=>{ exportBtn.disabled=false; exportBtn.textContent='Exportar TODAS las Evaluaciones (CSV)'; exportBtn.classList.replace('bg-green-600','bg-blue-600'); }, 3000);
+
+            } catch (error) {
+                console.error("Error al exportar CSV:", error);
+                alert('Error al exportar todas las evaluaciones. Revise la consola.');
+                exportBtn.disabled=false; exportBtn.textContent='Exportar TODAS las Evaluaciones (CSV)';
+                exportBtn.classList.replace('bg-green-600','bg-blue-600');
+            }
+        };
+
+        // ---------------- EXPORTACIÓN CSV JUEZ ----------------
         const exportEvaluationsToCSV = async () => {
             if (!judgeData || !judgeData.id) { alert('Debe iniciar sesión para exportar datos.'); return; }
             const exportBtn = document.getElementById('export-csv-btn');
             exportBtn.disabled = true; exportBtn.textContent = 'Generando CSV...';
 
-            const criteriaMapping = [
-                { id: 'titulo', name: 'Titulo_Afiliacion' },
-                { id: 'introduccion', name: 'Introduccion_Antecedentes' },
-                { id: 'metodologia', name: 'Metodologia' },
-                { id: 'resultados', name: 'Resultados' },
-                { id: 'conclusiones', name: 'Conclusiones' },
-                { id: 'banner', name: 'Banner_Elementos' },
-                { id: 'diseno', name: 'Diseno_Visual' },
-                { id: 'graficas', name: 'Tablas_Graficas' },
-                { id: 'referencias', name: 'Referencias' },
-                { id: 'innovacion', name: 'Innovacion_BONUS' },
-                { id: 'defensa', name: 'Defensa_Sintesis' },
-                { id: 'tiempo', name: 'Manejo_Tiempo_DEDUCCION' },
-                { id: 'ortografia', name: 'Redaccion_Ortografia_DEDUCCION' },
-                { id: 'impacto', name: 'Impacto_Potencial' },
-            ];
+            const criteriaMapping = evaluationCriteria.map(c => ({ 
+                id: c.id, 
+                name: c.name.replace(/\s/g, '_').replace(/[\(\)]/g, '').replace(/\./g, '') 
+            }));
 
             let csvContent = "data:text/csv;charset=utf-8,";
-            let headers = ['Judge_ID','Judge_Name','Poster_ID','Poster_Title','Total_Score','Observations', ...criteriaMapping.map(c=>c.name)];
+            let headers = ['Judge_ID','Judge_Name','Poster_ID','Poster_Title','Total_Score','Observations', 'Timestamp', ...criteriaMapping.map(c=>c.name)];
             csvContent += headers.join(',') + '\r\n';
 
             try {
@@ -737,7 +942,8 @@
                             data.posterId,
                             `"${posterTitle}"`,
                             data.totalScore,
-                            `"${(data.observations||'').replace(/"/g,'""').replace(/(\r\n|\n|\r)/gm,' ')}"`
+                            `"${(data.observations||'').replace(/"/g,'""').replace(/(\r\n|\n|\r)/gm,' ')}"`,
+                            data.timestamp
                         ];
                         criteriaMapping.forEach(c => { row.push(data.scores?.[c.id] || 0); });
                         csvContent += row.join(',') + '\r\n';
@@ -758,7 +964,7 @@
 
                 exportBtn.textContent = 'Exportación Exitosa';
                 exportBtn.classList.replace('bg-blue-600','bg-green-600');
-                setTimeout(()=>{ exportBtn.disabled=false; exportBtn.textContent='Exportar Evaluaciones (CSV)'; exportBtn.classList.replace('bg-green-600','bg-blue-600'); }, 2000);
+                setTimeout(()=>{ exportBtn.disabled=false; exportBtn.textContent='Exportar Evaluaciones (CSV)'; exportBtn.classList.replace('bg-green-600','bg-blue-600'); }, 3000);
             } catch (error) {
                 console.error("Error al exportar CSV:", error);
                 alert('Error al exportar las evaluaciones.');
