@@ -1,91 +1,61 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Evaluación de Carteles - Simposio Médico</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Inter Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f7f9fb;
-        }
-        .score-input {
-            width: 100%;
-            padding: 0.5rem;
-            border-radius: 0.5rem;
-            border: 1px solid #d1d5db;
-            text-align: center;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-        .score-input:focus {
-            border-color: #059669; /* Green 600 */
-            box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.2);
-        }
-        .score-option {
-            background-color: #f3f4f6;
-            border: 2px solid transparent;
-            cursor: pointer;
-        }
-        .score-option.selected {
-            background-color: #d1fae5; /* Green 100 */
-            border-color: #059669; /* Green 600 */
-            color: #065f46; /* Green 900 */
-        }
-        .score-input.has-value {
-            border-color: #059669; /* Green 600 */
-            box-shadow: 0 0 0 1px rgba(5, 150, 105, 0.5);
-        }
-        .password-container {
-            position: relative;
-        }
-        .toggle-password {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-            color: #6b7280; /* Gray 500 */
-            transition: color 0.15s;
-        }
-        .toggle-password:hover {
-            color: #10b981; /* Green 500 */
-        }
+        body { font-family: 'Inter', sans-serif; background-color: #f7f9fb; }
+        .score-input { width:100%; padding:.5rem; border-radius:.5rem; border:1px solid #d1d5db; text-align:center; font-weight:600; transition:all .2s; }
+        .score-input:focus { border-color:#059669; box-shadow:0 0 0 3px rgba(5,150,105,.2); }
+        .score-option { background:#f3f4f6; border:2px solid transparent; cursor:pointer; }
+        .score-option.selected { background:#d1fae5; border-color:#059669; color:#065f46; }
+        .score-input.has-value { border-color:#059669; box-shadow:0 0 0 1px rgba(5,150,105,.5); }
+        .password-container { position: relative; }
+        .toggle-password { position:absolute; right:12px; top:50%; transform:translateY(-50%); cursor:pointer; color:#6b7280; transition:color .15s; }
+        .toggle-password:hover { color:#10b981; }
     </style>
-    <!-- Firebase SDKs -->
+
+    <!-- Firebase: app + firestore -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 
-        // Configuración y variables globales
-        setLogLevel('Debug');
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-symposium-app';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-        
-        let app;
-        let db;
-        let auth;
-        let currentUserId = null;
-        let judgeData = null; 
-        const JUDGE_STORAGE_KEY = 'symposium_judge_data'; 
-        
-        // URL de Google Sheets App Web configurada
-        const GOOGLE_SHEETS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzatgCyA9JOC5NGiaVhyWzBG9V69-jzlyPAW03HtI-_pMKd3K5N8zxai1dUuKNcf_s0/exec';
+        // ------------------ CONFIGURA AQUÍ ------------------
+        // Reemplaza null con tu objeto firebaseConfig si ya lo tienes.
+        // EJEMPLO:
+        // const firebaseConfig = {
+        //   apiKey: "...",
+        //   authDomain: "...",
+        //   projectId: "...",
+        //   storageBucket: "...",
+        //   messagingSenderId: "...",
+        //   appId: "..."
+        // };
+        const firebaseConfig = null;
+        // ----------------------------------------------------
 
-        // Estructura de datos predefinida para la simulación
+        // Variables globales
+        let app = null;
+        let db = null;
+        let currentUserId = null;   // ahora usamos el ID del juez (p.ej. 'juez_a')
+        let judgeData = null;
+        const JUDGE_STORAGE_KEY = 'symposium_judge_data';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'symposium-app';
+
+        // Google Sheets web app URL (opcional)
+        const GOOGLE_SHEETS_WEB_APP_URL = 'https://script.google.com/macros/s/YOUR_WEB_APP_ID/exec';
+
+        // Usuarios predefinidos (tú defines nombres y contraseñas)
         const predefinedUsers = [
             { id: 'juez_a', user: 'juez1', pass: 'simposio2025', name: 'Dr. Héctor Hernández', role: 'judge' },
             { id: 'juez_b', user: 'juez2', pass: 'simposio2025', name: 'Dra. Georgina Álvarez', role: 'judge' },
-            { id: 'admin', user: 'admin', pass: 'admin2025', name: 'Administrador', role: 'admin' },
+            { id: 'admin',  user: 'admin',  pass: 'admin2025',     name: 'Administrador', role: 'admin' },
         ];
 
-        // Trabajos de ejemplo. Asignamos trabajos a los jueces por su ID predefinido.
+        // Trabajos de ejemplo
         const predefinedPosters = [
             { id: 'P001', title: 'Impacto de la Inteligencia Artificial en el Diagnóstico de Retinopatía Diabética', assignedTo: 'juez_a', status: 'Pendiente' },
             { id: 'P002', title: 'Análisis Multicéntrico de Terapias Combinadas en Hipertensión Resistente', assignedTo: 'juez_b', status: 'Pendiente' },
@@ -94,94 +64,53 @@
             { id: 'P005', title: 'Revisión Sistemática sobre el Uso de miRNA como Biomarcadores', assignedTo: 'juez_a', status: 'Pendiente' },
         ];
 
-        // --- Utilidades de Persistencia Local ---
+        // ---------- Utilidades de localStorage ----------
         const saveJudgeDataToLocal = (data) => {
-            try {
-                localStorage.setItem(JUDGE_STORAGE_KEY, JSON.stringify(data));
-            } catch (e) {
-                console.error("Error saving judge data to localStorage:", e);
-            }
+            try { localStorage.setItem(JUDGE_STORAGE_KEY, JSON.stringify(data)); }
+            catch(e) { console.error("Error saving judge data:", e); }
         };
-
         const loadJudgeDataFromLocal = () => {
             try {
-                const data = localStorage.getItem(JUDGE_STORAGE_KEY);
-                if (!data) return null;
-                
-                const parsedData = JSON.parse(data);
-                return parsedData;
-            } catch (e) {
-                console.error("Error loading judge data from localStorage:", e);
-                return null;
-            }
+                const d = localStorage.getItem(JUDGE_STORAGE_KEY);
+                if (!d) return null;
+                return JSON.parse(d);
+            } catch(e) { console.error("Error loading judge data:", e); return null; }
         };
-
         const clearJudgeDataLocal = () => {
+            try { localStorage.removeItem(JUDGE_STORAGE_KEY); }
+            catch(e) { console.error("Error clearing judge data:", e); }
+        };
+        // -----------------------------------------------
+
+        // Inicializar Firebase (solo si firebaseConfig existe)
+        const initFirebase = () => {
+            if (!firebaseConfig) {
+                console.warn("Firebase config no proporcionado. Firestore no estará disponible hasta configurarlo.");
+                return;
+            }
             try {
-                localStorage.removeItem(JUDGE_STORAGE_KEY);
-            } catch (e) {
-                console.error("Error clearing judge data from localStorage:", e);
-            }
-        };
-        // --- Fin Utilidades de Persistencia Local ---
-
-        // Función de utilidad para reintentar operaciones fallidas de red (AUN SE USA PARA GOOGLE SHEETS)
-        const retryOperation = async (operation, maxRetries = 3, initialDelay = 1000) => {
-            for (let i = 0; i < maxRetries; i++) {
-                try {
-                    return await operation();
-                } catch (error) {
-                    if (i === maxRetries - 1 || !(error.code === 'auth/network-request-failed' || error.message.includes('network'))) {
-                        throw error;
-                    }
-                    const delay = initialDelay * Math.pow(2, i) + Math.random() * 500;
-                    await new Promise(resolve => setTimeout(resolve, delay));
-                }
-            }
-        };
-
-        window.onload = () => {
-            if (firebaseConfig) {
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
-                auth = getAuth(app);
-                setupAuth();
+                console.log("Firebase inicializado correctamente.");
+            } catch (err) {
+                console.error("Error inicializando Firebase:", err);
+            }
+        };
+
+        // Al cargar la página: usar sesión local si existe
+        window.onload = () => {
+            initFirebase();
+            judgeData = loadJudgeDataFromLocal();
+            if (judgeData && judgeData.id) {
+                currentUserId = judgeData.id;
+                showDashboard(currentUserId);
             } else {
-                console.error("Firebase config is missing. Cannot initialize app.");
                 showLogin();
             }
             setupUIHandlers();
         };
 
-        // --- FUNCIONES DE AUTENTICACIÓN ---
-
-        const setupAuth = () => {
-            // FIX: Usamos onAuthStateChanged para que Firebase inicialice su sesión,
-            // pero la lógica de la sesión del Juez se basa *solo* en localStorage.
-            onAuthStateChanged(auth, (user) => {
-                judgeData = loadJudgeDataFromLocal();
-
-                if (user) {
-                    // SI Firebase está autenticado (anónimamente, real o persistente)
-                    currentUserId = user.uid;
-                    if (judgeData && judgeData.id) {
-                         // Y SI localStorage tiene data de juez, mostramos Dashboard.
-                        showDashboard(currentUserId);
-                    } else {
-                        // Firebase está OK, pero no recordamos quién es el juez, vamos al Login.
-                        showLogin();
-                    }
-                } else {
-                    // SI Firebase NO tiene usuario (deslogueado), vamos al Login.
-                    currentUserId = null;
-                    judgeData = null;
-                    clearJudgeDataLocal();
-                    showLogin();
-                }
-            });
-        };
-        
-        // Simulación de autenticación con usuario/contraseña predefinidos
+        // ---------------- Autenticación local ----------------
         const handleLogin = async () => {
             const user = document.getElementById('username').value.trim();
             const pass = document.getElementById('password').value.trim();
@@ -195,43 +124,19 @@
             const userEntry = predefinedUsers.find(u => u.user === user && u.pass === pass);
 
             if (userEntry) {
-                try {
-                    // 1. Cerrar sesión existente de Firebase y limpiar data local
-                    if (auth.currentUser) {
-                        await signOut(auth);
-                    }
-                    clearJudgeDataLocal();
-                    
-                    // 2. Autenticación anónima (NECESARIA para que Firestore permita escribir).
-                    // Esta llamada es la que fallaba en GitHub Pages, pero es esencial para Firestore.
-                    const userCredential = await retryOperation(() => signInAnonymously(auth));
-                    const newUserId = userCredential.user.uid;
-                    
-                    const newJudgeData = {
-                        id: userEntry.id, 
-                        name: userEntry.name,
-                        role: userEntry.role,
-                        pass: userEntry.pass, 
-                        lastLogin: new Date().toISOString()
-                    };
-
-                    // 3. Establecer sesión localmente
-                    judgeData = newJudgeData;
-                    currentUserId = newUserId; 
-                    saveJudgeDataToLocal(newJudgeData);
-
-                    // 4. Mostrar Dashboard inmediatamente
-                    showDashboard(newUserId); 
-                    
-                    loginBtn.textContent = 'Éxito';
-                } catch (error) {
-                    // Si falla el signInAnonymously (como ocurre en GitHub Pages sin reglas CSP), 
-                    // mostramos un error de conexión
-                    console.error("Error durante el login simulado (Firebase Auth):", error);
-                    errorMsg.textContent = 'Error de conexión. Intente de nuevo.';
-                    loginBtn.disabled = false;
-                    loginBtn.textContent = 'Iniciar Sesión';
-                }
+                // No usamos Firebase Auth: la "sesión" es local
+                const newJudgeData = {
+                    id: userEntry.id,
+                    name: userEntry.name,
+                    role: userEntry.role,
+                    pass: userEntry.pass,
+                    lastLogin: new Date().toISOString()
+                };
+                judgeData = newJudgeData;
+                currentUserId = newJudgeData.id;
+                saveJudgeDataToLocal(newJudgeData);
+                showDashboard(currentUserId);
+                loginBtn.textContent = 'Éxito';
             } else {
                 errorMsg.textContent = 'Usuario o contraseña incorrectos.';
                 loginBtn.disabled = false;
@@ -240,47 +145,32 @@
         };
 
         const handleLogout = async () => {
-            try {
-                // Cerrar sesión de Firebase Auth y limpiar localStorage
-                await signOut(auth);
-                clearJudgeDataLocal();
-                judgeData = null;
-                currentUserId = null;
-                showLogin();
-            } catch (error) {
-                console.error("Error signing out:", error);
-            }
+            clearJudgeDataLocal();
+            judgeData = null;
+            currentUserId = null;
+            showLogin();
         };
-        
-        // Función para alternar la visibilidad de la contraseña
+
         const togglePasswordVisibility = () => {
             const passwordInput = document.getElementById('password');
             const toggleIcon = document.getElementById('toggle-password-icon');
+            if (!passwordInput) return;
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
-                // Ícono de ojo abierto
-                toggleIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.173.13.399.13.784 0 1.183A15.423 15.423 0 0112 19.5c-4.638 0-8.573-3.007-9.963-7.173z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>`;
+                toggleIcon.innerHTML = '&#128065;'; // ojo
             } else {
                 passwordInput.type = 'password';
-                 // Ícono de ojo cerrado
-                toggleIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.98.083A10.096 10.096 0 0112 4.5c4.638 0 8.573 3.007 9.963 7.173a1.012 1.012 0 010 .639C20.577 16.49 16.64 19.5 12 19.5c-2.43 0-4.663-.957-6.386-2.522m2.483-2.483a3 3 0 014.243-4.243m-1.488 4.735l.983-.983A3 3 0 0112 12c.57.008 1.134.12 1.666.347m-.003-3.99A3 3 0 0012 9c-.57 0-1.134.12-1.666.347M5.074 4.074a1.01 1.01 0 00-1.43 1.43l13.626 13.626a1.01 1.01 0 001.43-1.43L5.074 4.074z" />
-                </svg>`;
+                toggleIcon.innerHTML = '&#128584;';
             }
         };
 
-        // --- FUNCIONES DE VISTA Y NAVEGACIÓN ---
-
+        // ---------------- UI: Login & Dashboard ----------------
         const showLogin = () => {
             document.getElementById('app-container').innerHTML = `
                 <div class="min-h-screen flex items-center justify-center p-4 bg-gray-100">
                     <div class="w-full max-w-md bg-white p-8 rounded-xl shadow-2xl border-t-8 border-green-600">
                         <div class="text-center mb-6">
                             <div class="flex justify-center space-x-3 mb-4">
-                                <!-- Logos Placeholder -->
                                 <img src="https://placehold.co/40x40/004080/FFFFFF/png?text=IPN" onerror="this.style.display='none'" alt="Logo IPN" class="rounded-full shadow-md">
                                 <img src="https://placehold.co/40x40/00A39C/FFFFFF/png?text=ESM" onerror="this.style.display='none'" alt="Logo ESM" class="rounded-full shadow-md">
                                 <img src="https://placehold.co/40x40/C0C0C0/333333/png?text=LICAM" onerror="this.style.display='none'" alt="Logo LICAM" class="rounded-full shadow-md">
@@ -296,12 +186,7 @@
                             <div class="password-container">
                                 <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
                                 <input type="password" id="password" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 pr-10" value="simposio2025" placeholder="*******">
-                                <span id="toggle-password-icon" class="toggle-password" title="Mostrar contraseña">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5h.008v.008h-.008v-.008zm1.5 6a7.5 7.5 0 00-9-9" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c1.898 0 3.659.576 5.148 1.572m-1.554 1.554a7.5 7.5 0 01-9.988 9.988M21.964 12.322a1.012 1.012 0 010 .639C20.577 16.49 16.64 19.5 12 19.5c-1.898 0-3.659-.576-5.148-1.572" />
-                                    </svg>
-                                </span>
+                                <span id="toggle-password-icon" class="toggle-password" title="Mostrar contraseña" style="user-select:none;">&#128584;</span>
                             </div>
                             <button id="login-btn" class="w-full bg-green-600 text-white p-3 rounded-lg font-semibold hover:bg-green-700 transition duration-150 shadow-md">
                                 Iniciar Sesión
@@ -316,7 +201,7 @@
         };
 
         const showDashboard = (userId) => {
-            if (!judgeData) return;
+            if (!judgeData) return showLogin();
 
             document.getElementById('app-container').innerHTML = `
                 <div class="min-h-screen bg-gray-50">
@@ -345,111 +230,111 @@
             document.getElementById('export-csv-btn').addEventListener('click', exportEvaluationsToCSV);
             loadAssignedPosters(userId);
         };
-        
-        // --- FUNCIONES DE FIREBASE (CRUD) Y LÓGICA DE NEGOCIO ---
 
-        // Función para poblar los trabajos asignados al juez
+        // ---------------- CARGAR TRABAJOS ASIGNADOS ----------------
         const loadAssignedPosters = (judgeId) => {
             const listContainer = document.getElementById('poster-list');
             listContainer.innerHTML = '<div class="text-center py-8 text-gray-500">Cargando trabajos...</div>';
 
-            const staticJudgeId = judgeData?.id; 
+            const staticJudgeId = judgeData?.id;
             if (!staticJudgeId) {
                 listContainer.innerHTML = '<div class="text-center py-8 text-red-500">Error: No se encontró la ID de asignación del juez.</div>';
                 return;
             }
 
             const assignedPosters = predefinedPosters.filter(p => p.assignedTo === staticJudgeId);
-
             if (assignedPosters.length === 0) {
                 listContainer.innerHTML = '<div class="text-center py-8 text-gray-500">No tiene trabajos asignados para evaluar.</div>';
                 return;
             }
 
-            // Usar onSnapshot para escuchar cambios en las evaluaciones (colección PRIVADA)
+            // Para cada póster, leer la evaluación (si existe) y mostrar tarjeta
             assignedPosters.forEach(poster => {
-                const docRef = doc(db, `artifacts/${appId}/users/${judgeId}/evaluations`, poster.id);
-                
-                onSnapshot(docRef, (docSnap) => {
-                    const evaluationData = docSnap.exists() ? docSnap.data() : null;
-                    
-                    const totalScore = evaluationData ? evaluationData.totalScore : 'N/A';
-                    const isEvaluated = evaluationData ? true : false;
-                    const statusText = isEvaluated ? 'Finalizado' : 'Evaluar';
-                    const scoreColor = isEvaluated ? 'bg-green-600 text-white' : 'bg-yellow-100 text-yellow-800';
+                // Doc path: artifacts/{appId}/users/{judgeId}/evaluations/{posterId}
+                const docRef = (db && typeof doc === 'function') ? doc(db, `artifacts/${appId}/users/${staticJudgeId}/evaluations`, poster.id) : null;
 
-                    let card = document.getElementById(`poster-card-${poster.id}`);
-                    if (!card) {
-                        const newCardHTML = `
-                            <div id="poster-card-${poster.id}" class="bg-white p-5 rounded-xl shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center transition hover:shadow-xl ${isEvaluated ? 'border-l-4 border-green-600' : ''}">
-                                <div>
-                                    <p class="text-sm font-medium text-gray-500">${poster.id}</p>
-                                    <h3 class="text-lg font-semibold text-gray-800">${poster.title}</h3>
-                                </div>
-                                <div class="mt-3 sm:mt-0 flex items-center space-x-4">
-                                    <span class="px-3 py-1 text-xs font-medium rounded-full ${scoreColor}">
-                                        Puntaje: ${totalScore} / 100
-                                    </span>
-                                    <button class="evaluate-btn text-white px-4 py-2 rounded-full font-medium transition ${isEvaluated ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}"
-                                            data-poster-id="${poster.id}" 
-                                            data-poster-title="${poster.title}" 
-                                            data-evaluation='${JSON.stringify(evaluationData || {})}'
-                                            ${isEvaluated ? 'disabled' : ''}>
-                                        ${statusText}
-                                    </button>
-                                </div>
-                            </div>
-                        `;
-                        if (listContainer.innerHTML.includes('Cargando trabajos...')) {
-                            listContainer.innerHTML = ''; 
-                        }
-                        listContainer.insertAdjacentHTML('beforeend', newCardHTML);
-                    } else {
-                        // Actualizar la tarjeta si ya existe (para el feedback visual)
-                        card.className = `bg-white p-5 rounded-xl shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center transition hover:shadow-xl ${isEvaluated ? 'border-l-4 border-green-600' : ''}`;
-                        
-                        card.querySelector(`span:not(.evaluate-btn)`).className = `px-3 py-1 text-xs font-medium rounded-full ${scoreColor}`;
-                        card.querySelector(`span:not(.evaluate-btn)`).textContent = `Puntaje: ${totalScore} / 100`; 
-                        
-                        const btn = card.querySelector('.evaluate-btn');
-                        btn.textContent = statusText; 
-                        btn.dataset.evaluation = JSON.stringify(evaluationData || {});
-                        if (isEvaluated) {
-                            btn.disabled = true;
-                            btn.classList.replace('bg-blue-600', 'bg-gray-400');
-                            btn.classList.add('cursor-not-allowed');
-                            btn.classList.remove('hover:bg-blue-700');
-                        } else {
-                            btn.disabled = false;
-                            btn.classList.replace('bg-gray-400', 'bg-blue-600');
-                            btn.classList.remove('cursor-not-allowed');
-                            btn.classList.add('hover:bg-blue-700');
-                        }
-                    }
-
-                    // Re-asignar manejadores de eventos (solo a botones NO deshabilitados)
-                    document.querySelectorAll('.evaluate-btn').forEach(btn => {
-                        btn.removeEventListener('click', handleEvaluateClick);
-                        if (!btn.disabled) {
-                            btn.addEventListener('click', handleEvaluateClick);
-                        }
+                if (docRef && typeof onSnapshot === 'function') {
+                    // Usar onSnapshot si Firestore está inicializado
+                    onSnapshot(docRef, (docSnap) => {
+                        const evaluationData = docSnap.exists() ? docSnap.data() : null;
+                        renderOrUpdatePosterCard(poster, evaluationData);
+                    }, (error) => {
+                        console.warn(`Error fetching evaluation for poster ${poster.id}:`, error);
+                        renderOrUpdatePosterCard(poster, null, true);
                     });
-
-                }, (error) => {
-                    console.warn(`Error fetching evaluation for poster: ${poster.id}`, error);
-                    if (listContainer.innerHTML.includes('Cargando trabajos...')) {
-                        listContainer.innerHTML = '<div class="text-center py-8 text-red-500">Error de permisos o conexión al cargar evaluaciones.</div>';
-                    }
-                });
+                } else {
+                    // Firestore no configurado: mostramos tarjetas estáticas (sin puntuación guardada)
+                    renderOrUpdatePosterCard(poster, null);
+                }
             });
-
-            if (listContainer.innerHTML.includes('Cargando trabajos...')) {
-                 listContainer.innerHTML = ''; 
-            }
         };
 
+        const renderOrUpdatePosterCard = (poster, evaluationData, hasError=false) => {
+            const listContainer = document.getElementById('poster-list');
+            if (!listContainer) return;
+
+            const totalScore = evaluationData ? evaluationData.totalScore : 'N/A';
+            const isEvaluated = !!evaluationData;
+            const statusText = isEvaluated ? 'Finalizado' : (hasError ? 'Error' : 'Evaluar');
+            const scoreColor = isEvaluated ? 'bg-green-600 text-white' : 'bg-yellow-100 text-yellow-800';
+
+            let card = document.getElementById(`poster-card-${poster.id}`);
+            if (!card) {
+                const newCardHTML = `
+                    <div id="poster-card-${poster.id}" class="bg-white p-5 rounded-xl shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center transition hover:shadow-xl ${isEvaluated ? 'border-l-4 border-green-600' : ''}">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">${poster.id}</p>
+                            <h3 class="text-lg font-semibold text-gray-800">${poster.title}</h3>
+                        </div>
+                        <div class="mt-3 sm:mt-0 flex items-center space-x-4">
+                            <span class="px-3 py-1 text-xs font-medium rounded-full ${scoreColor}">
+                                Puntaje: ${totalScore} / 100
+                            </span>
+                            <button class="evaluate-btn text-white px-4 py-2 rounded-full font-medium transition ${isEvaluated ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}"
+                                    data-poster-id="${poster.id}" 
+                                    data-poster-title="${poster.title}" 
+                                    data-evaluation='${JSON.stringify(evaluationData || {})}'
+                                    ${isEvaluated ? 'disabled' : ''}>
+                                ${statusText}
+                            </button>
+                        </div>
+                    </div>
+                `;
+                if (listContainer.innerHTML.includes('Cargando trabajos...')) listContainer.innerHTML = '';
+                listContainer.insertAdjacentHTML('beforeend', newCardHTML);
+            } else {
+                // actualizar
+                card.className = `bg-white p-5 rounded-xl shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center transition hover:shadow-xl ${isEvaluated ? 'border-l-4 border-green-600' : ''}`;
+                const span = card.querySelector('span');
+                if (span) {
+                    span.className = `px-3 py-1 text-xs font-medium rounded-full ${scoreColor}`;
+                    span.textContent = `Puntaje: ${totalScore} / 100`;
+                }
+                const btn = card.querySelector('.evaluate-btn');
+                if (btn) {
+                    btn.textContent = statusText;
+                    btn.dataset.evaluation = JSON.stringify(evaluationData || {});
+                    btn.disabled = isEvaluated;
+                    if (isEvaluated) {
+                        btn.classList.replace('bg-blue-600','bg-gray-400');
+                        btn.classList.add('cursor-not-allowed');
+                    } else {
+                        btn.classList.replace('bg-gray-400','bg-blue-600');
+                        btn.classList.remove('cursor-not-allowed');
+                    }
+                }
+            }
+
+            // reasignar manejadores
+            document.querySelectorAll('.evaluate-btn').forEach(btn => {
+                btn.removeEventListener('click', handleEvaluateClick);
+                if (!btn.disabled) btn.addEventListener('click', handleEvaluateClick);
+            });
+        };
+
+        // ---------------- Evaluación ----------------
         const handleEvaluateClick = (event) => {
-            if (event.currentTarget.disabled) return; 
+            if (event.currentTarget.disabled) return;
             const posterId = event.currentTarget.dataset.posterId;
             const posterTitle = event.currentTarget.dataset.posterTitle;
             const evaluationData = JSON.parse(event.currentTarget.dataset.evaluation || '{}');
@@ -459,8 +344,6 @@
         const handleInputVisualFeedback = (event) => {
             const input = event.target;
             const name = input.name;
-
-            // Limpiar visuales anteriores
             if (input.type === 'radio') {
                 document.querySelectorAll(`input[name="${name}"]`).forEach(radio => {
                     const label = document.querySelector(`label[for="${radio.id}"]`);
@@ -469,14 +352,12 @@
             } else if (input.type === 'number') {
                 input.classList.remove('has-value');
             }
-
-            // Aplicar visual para el valor actual
             if (input.type === 'radio' && input.checked) {
                 const label = document.querySelector(`label[for="${input.id}"]`);
                 if (label) label.classList.add('selected');
             } else if (input.type === 'number') {
                 const value = parseInt(input.value);
-                if (value >= 0 && value <= parseInt(input.max)) {
+                if (!isNaN(value) && value >= 0 && value <= parseInt(input.max)) {
                     input.classList.add('has-value');
                 }
             }
@@ -485,28 +366,25 @@
 
         const showEvaluationForm = (posterId, title, evaluation = {}) => {
             const formContainer = document.getElementById('app-container');
-            
+
             const criteria = [
-                { id: 'titulo', category: 'I. Fondo (Contenido Científico)', max: 5, type: '3-point', options: [0, 3, 5], name: 'Título y Afiliación', desc: 'Claridad y correcta identificación. (0, 3, o 5 puntos)' },
-                { id: 'introduccion', category: 'I. Fondo (Contenido Científico)', max: 5, type: '3-point', options: [0, 3, 5], name: 'Introducción y Antecedentes', desc: 'Contextualización, justificación y uso de referencias. (0, 3, o 5 puntos)' },
-                { id: 'metodologia', category: 'I. Fondo (Contenido Científico)', max: 10, type: 'full', name: 'Metodología', desc: 'Detalle del diseño, muestra y procedimientos éticos. Claridad para ser replicable.' },
-                { id: 'resultados', category: 'I. Fondo (Contenido Científico)', max: 10, type: 'full', name: 'Resultados', desc: 'Presentación objetiva de datos, uso de estadística y congruencia.' },
-                { id: 'conclusiones', category: 'I. Fondo (Contenido Científico)', max: 5, type: '3-point', options: [0, 3, 5], name: 'Conclusiones', desc: 'Derivadas de los resultados, responden al objetivo planteado. (0, 3, o 5 puntos)' },
-                { id: 'banner', category: 'II. Forma (Diseño y Formato)', max: 5, type: '3-point', options: [0, 3, 5], name: 'Banner y Elementos Mandatorios', desc: 'Inclusión de logos y cumplimiento de requisitos básicos de formato. (0, 3, o 5 puntos)' },
-                { id: 'diseno', category: 'II. Forma (Diseño y Formato)', max: 10, type: 'full', name: 'Diseño y Congruencia Visual', desc: 'Equilibrio, tipografía legible y flujo de lectura intuitivo.' },
-                { id: 'graficas', category: 'II. Forma (Diseño y Formato)', max: 10, type: 'full', name: 'Uso de Tablas y Gráficas', desc: 'Claridad, calidad y apropiación de los elementos visuales.' },
-                { id: 'referencias', category: 'II. Forma (Diseño y Formato)', max: 5, type: '3-point', options: [0, 3, 5], name: 'Referencias Bibliográficas', desc: 'Cumplimiento con el estilo de citación y pertinencia de las fuentes. (0, 3, o 5 puntos)' },
-                { id: 'innovacion', category: 'III. Novedad y Presentación', max: 15, type: 'bonus', name: 'Innovación y Originalidad', desc: 'Aporta nuevo conocimiento, técnica novedosa o perspectiva original. (BONUS: SUMA)' },
-                { id: 'defensa', category: 'III. Novedad y Presentación', max: 10, type: 'full', name: 'Defensa y Síntesis', desc: 'Dominio del tema, claridad al explicarlo y habilidad para responder preguntas.' },
-                { id: 'tiempo', category: 'III. Novedad y Presentación', max: 10, type: 'deduction', name: 'Manejo del Tiempo', desc: 'Excedió el tiempo máximo de 10 minutos para exposición y defensa. (DEDUCCIÓN: RESTA)' },
-                { id: 'ortografia', category: 'III. Novedad y Presentación', max: 10, type: 'deduction', name: 'Redacción y Ortografía', desc: 'Errores gramaticales o de ortografía significativos en el cartel. (DEDUCCIÓN: RESTA)' },
-                { id: 'impacto', category: 'III. Novedad y Presentación', max: 5, type: 'full', name: 'Impacto Potencial', desc: 'Trascendencia en la práctica clínica, salud pública o enseñanza médica.' },
+                { id: 'titulo', category: 'I. Fondo (Contenido Científico)', max: 5, type: '3-point', options: [0,3,5], name: 'Título y Afiliación', desc: 'Claridad y correcta identificación. (0, 3, o 5 puntos)' },
+                { id: 'introduccion', category: 'I. Fondo (Contenido Científico)', max: 5, type: '3-point', options: [0,3,5], name: 'Introducción y Antecedentes', desc: 'Contextualización, justificación y uso de referencias. (0,3,5)' },
+                { id: 'metodologia', category: 'I. Fondo (Contenido Científico)', max: 10, type: 'full', name: 'Metodología', desc: 'Detalle del diseño, muestra y procedimientos éticos.' },
+                { id: 'resultados', category: 'I. Fondo (Contenido Científico)', max: 10, type: 'full', name: 'Resultados', desc: 'Presentación objetiva de datos.' },
+                { id: 'conclusiones', category: 'I. Fondo (Contenido Científico)', max: 5, type: '3-point', options: [0,3,5], name: 'Conclusiones', desc: 'Derivadas de los resultados.' },
+                { id: 'banner', category: 'II. Forma (Diseño y Formato)', max: 5, type: '3-point', options: [0,3,5], name: 'Banner y Elementos Mandatorios', desc: 'Inclusión de logos y requisitos.' },
+                { id: 'diseno', category: 'II. Forma (Diseño y Formato)', max: 10, type: 'full', name: 'Diseño y Congruencia Visual', desc: 'Equilibrio, tipografía legible.' },
+                { id: 'graficas', category: 'II. Forma (Diseño y Formato)', max: 10, type: 'full', name: 'Uso de Tablas y Gráficas', desc: 'Claridad y calidad.' },
+                { id: 'referencias', category: 'II. Forma (Diseño y Formato)', max: 5, type: '3-point', options: [0,3,5], name: 'Referencias Bibliográficas', desc: 'Cumplimiento con estilo.' },
+                { id: 'innovacion', category: 'III. Novedad y Presentación', max: 15, type: 'bonus', name: 'Innovación y Originalidad', desc: 'Aporta nuevo conocimiento. (BONUS)' },
+                { id: 'defensa', category: 'III. Novedad y Presentación', max: 10, type: 'full', name: 'Defensa y Síntesis', desc: 'Dominio del tema y claridad.' },
+                { id: 'tiempo', category: 'III. Novedad y Presentación', max: 10, type: 'deduction', name: 'Manejo del Tiempo', desc: 'Excedió el tiempo (DEDUCCIÓN).' },
+                { id: 'ortografia', category: 'III. Novedad y Presentación', max: 10, type: 'deduction', name: 'Redacción y Ortografía', desc: 'Errores significativos (DEDUCCIÓN).' },
+                { id: 'impacto', category: 'III. Novedad y Presentación', max: 5, type: 'full', name: 'Impacto Potencial', desc: 'Trascendencia en práctica clínica.' },
             ];
 
-            const categoryHeaders = criteria.reduce((acc, curr) => {
-                if (!acc.includes(curr.category)) acc.push(curr.category);
-                return acc;
-            }, []);
+            const categoryHeaders = criteria.reduce((acc,curr)=> { if(!acc.includes(curr.category)) acc.push(curr.category); return acc; }, []);
 
             let formHTML = `
                 <div class="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
@@ -534,7 +412,6 @@
 
                                             let inputField = '';
                                             if (c.type === '3-point' && c.options) {
-                                                // Opción de 3 puntos (0, 3, 5)
                                                 inputField = `
                                                     <div class="flex space-x-2">
                                                         ${c.options.map(option => {
@@ -550,10 +427,9 @@
                                                     </div>
                                                 `;
                                             } else {
-                                                // Entrada numérica general (0 a Max)
                                                 inputField = `
                                                     <input type="number" id="${c.id}-score" name="${c.id}" class="score-input ${c.type === 'deduction' ? 'border-red-400 text-red-700' : 'border-green-400 text-green-700'} ${isMarked ? 'has-value' : ''}" 
-                                                           min="${c.type === 'deduction' ? 0 : 0}" max="${c.max}" value="${savedScore}" data-max="${c.max}" data-type="${c.type}" required />
+                                                           min="0" max="${c.max}" value="${savedScore}" data-max="${c.max}" data-type="${c.type}" required />
                                                 `;
                                             }
 
@@ -599,53 +475,37 @@
             formContainer.innerHTML = formHTML;
             setupFormHandlers(posterId);
 
-            // Asegurar que la ayuda visual se inicialice correctamente al cargar el formulario
             document.querySelectorAll('#criteria-list input').forEach(input => {
-                 // Si es number y tiene valor, añadir la clase has-value
-                if (input.type === 'number' && input.value !== "") {
-                    input.classList.add('has-value');
-                }
+                if (input.type === 'number' && input.value !== "") input.classList.add('has-value');
             });
         };
 
         const calculateScore = () => {
             const form = document.getElementById('evaluation-form');
             if (!form) return 0;
-            
             let totalScore = 0;
-            const deductionMap = { 'tiempo': 10, 'ortografia': 10 }; 
-            
-            // Recoger todas las puntuaciones válidas primero
+            const deductionMap = { 'tiempo': 10, 'ortografia': 10 };
             const currentScores = {};
 
             document.querySelectorAll('#criteria-list input').forEach(input => {
                 const criteriaId = input.name;
                 const criteriaType = input.dataset.type;
                 let score = 0;
-
                 if (input.type === 'radio') {
-                    if (input.checked) {
-                        // FIX: Solo se considera el radio button marcado para ese grupo
-                        score = parseInt(input.value) || 0;
-                        currentScores[criteriaId] = { score, criteriaType, input };
-                    }
-                } 
-                else if (input.type === 'number') {
+                    if (input.checked) { score = parseInt(input.value) || 0; currentScores[criteriaId] = { score, criteriaType, input }; }
+                } else if (input.type === 'number') {
                     score = parseInt(input.value) || 0;
                     currentScores[criteriaId] = { score, criteriaType, input };
                 }
             });
 
-            // Sumar/Restar las puntuaciones recogidas
             for (const criteriaId in currentScores) {
                 const { score, criteriaType, input } = currentScores[criteriaId];
-                
                 if (criteriaType === 'full' || criteriaType === '3-point' || criteriaType === 'bonus') {
                     const max = parseInt(input.dataset.max) || 0;
                     totalScore += Math.min(score, max);
-                } 
-                else if (criteriaType === 'deduction') {
-                    const maxDeduction = deductionMap[criteriaId];
+                } else if (criteriaType === 'deduction') {
+                    const maxDeduction = deductionMap[criteriaId] || parseInt(input.dataset.max) || 0;
                     totalScore -= Math.min(score, maxDeduction);
                 }
             }
@@ -654,31 +514,24 @@
             return totalScore;
         };
 
+        // Enviar a Google Sheets (opcional)
         const sendDataToGoogleSheets = async (evaluationData) => {
-            // La validación de esta URL es crucial para que funcione.
-            if (GOOGLE_SHEETS_WEB_APP_URL.includes('TU_WEB_APP_URL_DE_GOOGLE_SHEETS_AQUI') || GOOGLE_SHEETS_WEB_APP_URL.length < 50) {
-                console.warn("ADVERTENCIA: La URL de Google Sheets no está configurada correctamente. No se enviarán datos.");
+            if (!GOOGLE_SHEETS_WEB_APP_URL || GOOGLE_SHEETS_WEB_APP_URL.includes('YOUR_WEB_APP_ID')) {
+                console.warn("URL de Google Sheets no configurada (opcional).");
                 return;
             }
-
             try {
-                // Modo 'no-cors' necesario para peticiones POST a Google App Script
-                const response = await fetch(GOOGLE_SHEETS_WEB_APP_URL, {
+                await fetch(GOOGLE_SHEETS_WEB_APP_URL, {
                     method: 'POST',
-                    mode: 'no-cors', 
+                    mode: 'no-cors',
                     cache: 'no-cache',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(evaluationData),
                 });
-                console.log('Datos enviados a Google Sheets (Asumiendo éxito por respuesta no-cors):', response);
             } catch (error) {
-                console.error("Error FATAL al enviar datos a Google Sheets:", error);
-                // No se lanza el error para no bloquear el guardado en Firestore.
+                console.error("Error enviando a Google Sheets:", error);
             }
         };
-
 
         const saveEvaluation = async (event) => {
             event.preventDefault();
@@ -686,22 +539,18 @@
             const saveBtn = document.getElementById('save-evaluation-btn');
             const statusMsg = document.getElementById('save-status');
 
-            if (!currentUserId || !judgeData) {
-                statusMsg.textContent = 'Error: No se ha detectado el usuario juez. Intente iniciar sesión de nuevo.';
+            if (!judgeData || !judgeData.id) {
+                statusMsg.textContent = 'Error: No se ha detectado el usuario juez. Inicia sesión nuevamente.';
                 statusMsg.className = 'text-center mt-3 text-sm font-medium text-red-600';
                 return;
             }
 
-            const poster = predefinedPosters.find(p => p.id === posterId);
-
-            // Recoger puntuaciones
+            // Recolectar puntuaciones
             const scores = {};
             document.querySelectorAll('#criteria-list input').forEach(input => {
                 const criteriaId = input.name;
                 if (input.type === 'radio') {
-                    if (input.checked) {
-                        scores[criteriaId] = parseInt(input.value);
-                    }
+                    if (input.checked) scores[criteriaId] = parseInt(input.value);
                 } else if (input.type === 'number') {
                     scores[criteriaId] = parseInt(input.value) || 0;
                 }
@@ -711,158 +560,133 @@
             const observations = document.getElementById('observations').value.trim();
 
             const evaluationData = {
-                judgeId: currentUserId,
-                staticJudgeId: judgeData.id, 
+                judgeId: judgeData.id,
                 judgeName: judgeData.name,
                 posterId: posterId,
-                posterTitle: poster ? poster.title : 'Título Desconocido', // Identificación del trabajo
-                totalScore: totalScore,
-                scores: scores,
-                observations: observations,
+                posterTitle: (predefinedPosters.find(p=>p.id===posterId)?.title) || 'Título Desconocido',
+                totalScore,
+                scores,
+                observations,
                 timestamp: new Date().toISOString()
             };
-
-            const docRef = doc(db, `artifacts/${appId}/users/${currentUserId}/evaluations`, posterId);
 
             saveBtn.disabled = true;
             saveBtn.textContent = 'Guardando...';
             statusMsg.textContent = '';
 
             try {
-                // 1. Guardar en Firestore (colección privada)
-                await setDoc(docRef, evaluationData);
-                
-                // 2. Enviar a Google Sheets (no bloquea el flujo principal si falla)
+                if (db && typeof setDoc === 'function') {
+                    const docRef = doc(db, `artifacts/${appId}/users/${judgeData.id}/evaluations`, posterId);
+                    await setDoc(docRef, evaluationData);
+                } else {
+                    console.warn("Firestore no inicializado. La evaluación no se guardará en la nube.");
+                }
+
+                // Intentar enviar a Google Sheets (no bloqueante)
                 await sendDataToGoogleSheets(evaluationData);
 
-
-                statusMsg.textContent = 'Evaluación guardada y enviada exitosamente. Volviendo al panel en 3 segundos...';
+                statusMsg.textContent = 'Evaluación guardada y enviada exitosamente.';
                 statusMsg.className = 'text-center mt-3 text-sm font-medium text-green-600';
-                
-                saveBtn.disabled = true;
-                setTimeout(() => {
-                    showDashboard(currentUserId);
-                }, 3000); 
+                saveBtn.textContent = 'Guardado';
 
+                // Volver al dashboard
+                setTimeout(()=> showDashboard(judgeData.id), 1200);
             } catch (error) {
-                console.error("Error saving evaluation:", error);
-                statusMsg.textContent = 'Error al guardar en Firestore. Intente de nuevo.';
+                console.error("Error guardando evaluación:", error);
+                statusMsg.textContent = 'Error al guardar la evaluación. Reintente.';
                 statusMsg.className = 'text-center mt-3 text-sm font-medium text-red-600';
-            } finally {
-                if (!saveBtn.disabled) { 
-                    saveBtn.disabled = false;
-                    saveBtn.textContent = 'Guardar Evaluación';
-                }
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Guardar Evaluación';
             }
         };
 
         const setupFormHandlers = (posterId) => {
-            document.getElementById('back-to-dashboard').addEventListener('click', () => showDashboard(currentUserId));
-            
-            // Añadir el manejador de feedback visual y cálculo
+            const backBtn = document.getElementById('back-to-dashboard');
+            if (backBtn) backBtn.addEventListener('click', ()=> showDashboard(judgeData.id));
             document.querySelectorAll('#criteria-list input').forEach(input => {
                 input.addEventListener('input', handleInputVisualFeedback);
                 input.addEventListener('change', handleInputVisualFeedback);
             });
-
-            document.getElementById('evaluation-form').addEventListener('submit', saveEvaluation);
-
+            const form = document.getElementById('evaluation-form');
+            if (form) form.addEventListener('submit', saveEvaluation);
             calculateScore();
         };
 
+        // ---------------- Exportar CSV ----------------
         const exportEvaluationsToCSV = async () => {
-            if (!currentUserId || !judgeData) {
-                alert('Debe iniciar sesión para exportar datos.');
-                return;
-            }
-
+            if (!judgeData || !judgeData.id) { alert('Debe iniciar sesión para exportar datos.'); return; }
             const exportBtn = document.getElementById('export-csv-btn');
-            exportBtn.disabled = true;
-            exportBtn.textContent = 'Generando CSV...';
+            exportBtn.disabled = true; exportBtn.textContent = 'Generando CSV...';
 
             const criteria = [
-                { id: 'titulo', name: 'Titulo_Afiliacion', max: 5 },
-                { id: 'introduccion', name: 'Introduccion_Antecedentes', max: 5 },
-                { id: 'metodologia', name: 'Metodologia', max: 10 },
-                { id: 'resultados', name: 'Resultados', max: 10 },
-                { id: 'conclusiones', name: 'Conclusiones', max: 5 },
-                { id: 'banner', name: 'Banner_Elementos', max: 5 },
-                { id: 'diseno', name: 'Diseno_Visual', max: 10 },
-                { id: 'graficas', name: 'Tablas_Graficas', max: 10 },
-                { id: 'referencias', name: 'Referencias', max: 5 },
-                { id: 'innovacion', name: 'Innovacion_BONUS', max: 15 },
-                { id: 'defensa', name: 'Defensa_Sintesis', max: 10 },
-                { id: 'tiempo', name: 'Manejo_Tiempo_DEDUCCION', max: 10 },
-                { id: 'ortografia', name: 'Redaccion_Ortografia_DEDUCCION', max: 10 },
-                { id: 'impacto', name: 'Impacto_Potencial', max: 5 },
+                { id: 'titulo', name: 'Titulo_Afiliacion' },
+                { id: 'introduccion', name: 'Introduccion_Antecedentes' },
+                { id: 'metodologia', name: 'Metodologia' },
+                { id: 'resultados', name: 'Resultados' },
+                { id: 'conclusiones', name: 'Conclusiones' },
+                { id: 'banner', name: 'Banner_Elementos' },
+                { id: 'diseno', name: 'Diseno_Visual' },
+                { id: 'graficas', name: 'Tablas_Graficas' },
+                { id: 'referencias', name: 'Referencias' },
+                { id: 'innovacion', name: 'Innovacion_BONUS' },
+                { id: 'defensa', name: 'Defensa_Sintesis' },
+                { id: 'tiempo', name: 'Manejo_Tiempo_DEDUCCION' },
+                { id: 'ortografia', name: 'Redaccion_Ortografia_DEDUCCION' },
+                { id: 'impacto', name: 'Impacto_Potencial' },
             ];
 
-            // Encabezados CSV
             let csvContent = "data:text/csv;charset=utf-8,";
-            let headers = ['Judge_ID', 'Judge_Name', 'Poster_ID', 'Poster_Title', 'Total_Score', 'Observations'];
-            criteria.forEach(c => headers.push(c.name));
+            let headers = ['Judge_ID','Judge_Name','Poster_ID','Poster_Title','Total_Score','Observations', ...criteria.map(c=>c.name)];
             csvContent += headers.join(',') + '\r\n';
 
             try {
-                // Usar el ID real o simulado para la ruta de Firestore
-                const evaluationsColRef = collection(db, `artifacts/${appId}/users/${currentUserId}/evaluations`);
-                const querySnapshot = await getDocs(evaluationsColRef);
-
-                querySnapshot.forEach(docSnap => {
-                    const data = docSnap.data();
-                    const poster = predefinedPosters.find(p => p.id === data.posterId);
-                    const posterTitle = poster ? poster.title.replace(/,/g, '') : 'Unknown Title';
-
-                    let row = [
-                        data.staticJudgeId, 
-                        `"${data.judgeName.replace(/"/g, '""')}"`, 
-                        data.posterId,
-                        `"${posterTitle}"`, 
-                        data.totalScore,
-                        `"${data.observations.replace(/"/g, '""').replace(/(\r\n|\n|\r)/gm, ' ')}"` 
-                    ];
-
-                    criteria.forEach(c => {
-                        row.push(data.scores?.[c.id] || 0);
+                if (db && typeof collection === 'function' && typeof getDocs === 'function') {
+                    const evaluationsColRef = collection(db, `artifacts/${appId}/users/${judgeData.id}/evaluations`);
+                    const querySnapshot = await getDocs(evaluationsColRef);
+                    querySnapshot.forEach(docSnap => {
+                        const data = docSnap.data();
+                        const poster = predefinedPosters.find(p => p.id === data.posterId);
+                        const posterTitle = poster ? poster.title.replace(/,/g,'') : 'Unknown Title';
+                        let row = [
+                            data.judgeId,
+                            `"${data.judgeName.replace(/"/g,'""')}"`,
+                            data.posterId,
+                            `"${posterTitle}"`,
+                            data.totalScore,
+                            `"${(data.observations||'').replace(/"/g,'""').replace(/(\r\n|\n|\r)/gm,' ')}"`
+                        ];
+                        criteria.forEach(c => { row.push(data.scores?.[c.id] || 0); });
+                        csvContent += row.join(',') + '\r\n';
                     });
+                } else {
+                    alert('Firestore no configurado: no hay datos para exportar.');
+                }
 
-                    csvContent += row.join(',') + '\r\n';
-                });
-
-                // Descargar
                 const encodedUri = encodeURI(csvContent);
                 const link = document.createElement("a");
                 link.setAttribute("href", encodedUri);
-                link.setAttribute("download", `evaluaciones_${judgeData.id}_${new Date().toISOString().slice(0, 10)}.csv`);
+                link.setAttribute("download", `evaluaciones_${judgeData.id}_${new Date().toISOString().slice(0,10)}.csv`);
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-                
-                exportBtn.textContent = 'Exportación Exitosa';
-                exportBtn.classList.replace('bg-blue-500', 'bg-green-500');
-                setTimeout(() => {
-                    exportBtn.disabled = false;
-                    exportBtn.textContent = 'Exportar Evaluaciones (CSV)';
-                    exportBtn.classList.replace('bg-green-500', 'bg-blue-500');
-                }, 2000);
 
+                exportBtn.textContent = 'Exportación Exitosa';
+                exportBtn.classList.replace('bg-blue-500','bg-green-500');
+                setTimeout(()=>{ exportBtn.disabled=false; exportBtn.textContent='Exportar Evaluaciones (CSV)'; exportBtn.classList.replace('bg-green-500','bg-blue-500'); }, 2000);
             } catch (error) {
-                console.error("Error al exportar a CSV:", error);
-                alert('Error al exportar las evaluaciones. Verifique su conexión y permisos.');
-                exportBtn.disabled = false;
-                exportBtn.textContent = 'Exportar Evaluaciones (CSV)';
+                console.error("Error al exportar CSV:", error);
+                alert('Error al exportar las evaluaciones.');
+                exportBtn.disabled=false; exportBtn.textContent='Exportar Evaluaciones (CSV)';
             }
         };
 
         const setupUIHandlers = () => {
-            // Inicialización de handlers de alto nivel (como el login)
+            // Espacio para handlers globales futuros
         };
-
     </script>
 </head>
 <body class="bg-gray-50">
     <div id="app-container" class="min-h-screen">
-        <!-- El contenido se inyecta aquí (Login o Dashboard) -->
         <div class="flex justify-center items-center h-screen">
             <div class="text-xl text-gray-500">Iniciando aplicación...</div>
         </div>
