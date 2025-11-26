@@ -5,15 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Evaluación de Carteles - Simposio Médico</title>
     
+    <!-- Enlaces y Estilos -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
     <style>
         /* Estilos base de Inter y fondo de la app */
         body { font-family: 'Inter', sans-serif; background-color: #f7f9fb; }
         
-        /* Fondo llamativo usando la imagen del simposio */
+        /* Fondo llamativo usando la imagen del simposio (DEBE ESTAR EN assets/) */
         #login-bg { 
-            background-image: url('assets/simposio_background.jpg'); /* ASEGÚRATE DE SUBIR ESTA IMAGEN A assets/ */
+            background-image: url('assets/simposio_background.jpg'); 
             background-size: cover;
             background-position: center;
             position: relative;
@@ -26,7 +27,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(1, 0, 10, 0.75); /* Negro/Gris Oscuro con transparencia */
+            background: rgba(1, 0, 10, 0.75); 
             backdrop-filter: blur(2px);
         }
 
@@ -41,6 +42,7 @@
         .toggle-password:hover { color:#10b981; }
     </style>
 
+    <!-- Firebase y Lógica de la Aplicación -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, doc, setDoc, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -60,22 +62,52 @@
         const JUDGE_STORAGE_KEY = 'symposium_judge_data';
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'symposium-app';
 
-        // Usuarios predefinidos
+        // -----------------------------------------------------
+        // 1. USUARIOS PREDEFINIDOS (Mínimo 10 Jueces + Admin)
+        // -----------------------------------------------------
         const predefinedUsers = [
             { id: 'juez_a', user: 'juez1', pass: 'simposio2025', name: 'Dr. Héctor Hernández', role: 'judge' },
             { id: 'juez_b', user: 'juez2', pass: 'simposio2025', name: 'Dra. Georgina Álvarez', role: 'judge' },
-            { id: 'admin', user: 'admin', pass: 'admin2025', name: 'Administrador', role: 'admin' },
+            { id: 'juez_c', user: 'juez3', pass: 'simposio2025', name: 'Dr. Ricardo Soto', role: 'judge' },
+            { id: 'juez_d', user: 'juez4', pass: 'simposio2025', name: 'Dra. Laura Beltrán', role: 'judge' },
+            { id: 'juez_e', user: 'juez5', pass: 'simposio2025', name: 'Dr. Miguel Rivas', role: 'judge' },
+            { id: 'juez_f', user: 'juez6', pass: 'simposio2025', name: 'Dra. Ana Cortés', role: 'judge' },
+            { id: 'juez_g', user: 'juez7', pass: 'simposio2025', name: 'Dr. Javier Ponce', role: 'judge' },
+            { id: 'juez_h', user: 'juez8', pass: 'simposio2025', name: 'Dra. Sofía Luna', role: 'judge' },
+            { id: 'juez_i', user: 'juez9', pass: 'simposio2025', name: 'Dr. Carlos Vélez', role: 'judge' },
+            { id: 'juez_j', user: 'juez10', pass: 'simposio2025', name: 'Dra. Elena Cruz', role: 'judge' },
+            { id: 'juez_k', user: 'juez11', pass: 'simposio2025', name: 'Dr. Raúl Pérez', role: 'judge' },
+            { id: 'admin', user: 'admin', pass: 'admin2025', name: 'Administrador General', role: 'admin' },
         ];
 
-        // Trabajos de ejemplo (puedes cargar esto desde otro lugar si es dinámico)
+        // -----------------------------------------------------
+        // 2. TRABAJOS DE EJEMPLO (22 trabajos asignados a 11 jueces)
+        // -----------------------------------------------------
         const predefinedPosters = [
             { id: 'P001', title: 'Impacto de la Inteligencia Artificial en el Diagnóstico de Retinopatía Diabética', assignedTo: 'juez_a', status: 'Pendiente' },
             { id: 'P002', title: 'Análisis Multicéntrico de Terapias Combinadas en Hipertensión Resistente', assignedTo: 'juez_b', status: 'Pendiente' },
-            { id: 'P003', title: 'Correlación entre el Estrés Crónico y Marcadores Inflamatorios en Estudiantes de Medicina', assignedTo: 'juez_a', status: 'Pendiente' },
-            { id: 'P004', title: 'Eficacia de la Medicina de Precisión en Cáncer de Próstata', assignedTo: 'juez_b', status: 'Pendiente' },
-            { id: 'P005', title: 'Revisión Sistemática sobre el Uso de miRNA como Biomarcadores', assignedTo: 'juez_a', status: 'Pendiente' },
+            { id: 'P003', title: 'Correlación entre el Estrés Crónico y Marcadores Inflamatorios', assignedTo: 'juez_c', status: 'Pendiente' },
+            { id: 'P004', title: 'Eficacia de la Medicina de Precisión en Cáncer de Próstata', assignedTo: 'juez_d', status: 'Pendiente' },
+            { id: 'P005', title: 'Revisión Sistemática sobre el Uso de miRNA como Biomarcadores', assignedTo: 'juez_e', status: 'Pendiente' },
+            { id: 'P006', title: 'Manejo Anestésico en Cirugía Cardíaca Pediátrica', assignedTo: 'juez_f', status: 'Pendiente' },
+            { id: 'P007', title: 'Nuevos Enfoques para la Rehabilitación Post-Stroke', assignedTo: 'juez_g', status: 'Pendiente' },
+            { id: 'P008', title: 'Diagnóstico Molecular de la Tuberculosis Resistente a Fármacos', assignedTo: 'juez_h', status: 'Pendiente' },
+            { id: 'P009', title: 'Efecto de la Dieta Mediterránea en el Microbioma Intestinal', assignedTo: 'juez_i', status: 'Pendiente' },
+            { id: 'P010', title: 'Terapia Génica para Distrofias Musculares: Avances y Desafíos', assignedTo: 'juez_j', status: 'Pendiente' },
+            { id: 'P011', title: 'Aplicación de Realidad Virtual en el Tratamiento del Dolor Crónico', assignedTo: 'juez_j', status: 'Pendiente' }, // Asignado a Juez 10
+            { id: 'P012', title: 'Estudio Farmacocinético de un Nuevo Antiviral en Pacientes Críticos', assignedTo: 'juez_a', status: 'Pendiente' }, // Asignado a Juez 1
+            { id: 'P013', title: 'Evaluación del Impacto de la Contaminación Ambiental en la Salud Respiratoria', assignedTo: 'juez_b', status: 'Pendiente' }, // Asignado a Juez 2
+            { id: 'P014', title: 'Avances en Vacunas de ARN Mensajero contra Patógenos Emergentes', assignedTo: 'juez_c', status: 'Pendiente' }, // Asignado a Juez 3
+            { id: 'P015', title: 'Uso de Células Madre en la Regeneración de Tejido Hepático Dañado', assignedTo: 'juez_d', status: 'Pendiente' }, // Asignado a Juez 4
+            { id: 'P016', title: 'Modelos Predictivos de Reingreso Hospitalario Basados en Machine Learning', assignedTo: 'juez_e', status: 'Pendiente' }, // Asignado a Juez 5
+            { id: 'P017', title: 'Desarrollo de Biosensores para la Detección Temprana de Sepsis', assignedTo: 'juez_f', status: 'Pendiente' }, // Asignado a Juez 6
+            { id: 'P018', title: 'Impacto de la Telemedicina en la Gestión de Enfermedades Crónicas', assignedTo: 'juez_g', status: 'Pendiente' }, // Asignado a Juez 7
+            { id: 'P019', title: 'Factores de Riesgo Genéticos Asociados a la Enfermedad de Alzheimer', assignedTo: 'juez_h', status: 'Pendiente' }, // Asignado a Juez 8
+            { id: 'P020', title: 'Optimización de Protocolos de Trasplante de Médula Ósea', assignedTo: 'juez_i', status: 'Pendiente' }, // Asignado a Juez 9
+            { id: 'P021', title: 'Análisis de Biomarcadores de Estrés Oxidativo en Neonatos Prematuros', assignedTo: 'juez_k', status: 'Pendiente' }, // Asignado a Juez 11
+            { id: 'P022', title: 'Estudio de la Resistencia a Insulina en Población Adolescente', assignedTo: 'juez_k', status: 'Pendiente' }, // Asignado a Juez 11
         ];
-        
+
         // Criterios de evaluación (Mantenido igual)
         const evaluationCriteria = [
             { id: 'titulo', category: 'I. Fondo (Contenido Científico)', max: 5, type: '3-point', options: [0,3,5], name: 'Título y Afiliación', desc: 'Claridad y correcta identificación. (0, 3, o 5 puntos)' },
@@ -144,7 +176,7 @@
         document.addEventListener('DOMContentLoaded', mainInit);
 
 
-        // ---------------- Autenticación local ----------------
+        // ---------------- Autenticación local (Mantenida) ----------------
         const handleLogin = async () => {
             const user = document.getElementById('username').value.trim();
             const pass = document.getElementById('password').value.trim();
@@ -197,13 +229,15 @@
             }
         };
 
-        // ---------------- UI: Login & Dashboard (Diseño mejorado) ----------------
+        // ---------------- UI: Login & Dashboard ----------------
         const showLogin = () => {
             document.getElementById('app-container').innerHTML = `
                 <div id="login-bg" class="min-h-screen flex items-center justify-center p-4">
+                    <!-- Contenedor del formulario, posicionado sobre la capa oscura -->
                     <div class="relative z-10 w-full max-w-md bg-white p-8 rounded-xl shadow-2xl border-t-8 border-purple-800">
                         <div class="text-center mb-8">
                             <div class="flex justify-center space-x-4 mb-4">
+                                <!-- Logos Cargados de assets/ -->
                                 <img src="assets/logo_ipn.png" alt="Logo IPN" class="h-10 w-auto">
                                 <img src="assets/logo_esm.jpg" alt="Logo ESM" class="h-10 w-10 rounded-full shadow-md">
                                 <img src="assets/logo_licam.png" alt="Logo LICAM" class="h-10 w-auto">
@@ -254,7 +288,8 @@
                         <h2 class="text-2xl font-semibold text-gray-800 mb-6">Mis Trabajos Asignados</h2>
                         <div id="poster-list" class="space-y-4">
                             <div class="text-center py-8 text-gray-500">Cargando trabajos...</div>
-                            </div>
+                            <!-- La lista de carteles se carga dinámicamente, filtrada por el ID del juez -->
+                        </div>
                     </main>
                 </div>
             `;
@@ -264,7 +299,7 @@
             loadAssignedPosters(userId);
         };
 
-        // ---------------- CARGAR TRABAJOS ASIGNADOS ----------------
+        // ---------------- CARGAR TRABAJOS ASIGNADOS (Filtrado por Judge ID) ----------------
         const loadAssignedPosters = (judgeId) => {
             const listContainer = document.getElementById('poster-list');
             const staticJudgeId = judgeData?.id;
@@ -274,7 +309,9 @@
                 return;
             }
 
+            // AQUI ESTÁ EL FILTRO CRUCIAL: Solo muestra los trabajos donde assignedTo coincide con el ID del juez
             const assignedPosters = predefinedPosters.filter(p => p.assignedTo === staticJudgeId);
+            
             if (assignedPosters.length === 0) {
                 listContainer.innerHTML = '<div class="text-center py-8 text-gray-500">No tiene trabajos asignados para evaluar.</div>';
                 return;
@@ -286,6 +323,7 @@
                 const docRef = (db && typeof doc === 'function') ? doc(db, `artifacts/${appId}/users/${staticJudgeId}/evaluations`, poster.id) : null;
 
                 if (docRef && typeof onSnapshot === 'function') {
+                    // Usar onSnapshot para ver cambios en tiempo real si el juez modifica y vuelve al panel
                     onSnapshot(docRef, (docSnap) => {
                         const evaluationData = docSnap.exists() ? docSnap.data() : null;
                         renderOrUpdatePosterCard(poster, evaluationData);
@@ -377,7 +415,6 @@
             const isRadio = input.type === 'radio';
             const isNumber = input.type === 'number';
 
-            // Limpiar clases
             if (isRadio) {
                 document.querySelectorAll(`input[name="${name}"]`).forEach(radio => {
                     const label = document.querySelector(`label[for="${radio.id}"]`);
@@ -387,7 +424,6 @@
                 input.classList.remove('has-value');
             }
 
-            // Aplicar clases
             if (isRadio && input.checked) {
                 const label = document.querySelector(`label[for="${input.id}"]`);
                 if (label) label.classList.add('selected');
@@ -552,17 +588,17 @@
             return totalScore;
         };
 
-        // ENVIAR A GOOGLE SHEETS (CORREGIDO PARA ENVIAR staticJudgeId)
+        // ENVIAR A GOOGLE SHEETS
         const sendDataToGoogleSheets = async (evaluationData) => {
             if (!GOOGLE_SHEETS_WEB_APP_URL || GOOGLE_SHEETS_WEB_APP_URL.includes('YOUR_WEB_APP_ID')) {
                 console.warn("URL de Google Sheets no configurada.");
                 return;
             }
             try {
-                // Adaptamos el nombre del campo judgeId a staticJudgeId para que coincida con el GAS
+                // Se renombra judgeId a staticJudgeId para el GAS (como lo requiere tu script)
                 const payload = {
                     ...evaluationData,
-                    staticJudgeId: evaluationData.judgeId, // ¡Corrección de nombre de campo para GAS!
+                    staticJudgeId: evaluationData.judgeId, 
                 };
                 delete payload.judgeId; 
 
@@ -736,6 +772,7 @@
 </head>
 <body class="bg-gray-50">
     <div id="app-container" class="min-h-screen">
+        <!-- Esqueleto de Carga Inicial -->
         <div class="flex justify-center items-center h-screen">
             <div class="text-xl text-gray-500 animate-pulse">Cargando Sistema de Evaluación...</div>
         </div>
