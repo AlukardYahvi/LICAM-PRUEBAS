@@ -75,7 +75,7 @@
         let judgeData = null; 
         const JUDGE_STORAGE_KEY = 'symposium_judge_data'; 
         
-        // ¡URL de Google Sheets App Web configurada! (INTEGRADA)
+        // URL de Google Sheets App Web configurada
         const GOOGLE_SHEETS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzatgCyA9JOC5NGiaVhyWzBG9V69-jzlyPAW03HtI-_pMKd3K5N8zxai1dUuKNcf_s0/exec';
 
         // Estructura de datos predefinida para la simulación
@@ -125,7 +125,7 @@
         };
         // --- Fin Utilidades de Persistencia Local ---
 
-        // Función de utilidad para reintentar operaciones fallidas de red
+        // Función de utilidad para reintentar operaciones fallidas de red (AUN SE USA PARA GOOGLE SHEETS)
         const retryOperation = async (operation, maxRetries = 3, initialDelay = 1000) => {
             for (let i = 0; i < maxRetries; i++) {
                 try {
@@ -156,16 +156,23 @@
         // --- FUNCIONES DE AUTENTICACIÓN ---
 
         const setupAuth = () => {
-            // FIX: Utilizamos onAuthStateChanged para gestionar la persistencia y la carga inicial.
+            // FIX: Usamos onAuthStateChanged para que Firebase inicialice su sesión,
+            // pero la lógica de la sesión del Juez se basa *solo* en localStorage.
             onAuthStateChanged(auth, (user) => {
                 judgeData = loadJudgeDataFromLocal();
 
-                if (user && judgeData && judgeData.id) {
-                    // Si hay sesión de Firebase Auth y data de juez en localStorage (persistente)
+                if (user) {
+                    // SI Firebase está autenticado (anónimamente, real o persistente)
                     currentUserId = user.uid;
-                    showDashboard(currentUserId);
+                    if (judgeData && judgeData.id) {
+                         // Y SI localStorage tiene data de juez, mostramos Dashboard.
+                        showDashboard(currentUserId);
+                    } else {
+                        // Firebase está OK, pero no recordamos quién es el juez, vamos al Login.
+                        showLogin();
+                    }
                 } else {
-                    // Si no hay sesión o no hay data de juez, forzamos la pantalla de login.
+                    // SI Firebase NO tiene usuario (deslogueado), vamos al Login.
                     currentUserId = null;
                     judgeData = null;
                     clearJudgeDataLocal();
@@ -189,13 +196,14 @@
 
             if (userEntry) {
                 try {
-                    // 1. Cerrar sesión existente
+                    // 1. Cerrar sesión existente de Firebase y limpiar data local
                     if (auth.currentUser) {
                         await signOut(auth);
                     }
                     clearJudgeDataLocal();
                     
-                    // 2. Autenticación anónima con reintento (necesaria para Firestore)
+                    // 2. Autenticación anónima (NECESARIA para que Firestore permita escribir).
+                    // Esta llamada es la que fallaba en GitHub Pages, pero es esencial para Firestore.
                     const userCredential = await retryOperation(() => signInAnonymously(auth));
                     const newUserId = userCredential.user.uid;
                     
@@ -203,19 +211,22 @@
                         id: userEntry.id, 
                         name: userEntry.name,
                         role: userEntry.role,
-                        pass: userEntry.pass, // Guardar la contraseña para mostrarla en el Dashboard
+                        pass: userEntry.pass, 
                         lastLogin: new Date().toISOString()
                     };
 
+                    // 3. Establecer sesión localmente
                     judgeData = newJudgeData;
                     currentUserId = newUserId; 
                     saveJudgeDataToLocal(newJudgeData);
 
-                    // 3. Mostrar Dashboard inmediatamente después de Auth exitosa.
+                    // 4. Mostrar Dashboard inmediatamente
                     showDashboard(newUserId); 
                     
                     loginBtn.textContent = 'Éxito';
                 } catch (error) {
+                    // Si falla el signInAnonymously (como ocurre en GitHub Pages sin reglas CSP), 
+                    // mostramos un error de conexión
                     console.error("Error durante el login simulado (Firebase Auth):", error);
                     errorMsg.textContent = 'Error de conexión. Intente de nuevo.';
                     loginBtn.disabled = false;
@@ -644,13 +655,14 @@
         };
 
         const sendDataToGoogleSheets = async (evaluationData) => {
-            if (GOOGLE_SHEETS_WEB_APP_URL.includes('TU_WEB_APP_URL_DE_GOOGLE_SHEETS_AQUI')) {
-                console.warn("ADVERTENCIA: No se puede enviar la evaluación. Por favor, reemplace GOOGLE_SHEETS_WEB_APP_URL con su URL real de Google App Script.");
+            // La validación de esta URL es crucial para que funcione.
+            if (GOOGLE_SHEETS_WEB_APP_URL.includes('TU_WEB_APP_URL_DE_GOOGLE_SHEETS_AQUI') || GOOGLE_SHEETS_WEB_APP_URL.length < 50) {
+                console.warn("ADVERTENCIA: La URL de Google Sheets no está configurada correctamente. No se enviarán datos.");
                 return;
             }
 
             try {
-                // El modo 'no-cors' no permite ver la respuesta, pero garantiza que la petición se envíe.
+                // Modo 'no-cors' necesario para peticiones POST a Google App Script
                 const response = await fetch(GOOGLE_SHEETS_WEB_APP_URL, {
                     method: 'POST',
                     mode: 'no-cors', 
@@ -720,7 +732,7 @@
                 // 1. Guardar en Firestore (colección privada)
                 await setDoc(docRef, evaluationData);
                 
-                // 2. Enviar a Google Sheets
+                // 2. Enviar a Google Sheets (no bloquea el flujo principal si falla)
                 await sendDataToGoogleSheets(evaluationData);
 
 
