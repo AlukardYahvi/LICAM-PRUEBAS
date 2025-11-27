@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Evaluación de Carteles - Simposio Médico</title>
     
-    <!-- Enlaces y Estilos -->
+    <!-- Tailwind CSS y Tipografía Inter -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
     <style>
@@ -17,7 +17,7 @@
             background-image: url('assets/simposio_background.jpg'); 
             background-size: cover;
             background-position: center;
-            background-attachment: fixed; /* Hace que el fondo se quede fijo */
+            background-attachment: fixed;
             position: relative;
         }
         /* Capa de oscuridad sobre el fondo para mejorar contraste del login */
@@ -41,96 +41,266 @@
         .password-container { position: relative; }
         .toggle-password { position:absolute; right:12px; top:50%; transform:translateY(-50%); cursor:pointer; color:#6b7280; transition:color .15s; z-index: 10; }
         .toggle-password:hover { color:#10b981; }
-        /* Animación para el botón de login */
-        .login-btn-active { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(126, 34, 206, 0.4); }
+        
+        /* Estilos para Deducciones y Bonificaciones */
+        .deduction-card { background-color: #ffeaea; border-left: 4px solid #ef4444; }
+        .bonus-card { background-color: #eef2ff; border-left: 4px solid #8b5cf6; }
+
+        /* Estilos del Admin Dashboard */
+        .admin-card {
+            background-color: white;
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+        .admin-card:hover {
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+        .modal-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            animation: modal-fade 0.3s ease-out;
+        }
+        @keyframes modal-fade {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .admin-grid {
+            display: grid;
+            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        }
+        
     </style>
 
     <!-- Firebase y Lógica de la Aplicación -->
     <script type="module">
+        // IMPORTACIONES MODULARES DE FIREBASE (Versión 11.6.1)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, doc, setDoc, collection, getDocs, onSnapshot, query, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, collection, getDocs, onSnapshot, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // ------------------ CONFIGURA AQUÍ ------------------
-        const firebaseConfig = null; // Reemplaza null con tu objeto de configuración de Firebase si usas Firestore
+        // Usamos la configuración inyectada por el entorno
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
         
         // URL de Google Sheets configurada
         const GOOGLE_SHEETS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzatgCyA9JOC5NGiaVhyWzBG9V69-jzlyPAW03HtI-_pMKd3K5N8zxai1dUuKNcf_s0/exec';
+        
+        // DEBES REEMPLAZAR ESTA CONSTANTE con el UID REAL de tu usuario 'admin' en Firebase.
+        const ADMIN_ID_FIREBASE = "admin_id_a_reemplazar"; 
         // ----------------------------------------------------
 
         // Variables globales
         let app = null;
         let db = null;
+        let auth = null;
         let currentUserId = null;
         let judgeData = null;
+
         const JUDGE_STORAGE_KEY = 'symposium_judge_data';
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'symposium-app';
 
         // -----------------------------------------------------
-        // 1. USUARIOS PREDEFINIDOS (Mínimo 10 Jueces + Admin)
+        // 1. USUARIOS PREDEFINIDOS Y ASIGNACIONES
         // -----------------------------------------------------
         const predefinedUsers = [
-            { id: 'juez_a', user: 'juez1', pass: 'simposio2025', name: 'Dr. Héctor Hernández', role: 'judge' },
-            { id: 'juez_b', user: 'juez2', pass: 'simposio2025', name: 'Dra. Georgina Álvarez', role: 'judge' },
-            { id: 'juez_c', user: 'juez3', pass: 'simposio2025', name: 'Dr. Ricardo Soto', role: 'judge' },
-            { id: 'juez_d', user: 'juez4', pass: 'simposio2025', name: 'Dra. Laura Beltrán', role: 'judge' },
-            { id: 'juez_e', user: 'juez5', pass: 'simposio2025', name: 'Dr. Miguel Rivas', role: 'judge' },
-            { id: 'juez_f', user: 'juez6', pass: 'simposio2025', name: 'Dra. Ana Cortés', role: 'judge' },
-            { id: 'juez_g', user: 'juez7', pass: 'simposio2025', name: 'Dr. Javier Ponce', role: 'judge' },
-            { id: 'juez_h', user: 'juez8', pass: 'simposio2025', name: 'Dra. Sofía Luna', role: 'judge' },
-            { id: 'juez_i', user: 'juez9', pass: 'simposio2025', name: 'Dr. Carlos Vélez', role: 'judge' },
-            { id: 'juez_j', user: 'juez10', pass: 'simposio2025', name: 'Dra. Elena Cruz', role: 'judge' },
-            { id: 'juez_k', user: 'juez11', pass: 'simposio2025', name: 'Dr. Raúl Pérez', role: 'judge' },
-            { id: 'admin', user: 'admin', pass: 'admin2025', name: 'Administrador General', role: 'admin' },
+            // Jueces de la lista de Cartel/Oral
+            { id: 'juez_a', user: 'juez1', pass: 'cartel2025', name: 'Dr. Héctor Hernández', role: 'judge' },
+            { id: 'juez_b', user: 'juez2', pass: 'cartel2025', name: 'Dra. Georgina Álvarez', role: 'judge' },
+            { id: 'juez_c', user: 'juez3', pass: 'cartel2025', name: 'Dr. Ricardo Soto', role: 'judge' },
+            { id: 'juez_d', user: 'juez4', pass: 'cartel2025', name: 'Dra. Laura Beltrán', role: 'judge' },
+            { id: 'juez_e', user: 'juez5', pass: 'cartel2025', name: 'Dr. Miguel Rivas', role: 'judge' },
+            { id: 'juez_f', user: 'juez6', pass: 'cartel2025', name: 'Dra. Ana Cortés', role: 'judge' },
+            { id: 'juez_g', user: 'juez7', pass: 'cartel2025', name: 'Dr. Javier Ponce', role: 'judge' }, // Usado en Oral
+            { id: 'juez_h', user: 'juez8', pass: 'cartel2025', name: 'Dra. Sofía Luna', role: 'judge' },
+            { id: 'juez_i', user: 'juez9', pass: 'cartel2025', name: 'Dr. Carlos Vélez', role: 'judge' },
+            { id: 'juez_j', user: 'juez10', pass: 'cartel2025', name: 'Dra. Elena Cruz', role: 'judge' },
+            { id: 'juez_k', user: 'juez11', pass: 'cartel2025', name: 'Dr. Raúl Pérez', role: 'judge' },
+            { id: 'juez_araceli', user: 'juez_araceli', pass: 'cartel2025', name: 'Araceli Hernández Zavala', role: 'judge' },
+            { id: 'juez_marycarmen', user: 'juez_marycarmen', pass: 'cartel2025', name: 'Marycarmen Godinez Victoria', role: 'judge' },
+            { id: 'juez_claudia', user: 'juez_claudia', pass: 'cartel2025', name: 'Claudia Camelia Calzada Mendoza', role: 'judge' },
+            { id: 'juez_paola', user: 'juez_paola', pass: 'cartel2025', name: 'Paola Berenice Zarate Segura', role: 'judge' },
+            { id: 'juez_ivonne', user: 'juez_ivonne', pass: 'cartel2025', name: 'Ivonne Maciel Arciniega Martínez', role: 'judge' },
+            { id: 'juez_aldo', user: 'juez_aldo', pass: 'cartel2025', name: 'Aldo Arturo Reséndiz Albor', role: 'judge' },
+            { id: 'juez_javier', user: 'juez_javier', pass: 'cartel2025', name: 'Javier Pérez Durán', role: 'judge' },
+            { id: 'juez_paula', user: 'juez_paula', pass: 'cartel2025', name: 'Paula Saldaña', role: 'judge' },
+            { id: 'juez_elena', user: 'juez_elena', pass: 'cartel2025', name: 'Elena de La Cruz Herrera Cogco', role: 'judge' },
+            { id: 'juez_nury', user: 'juez_nury', pass: 'cartel2025', name: 'Nury Pérez Hernández', role: 'judge' },
+            { id: 'juez_enrique', user: 'juez_enrique', pass: 'cartel2025', name: 'Enrique Méndez-Bolaina', role: 'judge' },
+            { id: 'juez_edgar', user: 'juez_edgar', pass: 'cartel2025', name: 'Edgar Cano Europa', role: 'judge' },
+            { id: 'juez_flores', user: 'juez_flores', pass: 'cartel2025', name: 'Javier Flores Estrada', role: 'judge' },
+            { id: 'juez_montoya', user: 'juez_montoya', pass: 'cartel2025', name: 'Araceli Montoya Estrada', role: 'judge' },
+            // Admin
+            { id: 'admin', user: 'admin', pass: 'admin2025', name: 'Administrador General', role: 'admin', firebaseId: ADMIN_ID_FIREBASE },
         ];
 
-        // -----------------------------------------------------
-        // 2. TRABAJOS DE EJEMPLO (22 trabajos asignados a 11 jueces)
-        // -----------------------------------------------------
+        // 2. TRABAJOS DE EJEMPLO
         const predefinedPosters = [
-            { id: 'P001', title: 'Impacto de la Inteligencia Artificial en el Diagnóstico de Retinopatía Diabética', assignedTo: 'juez_a', status: 'Pendiente' },
-            { id: 'P002', title: 'Análisis Multicéntrico de Terapias Combinadas en Hipertensión Resistente', assignedTo: 'juez_b', status: 'Pendiente' },
-            { id: 'P003', title: 'Correlación entre el Estrés Crónico y Marcadores Inflamatorios', assignedTo: 'juez_c', status: 'Pendiente' },
-            { id: 'P004', title: 'Eficacia de la Medicina de Precisión en Cáncer de Próstata', assignedTo: 'juez_d', status: 'Pendiente' },
-            { id: 'P005', title: 'Revisión Sistemática sobre el Uso de miRNA como Biomarcadores', assignedTo: 'juez_e', status: 'Pendiente' },
-            { id: 'P006', title: 'Manejo Anestésico en Cirugía Cardíaca Pediátrica', assignedTo: 'juez_f', status: 'Pendiente' },
-            { id: 'P007', title: 'Nuevos Enfoques para la Rehabilitación Post-Stroke', assignedTo: 'juez_g', status: 'Pendiente' },
-            { id: 'P008', title: 'Diagnóstico Molecular de la Tuberculosis Resistente a Fármacos', assignedTo: 'juez_h', status: 'Pendiente' },
-            { id: 'P009', title: 'Efecto de la Dieta Mediterránea en el Microbioma Intestinal', assignedTo: 'juez_i', status: 'Pendiente' },
-            { id: 'P010', title: 'Terapia Génica para Distrofias Musculares: Avances y Desafíos', assignedTo: 'juez_j', status: 'Pendiente' },
-            { id: 'P011', title: 'Aplicación de Realidad Virtual en el Tratamiento del Dolor Crónico', assignedTo: 'juez_j', status: 'Pendiente' }, 
-            { id: 'P012', title: 'Estudio Farmacocinético de un Nuevo Antiviral en Pacientes Críticos', assignedTo: 'juez_a', status: 'Pendiente' }, 
-            { id: 'P013', title: 'Evaluación del Impacto de la Contaminación Ambiental en la Salud Respiratoria', assignedTo: 'juez_b', status: 'Pendiente' }, 
-            { id: 'P014', title: 'Avances en Vacunas de ARN Mensajero contra Patógenos Emergentes', assignedTo: 'juez_c', status: 'Pendiente' }, 
-            { id: 'P015', title: 'Uso de Células Madre en la Regeneración de Tejido Hepático Dañado', assignedTo: 'juez_d', status: 'Pendiente' }, 
-            { id: 'P016', title: 'Modelos Predictivos de Reingreso Hospitalario Basados en Machine Learning', assignedTo: 'juez_e', status: 'Pendiente' }, 
-            { id: 'P017', title: 'Desarrollo de Biosensores para la Detección Temprana de Sepsis', assignedTo: 'juez_f', status: 'Pendiente' }, 
-            { id: 'P018', title: 'Impacto de la Telemedicina en la Gestión de Enfermedades Crónicas', assignedTo: 'juez_g', status: 'Pendiente' }, 
-            { id: 'P019', title: 'Factores de Riesgo Genéticos Asociados a la Enfermedad de Alzheimer', assignedTo: 'juez_h', status: 'Pendiente' }, 
-            { id: 'P020', title: 'Optimización de Protocolos de Trasplante de Médula Ósea', assignedTo: 'juez_i', status: 'Pendiente' }, 
-            { id: 'P021', title: 'Análisis de Biomarcadores de Estrés Oxidativo en Neonatos Prematuros', assignedTo: 'juez_k', status: 'Pendiente' }, 
-            { id: 'P022', title: 'Estudio de la Resistencia a Insulina en Población Adolescente', assignedTo: 'juez_k', status: 'Pendiente' }, 
+            // Modalidad Oral (Evaluación Conjunta) - Asignados para aparecer en el dashboard de cada juez del grupo
+            // Grupo 1: Aldo, Enrique, Elena
+            { id: 'II-017-PL-NT', title: 'María Fernanda Cordero Mayorga (Oral)', assignedTo: 'juez_aldo', assignedToGroup: ['juez_aldo', 'juez_enrique', 'juez_elena'], type: 'oral' },
+            { id: 'II-021-PL-NT', title: 'Anarely Ramírez Hernández (Oral)', assignedTo: 'juez_aldo', assignedToGroup: ['juez_aldo', 'juez_enrique', 'juez_elena'], type: 'oral' },
+            { id: 'II-030-PL-ET', title: 'María José Cruz Pérez (Oral)', assignedTo: 'juez_aldo', assignedToGroup: ['juez_aldo', 'juez_enrique', 'juez_elena'], type: 'oral' },
+            { id: 'II-034-PL-MC', title: 'Nadia Ortiz Rosales (Oral)', assignedTo: 'juez_aldo', assignedToGroup: ['juez_aldo', 'juez_enrique', 'juez_elena'], type: 'oral' },
+            { id: 'II-040-PL-NT', title: 'Ana Romina Robles Guzmán (Oral)', assignedTo: 'juez_aldo', assignedToGroup: ['juez_aldo', 'juez_enrique', 'juez_elena'], type: 'oral' },
+            { id: 'II-041-PL-NT', title: 'Natalia Edith Ramírez López (Oral)', assignedTo: 'juez_aldo', assignedToGroup: ['juez_aldo', 'juez_enrique', 'juez_elena'], type: 'oral' },
+            { id: 'II-042-PL-NT', title: 'Paola Alejandra Regules Cruz (Oral)', assignedTo: 'juez_aldo', assignedToGroup: ['juez_aldo', 'juez_enrique', 'juez_elena'], type: 'oral' },
+            { id: 'II-056-PL-NT', title: 'Alan Israel Cruz Bernabé (Oral)', assignedTo: 'juez_aldo', assignedToGroup: ['juez_aldo', 'juez_enrique', 'juez_elena'], type: 'oral' },
+            // Grupo 2: Enrique, Claudia, Juez G
+            { id: 'II-037-PP-NT', title: 'Zuri Abigail Gaspar Gutiérrez (Oral)', assignedTo: 'juez_enrique', assignedToGroup: ['juez_enrique', 'juez_claudia', 'juez_g'], type: 'oral' },
+            { id: 'II-052-PP-NT', title: 'Yanai Hernández Avendaño (Oral)', assignedTo: 'juez_enrique', assignedToGroup: ['juez_enrique', 'juez_claudia', 'juez_g'], type: 'oral' },
+            { id: 'II-065-PP-MC', title: 'Tahiri Alitzel Mendoza Hernández (Oral)', assignedTo: 'juez_enrique', assignedToGroup: ['juez_enrique', 'juez_claudia', 'juez_g'], type: 'oral' },
+            { id: 'II-073-PP-NT', title: 'Grisle Peñaloza Ramírez (Oral)', assignedTo: 'juez_enrique', assignedToGroup: ['juez_enrique', 'juez_claudia', 'juez_g'], type: 'oral' },
+            { id: 'II-074-PP-MC', title: 'Iza Fernanda Pérez Ramírez (Oral)', assignedTo: 'juez_enrique', assignedToGroup: ['juez_enrique', 'juez_claudia', 'juez_g'], type: 'oral' },
+            { id: 'II-079-PP-NT', title: 'Samuel Salinas Ramos (Oral)', assignedTo: 'juez_enrique', assignedToGroup: ['juez_enrique', 'juez_claudia', 'juez_g'], type: 'oral' },
+            { id: 'II-084-PP-MC', title: 'Carla Arceo Cerna (Oral)', assignedTo: 'juez_enrique', assignedToGroup: ['juez_enrique', 'juez_claudia', 'juez_g'], type: 'oral' },
+            { id: 'II-087-PP-NT', title: 'Tabatta Gabriela Orejel Feria (Oral)', assignedTo: 'juez_enrique', assignedToGroup: ['juez_enrique', 'juez_claudia', 'juez_g'], type: 'oral' },
+            
+            // Modalidad Cartel (Asignaciones exactas)
+            { id: 'II-008-PL-MC', title: 'Monserrat Andrea Ortiz Cortes', assignedTo: 'juez_araceli', type: 'cartel' },
+            { id: 'II-039-PL-MC', title: 'Ana Camila Ramírez Ortiz', assignedTo: 'juez_araceli', type: 'cartel' },
+            
+            { id: 'II-009-PL-MC', title: 'Castillo Olvera Itzel Jimena', assignedTo: 'juez_marycarmen', type: 'cartel' },
+            { id: 'II-043-PL-NT', title: 'Dilan Rodríguez Lagos', assignedTo: 'juez_marycarmen', type: 'cartel' },
+            { id: 'II-047-PP-NT', title: 'Víctor Jesús Escudero Huerta', assignedTo: 'juez_marycarmen', type: 'cartel' },
+            { id: 'II-088-PP-MC', title: 'Karen Nayeli Hernández Vázquez', assignedTo: 'juez_marycarmen', type: 'cartel' },
+            
+            { id: 'II-010-PL-NT', title: 'Edgar Valeria de la Cruz', assignedTo: 'juez_claudia', type: 'cartel' },
+            { id: 'II-045-PL-NT', title: 'Arianys Carolina Tovar Escobar', assignedTo: 'juez_claudia', type: 'cartel' },
+            { id: 'II-049-PP-ET', title: 'Ernesto Santillán Arcos', assignedTo: 'juez_claudia', type: 'cartel' },
+            { id: 'II-092-PP-GE', title: 'Pahola del Carmen Rodríguez Pérez', assignedTo: 'juez_claudia', type: 'cartel' },
+            
+            { id: 'II-012-PL-MC', title: 'Marisol Garay Contreras', assignedTo: 'juez_paola', type: 'cartel' },
+            { id: 'II-048-PL-MC', title: 'Anel Camacho Dorantes', assignedTo: 'juez_paola', type: 'cartel' },
+            { id: 'II-068-PL-PG', title: 'María Elizabeth Sánchez Romero', assignedTo: 'juez_paola', type: 'cartel' },
+            { id: 'II-004-PP-NT', title: 'Romina María Valladares Ocampo', assignedTo: 'juez_paola', type: 'cartel' },
+            { id: 'II-053-PP-GE', title: 'Sally Silva Castro', assignedTo: 'juez_paola', type: 'cartel' },
+            { id: 'II-093-PP-NT', title: 'Miguel Andrés Valdés Guevara', assignedTo: 'juez_paola', type: 'cartel' },
+            
+            { id: 'II-016-PL-NT', title: 'Natalia Valeria Sillerico Illanes', assignedTo: 'juez_ivonne', type: 'cartel' },
+            { id: 'II-050-PL-NT', title: 'Alberto Jaret Mejía Meza', assignedTo: 'juez_ivonne', type: 'cartel' },
+            { id: 'II-075-PL-NT', title: 'Negrete Chávez Dalia Isamar', assignedTo: 'juez_ivonne', type: 'cartel' },
+            { id: 'II-006-PP-GE', title: 'Juan Pablo González Domínguez', assignedTo: 'juez_ivonne', type: 'cartel' },
+            { id: 'II-055-PP-MC', title: 'Angelica Castañeda de la Fuente', assignedTo: 'juez_ivonne', type: 'cartel' },
+            { id: 'II-097-PP-ET', title: 'Lourdes Astrid Serrano Quilantán', assignedTo: 'juez_ivonne', type: 'cartel' },
+
+            { id: 'II-020-PL-NT', title: 'Daniela Torres Velasco', assignedTo: 'juez_aldo', type: 'cartel' },
+            { id: 'II-051-PL-GE', title: 'Yuleny Cervantes Fosado', assignedTo: 'juez_aldo', type: 'cartel' },
+            { id: 'II-076-PL-NT', title: 'Axel Emanuel Moctezuma García', assignedTo: 'juez_aldo', type: 'cartel' },
+            { id: 'II-007-PP-NT', title: 'Israel Lara Vega', assignedTo: 'juez_aldo', type: 'cartel' },
+            { id: 'II-057-PP-NT', title: 'Goretti Araneth López Villafaña', assignedTo: 'juez_aldo', type: 'cartel' },
+            
+            { id: 'II-022-PL-NT', title: 'Astrid Adamari De la rosa Cordero', assignedTo: 'juez_javier', type: 'cartel' },
+            { id: 'II-054-PL-NT', title: 'Monserrat Bracho', assignedTo: 'juez_javier', type: 'cartel' },
+            { id: 'II-086-PL-ET', title: 'Erick Santiago Mendoza Palacios', assignedTo: 'juez_javier', type: 'cartel' },
+            { id: 'II-011-PP-PG', title: 'Ivonne del Socorro Gutiérrez Ruiz', assignedTo: 'juez_javier', type: 'cartel' },
+            { id: 'II-061-PP-NT', title: 'Luis Armando García Pedraza', assignedTo: 'juez_javier', type: 'cartel' },
+            
+            { id: 'II-024-PL-NT', title: 'Sara Gabriela Guadarrama Tovar', assignedTo: 'juez_paula', type: 'cartel' },
+            { id: 'II-058-PL-NT', title: 'Xaris López Solís', assignedTo: 'juez_paula', type: 'cartel' },
+            { id: 'II-089-PL-ET', title: 'Jessamyn Reyna Crespo Sandoval', assignedTo: 'juez_paula', type: 'cartel' },
+            { id: 'II-013-PP-GE', title: 'Giselle Barrera Zárate', assignedTo: 'juez_paula', type: 'cartel' },
+            { id: 'II-069-PP-NT', title: 'Guillermina Chavaro Francisco', assignedTo: 'juez_paula', type: 'cartel' },
+            
+            { id: 'II-025-PL-NT', title: 'Astrid Sophia Careaga Arceo', assignedTo: 'juez_elena', type: 'cartel' },
+            { id: 'II-059-PL-NT', title: 'Gillian Yazmín Sosa Maldonado', assignedTo: 'juez_elena', type: 'cartel' },
+            { id: 'II-070-PP-NT', title: 'María de los Ángeles Rodríguez García', assignedTo: 'juez_elena', type: 'cartel' },
+            { id: 'II-091-PL-ET', title: 'Joslay Cabrera Caballero', assignedTo: 'juez_elena', type: 'cartel' },
+            { id: 'II-014-PP-GE', title: 'José Luis Marroquín Caratachea', assignedTo: 'juez_elena', type: 'cartel' },
+            
+            { id: 'II-027-PL-MC', title: 'Elena Abigail Pérez Ham', assignedTo: 'juez_nury', type: 'cartel' },
+            { id: 'II-060-PL-GE', title: 'José Julián López Hernández', assignedTo: 'juez_nury', type: 'cartel' },
+            { id: 'II-094-PL-NT', title: 'Anaya Herrera Vania Paola', assignedTo: 'juez_nury', type: 'cartel' },
+            { id: 'II-015-PP-PG', title: 'Ramón López Ocampo', assignedTo: 'juez_nury', type: 'cartel' },
+            { id: 'II-072-PP-NT', title: 'Karla Reyes Alvarado', assignedTo: 'juez_nury', type: 'cartel' },
+            
+            { id: 'II-029-PL-ET', title: 'Fátima Monserrat Ávila Quintero', assignedTo: 'juez_enrique', type: 'cartel' },
+            { id: 'II-062-PL-NT', title: 'Laura Alessandra Ramírez Vázquez', assignedTo: 'juez_enrique', type: 'cartel' },
+            { id: 'II-095-PL-ET', title: 'Merary Jael Diaz Espinoza', assignedTo: 'juez_enrique', type: 'cartel' },
+            { id: 'II-019-PP-ET', title: 'Rogelio Iván Gómez Escobedo', assignedTo: 'juez_enrique', type: 'cartel' },
+            { id: 'II-081-PP-NT', title: 'Stefany Alamilla Cuellar', assignedTo: 'juez_enrique', type: 'cartel' },
+            
+            { id: 'II-032-PL-NT', title: 'Paz Peña Dana Paola', assignedTo: 'juez_edgar', type: 'cartel' },
+            { id: 'II-064-PL-NT', title: 'Anayeli Panzo Mayahua', assignedTo: 'juez_edgar', type: 'cartel' },
+            { id: 'II-096-PL-ET', title: 'Nadia Meritxell Vargas Freyre', assignedTo: 'juez_edgar', type: 'cartel' },
+            { id: 'II-023-PP-GE', title: 'Itzel Feria Figueroa', assignedTo: 'juez_edgar', type: 'cartel' },
+            { id: 'II-082-PP-NT', title: 'Marcos Uriel González Pérez', assignedTo: 'juez_edgar', type: 'cartel' },
+            
+            { id: 'II-033-PL-ET', title: 'Mariana Berenice López Arenas', assignedTo: 'juez_flores', type: 'cartel' },
+            { id: 'II-066-PL-NT', title: 'Valery Rosales Rojas', assignedTo: 'juez_flores', type: 'cartel' },
+            { id: 'II-098-PL-NT', title: 'Valeria Yareli Salazar Segura', assignedTo: 'juez_flores', type: 'cartel' },
+            { id: 'II-036-PP-NT', title: 'Luis José Pinto García', assignedTo: 'juez_flores', type: 'cartel' },
+            { id: 'II-083-PP-NT', title: 'Andrea Capaceta Osuna', assignedTo: 'juez_flores', type: 'cartel' },
+            
+            { id: 'II-001-PP-NT', title: 'Alexis Alejandro García Rivero', assignedTo: 'juez_montoya', type: 'cartel' },
+            { id: 'II-044-PP-ET', title: 'Luis Mario Sánchez Palestino', assignedTo: 'juez_montoya', type: 'cartel' },
+            { id: 'II-085-PP-NT', title: 'Citlali Gómez Márquez', assignedTo: 'juez_montoya', type: 'cartel' },
+        ];
+        
+        // 3. CRITERIOS DE EVALUACIÓN (CARTEL) - Max 100 Base
+        const evaluationCriteriaCartel = [
+            // I. Fondo (Contenido Científico) - Max 55 puntos
+            { id: 'titulo', category: 'I. Fondo (Contenido Científico)', max: 5, type: '3-point', options: [0,3,5], name: 'Título y Congruencia de Contenido', desc: 'Claridad, pertinencia, y correcta identificación de autores y afiliación.' },
+            { id: 'introduccion', category: 'I. Fondo (Contenido Científico)', max: 15, type: 'full', name: 'Introducción y Antecedentes', desc: 'Contextualización, justificación y revisión actualizada de la literatura.' },
+            { id: 'metodologia', category: 'I. Fondo (Contenido Científico)', max: 15, type: 'full', name: 'Metodología', desc: 'Claridad en el diseño, selección de muestra, procedimientos, y cumplimiento ético.' },
+            { id: 'resultados', category: 'I. Fondo (Contenido Científico)', max: 15, type: 'full', name: 'Resultados', desc: 'Presentación lógica, objetiva y completa de datos primarios o secundarios.' },
+            { id: 'conclusiones', category: 'I. Fondo (Contenido Científico)', max: 5, type: '3-point', options: [0,3,5], name: 'Conclusiones', desc: 'Conclusiones claras, derivadas y consistentes con los resultados obtenidos.' },
+            
+            // II. Forma (Diseño y Formato) - Max 35 puntos
+            { id: 'banner', category: 'II. Forma (Diseño y Formato)', max: 5, type: 'yes-no', options: [0,5], name: 'Banner y Elementos Mandatorios', desc: 'Inclusión de logos y cumplimiento de requisitos de formato del simposio. (0 o 5 puntos)' },
+            { id: 'diseno', category: 'II. Forma (Diseño y Formato)', max: 15, type: 'full', name: 'Diseño y Congruencia Visual', desc: 'Equilibrio de texto/gráficos, tipografía legible y uso eficiente del espacio.' },
+            { id: 'graficas', category: 'II. Forma (Diseño y Formato)', max: 15, type: 'full', name: 'Uso de Tablas y Gráficas', desc: 'Claridad, calidad de las figuras y correcta citación.' }, 
+
+            // III. Referencias y Presentación - Max 10 puntos
+            { id: 'referencias', category: 'III. Referencias y Presentación', max: 5, type: 'yes-no', options: [0,5], name: 'Referencias Bibliográficas', desc: 'Formato de referencias consistente y adecuado (ej. Vancouver, APA). (0 o 5 puntos)' },
+            { id: 'defensa', category: 'III. Referencias y Presentación', max: 5, type: 'full', name: 'Defensa y Síntesis', desc: 'Dominio del tema por el autor y capacidad de síntesis durante la presentación.' },
+
+            // IV. BONIFICACIÓN (Puntos Extra) - Max +15 puntos
+            { id: 'innovacion', category: 'IV. Bonificación y Deducción', max: 15, type: 'bonus', name: 'Innovación y Originalidad', desc: 'Aporta nuevo conocimiento o utiliza un enfoque metodológico altamente original.' },
+
+            // V. DEDUCCIÓN (Restan Puntos) - Max -20 puntos
+            { id: 'tiempo', category: 'V. Deducción (Restan Puntos)', max: 10, type: 'deduction', name: 'Manejo del Tiempo', desc: 'Excedió o no utilizó el tiempo de presentación asignado. (Hasta -10 puntos)' },
+            { id: 'ortografia', category: 'V. Deducción (Restan Puntos)', max: 10, type: 'deduction', name: 'Redacción y Ortografía', desc: 'Errores gramaticales o de sintaxis significativos en el cartel. (Hasta -10 puntos)' },
+        ];
+        
+        // 4. CRITERIOS DE EVALUACIÓN (ORAL) - Max 100 Base
+        const evaluationCriteriaOral = [
+            // I. Contenido (Max 60 puntos)
+            { id: 'relevancia', category: 'I. Contenido Científico', max: 20, type: 'full', name: 'Relevancia y Originalidad', desc: 'Aporte de nuevo conocimiento e impacto potencial.' },
+            { id: 'disenocientifico', category: 'I. Contenido Científico', max: 20, type: 'full', name: 'Diseño Metodológico', desc: 'Claridad, rigor y adecuación del método a los objetivos.' },
+            { id: 'conclusionesoral', category: 'I. Contenido Científico', max: 20, type: 'full', name: 'Análisis y Conclusiones', desc: 'Profundidad en el análisis de resultados y solidez de las conclusiones.' },
+            
+            // II. Presentación (Max 40 puntos)
+            { id: 'dominio', category: 'II. Presentación Oral', max: 15, type: 'full', name: 'Dominio y Seguridad', desc: 'Manejo del tema, respuesta a preguntas y seguridad al exponer.' },
+            { id: 'estructuraoral', category: 'II. Presentación Oral', max: 15, type: 'full', name: 'Claridad y Estructura', desc: 'Organización lógica de la exposición y claridad de las diapositivas.' },
+            { id: 'referenciasoral', category: 'II. Presentación Oral', max: 10, type: 'full', name: 'Referencias y Citación', desc: 'Uso correcto de la citación y calidad de las referencias mostradas.' },
+            
+            // V. DEDUCCIÓN (Restan Puntos) - Max -20 puntos
+            { id: 'tiempooral', category: 'V. Deducción (Restan Puntos)', max: 10, type: 'deduction', name: 'Manejo del Tiempo', desc: 'Excedió o no utilizó el tiempo asignado. (Hasta -10 puntos)' },
+            { id: 'ortografiaoral', category: 'V. Deducción (Restan Puntos)', max: 10, type: 'deduction', name: 'Redacción y Ortografía', desc: 'Errores gramaticales o de sintaxis en las diapositivas. (Hasta -10 puntos)' },
         ];
 
-        // Criterios de evaluación (Mantenido igual)
-        const evaluationCriteria = [
-            { id: 'titulo', category: 'I. Fondo (Contenido Científico)', max: 5, type: '3-point', options: [0,3,5], name: 'Título y Afiliación', desc: 'Claridad y correcta identificación. (0, 3, o 5 puntos)' },
-            { id: 'introduccion', category: 'I. Fondo (Contenido Científico)', max: 5, type: '3-point', options: [0,3,5], name: 'Introducción y Antecedentes', desc: 'Contextualización, justificación y uso de referencias. (0,3,5)' },
-            { id: 'metodologia', category: 'I. Fondo (Contenido Científico)', max: 10, type: 'full', name: 'Metodología', desc: 'Detalle del diseño, muestra y procedimientos éticos.' },
-            { id: 'resultados', category: 'I. Fondo (Contenido Científico)', max: 10, type: 'full', name: 'Resultados', desc: 'Presentación objetiva de datos.' },
-            { id: 'conclusiones', category: 'I. Fondo (Contenido Científico)', max: 5, type: '3-point', options: [0,3,5], name: 'Conclusiones', desc: 'Derivadas de los resultados.' },
-            { id: 'banner', category: 'II. Forma (Diseño y Formato)', max: 5, type: '3-point', options: [0,3,5], name: 'Banner y Elementos Mandatorios', desc: 'Inclusión de logos y requisitos.' },
-            { id: 'diseno', category: 'II. Forma (Diseño y Formato)', max: 10, type: 'full', name: 'Diseño y Congruencia Visual', desc: 'Equilibrio, tipografía legible.' },
-            { id: 'graficas', category: 'II. Forma (Diseño y Formato)', max: 10, type: 'full', name: 'Uso de Tablas y Gráficas', desc: 'Claridad y calidad.' },
-            { id: 'referencias', category: 'II. Forma (Diseño y Formato)', max: 5, type: '3-point', options: [0,3,5], name: 'Referencias Bibliográficas', desc: 'Cumplimiento con estilo.' },
-            { id: 'innovacion', category: 'III. Novedad y Presentación', max: 15, type: 'bonus', name: 'Innovación y Originalidad', desc: 'Aporta nuevo conocimiento. (BONUS)' },
-            { id: 'defensa', category: 'III. Novedad y Presentación', max: 10, type: 'full', name: 'Defensa y Síntesis', desc: 'Dominio del tema y claridad.' },
-            { id: 'tiempo', category: 'III. Novedad y Presentación', max: 10, type: 'deduction', name: 'Manejo del Tiempo', desc: 'Excedió el tiempo (DEDUCCIÓN).' },
-            { id: 'ortografia', category: 'III. Novedad y Presentación', max: 10, type: 'deduction', name: 'Redacción y Ortografía', desc: 'Errores significativos (DEDUCCIÓN).' },
-            { id: 'impacto', category: 'III. Novedad y Presentación', max: 5, type: 'full', name: 'Impacto Potencial', desc: 'Trascendencia en práctica clínica.' },
-        ];
 
-
-        // ---------- Utilidades de localStorage ----------
+        // ---------- Utilidades de Sesión Local ----------
         const saveJudgeDataToLocal = (data) => {
             try { localStorage.setItem(JUDGE_STORAGE_KEY, JSON.stringify(data)); }
             catch(e) { console.error("Error saving judge data:", e); }
@@ -148,43 +318,74 @@
         };
         // -----------------------------------------------
 
-        // Inicializar Firebase (solo si firebaseConfig existe)
+        // Inicializar Firebase
         const initFirebase = () => {
             if (!firebaseConfig) {
-                console.warn("Firebase config no proporcionado. Firestore no estará disponible hasta configurarlo.");
+                console.warn("Firebase config NO proporcionado. Las funciones de la nube no funcionarán.");
                 return;
             }
             try {
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
-                console.log("Firebase inicializado correctamente.");
+                auth = getAuth(app);
+                
+                const signInUser = async () => {
+                    try {
+                        const authToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                        if (authToken) {
+                            await signInWithCustomToken(auth, authToken);
+                        } else {
+                            // Se utiliza signInAnonymously si no hay token (esto produce un UID único de Firebase)
+                            await signInAnonymously(auth);
+                        }
+                    } catch (e) {
+                        console.error("Error en la autenticación Firebase:", e);
+                    }
+                };
+                signInUser();
+                
+                console.log("Firebase inicializado y autenticación intentada.");
             } catch (err) {
                 console.error("Error inicializando Firebase:", err);
             }
         };
 
-        // ---------------- Manejo de Sesión ----------------
+        // ---------------- INICIO DE LA APLICACIÓN ----------------
         const mainInit = () => {
             initFirebase();
+            
+            if (auth) {
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        // El UID de Firebase (importante para las reglas)
+                        currentUserId = user.uid; 
+                    }
+                    startAppFlow();
+                });
+            } else {
+                startAppFlow(); // Flujo sin Firebase Auth (solo usa IDs locales)
+            }
+        };
+
+        const startAppFlow = () => {
             judgeData = loadJudgeDataFromLocal();
+            
             if (judgeData && judgeData.id) {
-                currentUserId = judgeData.id;
-                // Redirigir según el rol
                 if (judgeData.role === 'admin') {
                     showAdminDashboard();
                 } else {
-                    showDashboard(currentUserId);
+                    showDashboard(judgeData.id);
                 }
             } else {
+                // Mostrar Login al cargar
                 showLogin();
             }
-            setupUIHandlers();
-        };
+        }
 
         document.addEventListener('DOMContentLoaded', mainInit);
 
 
-        // ---------------- Autenticación local (Mantenida) ----------------
+        // ---------------- AUTENTICACIÓN LOCAL ----------------
         const handleLogin = async () => {
             const user = document.getElementById('username').value.trim();
             const pass = document.getElementById('password').value.trim();
@@ -194,20 +395,25 @@
             errorMsg.textContent = '';
             loginBtn.disabled = true;
             loginBtn.textContent = 'Iniciando...';
-            loginBtn.classList.add('login-btn-active');
 
             const userEntry = predefinedUsers.find(u => u.user === user && u.pass === pass);
 
             if (userEntry) {
+                
+                const firebaseUid = auth.currentUser?.uid;
+
                 const newJudgeData = {
-                    id: userEntry.id,
+                    id: userEntry.id, // ID local (juez_a, juez_b)
                     name: userEntry.name,
                     role: userEntry.role,
-                    pass: userEntry.pass,
+                    // Usamos el UID de Firebase para la ruta de Firestore
+                    firebaseId: firebaseUid, 
                     lastLogin: new Date().toISOString()
                 };
+                
+                // Actualizar el estado global y local
                 judgeData = newJudgeData;
-                currentUserId = newJudgeData.id;
+                currentUserId = userEntry.id; // Mantenemos el ID local para la asignación de trabajos
                 saveJudgeDataToLocal(newJudgeData);
                 
                 // Redirigir según el rol
@@ -222,7 +428,6 @@
                 errorMsg.textContent = 'Usuario o contraseña incorrectos.';
                 loginBtn.disabled = false;
                 loginBtn.textContent = 'Iniciar Sesión';
-                loginBtn.classList.remove('login-btn-active');
             }
         };
 
@@ -230,60 +435,101 @@
             clearJudgeDataLocal();
             judgeData = null;
             currentUserId = null;
+            if (auth) {
+                try {
+                    await signOut(auth); // Intenta cerrar sesión en Firebase si está configurado
+                } catch(e) {
+                    console.error("Error al cerrar sesión de Firebase:", e);
+                }
+            }
             showLogin();
         };
 
         const togglePasswordVisibility = () => {
             const passwordInput = document.getElementById('password');
-            const toggleIcon = document.getElementById('toggle-password-icon');
-            if (!passwordInput) return;
+            const toggleBtn = document.getElementById('toggle-password'); 
+            
+            if (!passwordInput || !toggleBtn) return;
+            
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
-                toggleIcon.innerHTML = '&#128065;'; // ojo
+                toggleBtn.textContent = '🙈';
             } else {
                 passwordInput.type = 'password';
-                toggleIcon.innerHTML = '&#128584;';
+                toggleBtn.textContent = '👁️';
             }
         };
 
-        // ---------------- UI: Login & Dashboard ----------------
+
+        // ---------------- UI: Login ----------------
         const showLogin = () => {
             document.getElementById('app-container').innerHTML = `
-                <div id="login-bg" class="min-h-screen flex items-center justify-center p-4">
-                    <!-- Contenedor del formulario, posicionado sobre la capa oscura -->
-                    <div class="relative z-10 w-full max-w-md bg-white p-8 rounded-xl shadow-2xl border-t-8 border-purple-800 transform transition duration-500 hover:scale-[1.01]">
-                        <div class="text-center mb-8">
-                            <div class="flex justify-center space-x-4 mb-4">
-                                <!-- Logos - Asegúrate que los nombres de archivo coincidan en tu carpeta assets/ -->
-                                <img src="assets/logo_ipn.png" alt="Logo IPN" class="h-10 w-auto object-contain">
-                                <img src="assets/logo_esm.jpg" alt="Logo ESM" class="h-10 w-10 rounded-full shadow-md object-cover">
-                                <img src="assets/logo_licam.png" alt="Logo LICAM" class="h-10 w-auto object-contain">
+                <!-- HERO / LOGIN LAYER (fondo y overlay) -->
+                <section id="login-bg" class="min-h-screen flex items-center justify-center p-4">
+                    <!-- Contenedor central -->
+                    <div class="relative z-10 w-full max-w-4xl mx-4">
+                        <div class="bg-white/95 backdrop-blur-md rounded-xl shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-2">
+
+                            <!-- LADO IZQUIERDO: Información y logos -->
+                            <div class="p-8 md:p-10 bg-white">
+                                <div class="flex items-center gap-3 mb-6">
+                                    <!-- Logos alineados - Rutas corregidas para tu GitHub -->
+                                    <img src="assets/logo_ipn.png" onerror="this.src='https://placehold.co/40x40/7e22ce/FFFFFF/png?text=IPN'" alt="Logo IPN" class="h-10 w-auto object-contain">
+                                    <img src="assets/logo_esm.jpg" onerror="this.src='https://placehold.co/40x40/059669/FFFFFF/png?text=ESM'" alt="Logo ESM" class="h-10 w-10 rounded-full shadow-md object-cover">
+                                    <img src="assets/logo_licam.png" onerror="this.src='https://placehold.co/40x40/34d399/000000/png?text=LICAM'" alt="Logo LICAM" class="h-10 w-auto object-contain">
+                                </div>
+
+                                <h1 class="text-2xl md:text-3xl font-extrabold text-gray-800 mb-2">2° Simposio de Investigación</h1>
+                                <p class="text-sm md:text-base text-gray-600 mb-6">Plataforma para la evaluación de trabajos libres — gestión de jueces y administración central.</p>
+
+                                <div class="p-4 rounded-lg bg-gradient-to-r from-purple-50 to-white border border-purple-100 mb-4">
+                                    <p class="text-sm text-gray-700"><strong>Instrucciones rápidas:</strong></p>
+                                    <ul class="text-sm text-gray-600 mt-2 list-disc list-inside">
+                                        <li>La evaluación solo se bloquea al guardar el trabajo.</li>
+                                        <li>Los jueces solo ven sus trabajos asignados.</li>
+                                        <li>La evaluación se guarda en Firestore y Google Sheets.</li>
+                                    </ul>
+                                </div>
+                                <div class="text-xs text-gray-500">
+                                    <p><strong>Nota:</strong> Asegúrate de cambiar el **ADMIN_ID_FIREBASE** en el código.</p>
+                                </div>
                             </div>
-                            <h1 class="text-3xl font-extrabold text-gray-800">2° Simposio de Investigación</h1>
-                            <p class="text-gray-500 font-semibold">Evaluación de Trabajos Libres</p>
-                        </div>
-                        <div class="space-y-4">
-                            <div>
-                                <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Usuario Juez</label>
-                                <input type="text" id="username" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-purple-600 focus:border-purple-600" value="juez1" placeholder="ej. juez1">
+
+                            <!-- LADO DERECHO: Formulario de Login -->
+                            <div class="p-8 md:p-10 bg-white/90 flex items-center">
+                                <div class="w-full">
+                                    <h2 class="text-lg font-bold text-gray-800 mb-4">Iniciar sesión</h2>
+
+                                    <label class="block text-sm text-gray-600 mb-1" for="username">Usuario</label>
+                                    <input id="username" type="text" placeholder="ej. juez1" class="w-full mb-4 px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-purple-500 focus:outline-none" value="juez_araceli">
+
+                                    <label class="block text-sm text-gray-600 mb-1" for="password">Contraseña</label>
+                                    <div class="relative mb-4">
+                                        <input id="password" type="password" placeholder="********" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-purple-500 focus:outline-none" value="cartel2025">
+                                        <button id="toggle-password" type="button" class="absolute right-3 top-3 text-gray-400 hover:text-gray-700" aria-label="Mostrar contraseña">👁️</button>
+                                    </div>
+
+                                    <div id="login-error" class="text-sm text-red-600 mb-3 hidden"></div>
+
+                                    <button id="login-btn" class="w-full py-3 rounded-lg bg-gradient-to-r from-purple-700 to-purple-500 text-white font-semibold hover:from-purple-800 hover:to-purple-600 transition shadow transform hover:scale-[1.02]">
+                                        Iniciar sesión
+                                    </button>
+
+                                    <div class="mt-6 text-xs text-gray-400 text-center">
+                                        <p>Versión 1.0 • &copy; Simposio 2025</p>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="password-container">
-                                <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
-                                <input type="password" id="password" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-purple-600 focus:border-purple-600 pr-10" value="simposio2025" placeholder="*******">
-                                <span id="toggle-password-icon" class="toggle-password" title="Mostrar contraseña" style="user-select:none;">&#128584;</span>
-                            </div>
-                            <button id="login-btn" class="w-full bg-purple-800 text-white p-3 rounded-lg font-semibold hover:bg-purple-900 transition duration-150 shadow-md transform hover:login-btn-active">
-                                Iniciar Sesión
-                            </button>
-                            <p id="login-error" class="text-sm text-red-600 text-center mt-2"></p>
+
                         </div>
                     </div>
-                </div>
+                </section>
             `;
             document.getElementById('login-btn').addEventListener('click', handleLogin);
-            document.getElementById('toggle-password-icon').addEventListener('click', togglePasswordVisibility);
+            document.getElementById('toggle-password').addEventListener('click', togglePasswordVisibility);
         };
 
+        // ---------------- UI: JUEZ DASHBOARD ----------------
         const showDashboard = (userId) => {
             if (!judgeData || judgeData.role !== 'judge') return showLogin();
 
@@ -295,7 +541,7 @@
                             <div class="flex items-center space-x-4">
                                 <span class="hidden sm:inline text-sm text-gray-600">Juez: ${judgeData.name} (${judgeData.id})</span>
                                 <button id="export-csv-btn" class="text-xs bg-blue-600 text-white px-3 py-1 rounded-full hover:bg-blue-700 transition shadow-sm">
-                                    Exportar Evaluaciones (CSV)
+                                    Exportar Mis Evaluaciones (CSV)
                                 </button>
                                 <button id="logout-btn" class="text-sm bg-red-600 text-white px-3 py-1 rounded-full hover:bg-red-700 transition shadow-sm">Salir</button>
                             </div>
@@ -305,7 +551,6 @@
                         <h2 class="text-2xl font-semibold text-gray-800 mb-6 border-b pb-2">Mis Trabajos Asignados</h2>
                         <div id="poster-list" class="space-y-4">
                             <div class="text-center py-8 text-gray-500">Cargando trabajos...</div>
-                            <!-- La lista de carteles se carga dinámicamente, filtrada por el ID del juez -->
                         </div>
                     </main>
                 </div>
@@ -316,7 +561,7 @@
             loadAssignedPosters(userId);
         };
 
-        // ---------------- ADMIN DASHBOARD ----------------
+        // ---------------- UI: ADMIN DASHBOARD ----------------
         const showAdminDashboard = () => {
             if (!judgeData || judgeData.role !== 'admin') return showLogin();
             
@@ -326,7 +571,7 @@
                         <div class="flex justify-between items-center max-w-6xl mx-auto">
                             <h1 class="text-xl font-bold text-purple-800">Panel de Administración</h1>
                             <div class="flex items-center space-x-4">
-                                <span class="hidden sm:inline text-sm text-gray-600">Admin: ${judgeData.name} (${judgeData.id})</span>
+                                <span class="hidden sm:inline text-sm text-gray-600">Admin: ${judgeData.name}</span>
                                 <button id="admin-export-all-btn" class="text-xs bg-blue-600 text-white px-3 py-1 rounded-full hover:bg-blue-700 transition shadow-sm">
                                     Exportar TODAS las Evaluaciones (CSV)
                                 </button>
@@ -335,22 +580,29 @@
                         </div>
                     </header>
                     <main class="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8">
+                        
+                        <p class="text-red-600 bg-red-50 p-3 rounded-lg border border-red-300 font-semibold mb-6">
+                            🚨 **ACCIÓN REQUERIDA:** Asegúrate de que tu **ADMIN_ID_FIREBASE** esté configurado en el código y que tus **Reglas de Seguridad** de Firestore permitan la lectura de las colecciones de los jueces.
+                        </p>
+
+                        <!-- Resumen de Progreso -->
                         <h2 class="text-2xl font-semibold text-gray-800 mb-6 border-b pb-2">Resumen de Progreso de Evaluación</h2>
                         <div id="admin-summary" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                             <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-purple-500">
                                 <p class="text-sm font-medium text-gray-500">Total de Trabajos</p>
-                                <p id="total-posters" class="text-3xl font-bold text-gray-800 animate-pulse">...</p>
+                                <p id="total-posters" class="text-3xl font-bold text-gray-800">...</p>
                             </div>
                             <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-green-500">
                                 <p class="text-sm font-medium text-gray-500">Evaluaciones Completadas</p>
-                                <p id="completed-evals" class="text-3xl font-bold text-green-600 animate-pulse">...</p>
+                                <p id="completed-evals" class="text-3xl font-bold text-green-600">...</p>
                             </div>
                             <div class="bg-white p-6 rounded-xl shadow-lg border-l-4 border-yellow-500">
                                 <p class="text-sm font-medium text-gray-500">Promedio de Jueces/Trabajo</p>
-                                <p id="avg-judgments" class="text-3xl font-bold text-yellow-600 animate-pulse">...</p>
+                                <p id="avg-judgments" class="text-3xl font-bold text-yellow-600">...</p>
                             </div>
                         </div>
 
+                        <!-- Estado Detallado de los Jueces -->
                         <h3 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Estado Detallado de los Jueces</h3>
                         <div id="judge-status-list" class="space-y-4">
                             <div class="text-center py-8 text-gray-500">Cargando datos de jueces...</div>
@@ -363,47 +615,53 @@
             loadAdminData();
         };
         
-        // ---------------- LÓGICA DEL ADMIN DASHBOARD ----------------
+        // ---------------- UTILIDADES DE ADMINISTRADOR ----------------
+        
         const loadAdminData = async () => {
             const judgeStatusList = document.getElementById('judge-status-list');
             
-            if (!db || typeof collection !== 'function') {
-                judgeStatusList.innerHTML = '<div class="text-center py-8 text-red-600">Error: Firestore no está configurado para cargar datos administrativos.</div>';
+            // CORRECCIÓN: Si Firebase no se inicializó, mostramos un error CLARO y no intentamos acceder a 'db'
+            if (!db) {
                 document.getElementById('total-posters').textContent = predefinedPosters.length;
-                document.getElementById('completed-evals').textContent = 'N/A';
-                document.getElementById('avg-judgments').textContent = 'N/A';
+                document.getElementById('completed-evals').textContent = '0 (Offline)';
+                document.getElementById('avg-judgments').textContent = '0.00';
+                judgeStatusList.innerHTML = `
+                    <div class="bg-red-100 p-4 rounded-lg text-red-700 font-medium">
+                        <p>⚠️ **ERROR DE CONEXIÓN:** Firestore no se inicializó. Asegúrate de que **__firebase_config** esté disponible.</p>
+                        <p class="text-sm">Si estás viendo este error, la reasignación y los reportes globales no funcionarán.</p>
+                    </div>
+                `;
                 return;
             }
             
-            // Mapeo de trabajos asignados por Juez
             const assignments = {};
+            predefinedUsers.filter(u => u.role === 'judge').forEach(judge => {
+                assignments[judge.id] = { assigned: 0, completed: 0, judgeName: judge.name, id: judge.id, firebaseId: judge.firebaseId, posters: [] };
+            });
             predefinedPosters.forEach(poster => {
-                if (!assignments[poster.assignedTo]) {
-                    assignments[poster.assignedTo] = { assigned: 0, completed: 0, judgeName: predefinedUsers.find(u => u.id === poster.assignedTo)?.name || poster.assignedTo, id: poster.assignedTo };
+                if (assignments[poster.assignedTo]) {
+                    assignments[poster.assignedTo].assigned++;
+                    assignments[poster.assignedTo].posters.push(poster.id);
                 }
-                assignments[poster.assignedTo].assigned++;
             });
             
             const judgesToTrack = predefinedUsers.filter(u => u.role === 'judge');
             let totalCompletedEvals = 0;
-            const allEvaluations = [];
 
-            // Obtener el estado de cada juez (asincrónicamente)
             const judgePromises = judgesToTrack.map(async (judge) => {
-                const judgeAssignment = assignments[judge.id] || { assigned: 0, completed: 0, judgeName: judge.name, id: judge.id };
+                const judgeAssignment = assignments[judge.id] || { assigned: 0, completed: 0, judgeName: judge.name, id: judge.id, firebaseId: judge.firebaseId };
                 
-                // Intentar leer las evaluaciones guardadas por el juez
                 try {
-                    const evalsColRef = collection(db, `artifacts/${appId}/users/${judge.id}/evaluations`);
+                    // Nota: Esta consulta requiere la Regla de Seguridad 2 (lectura del Admin en todas las colecciones de usuarios)
+                    const evalsColRef = collection(db, `artifacts/${appId}/users/${judge.firebaseId}/evaluations`);
                     const querySnapshot = await getDocs(evalsColRef);
                     
                     judgeAssignment.completed = querySnapshot.size;
                     totalCompletedEvals += querySnapshot.size;
 
-                    querySnapshot.forEach(docSnap => allEvaluations.push(docSnap.data()));
-
                 } catch (error) {
-                    console.error(`Error fetching evals for ${judge.id}:`, error);
+                    console.error(`Error fetching evals for ${judge.id}: ${error.message}`);
+                    // Mostrar un error de permisos solo en la tarjeta si falla
                     judgeAssignment.error = true;
                 }
                 return judgeAssignment;
@@ -416,16 +674,16 @@
             document.getElementById('completed-evals').textContent = totalCompletedEvals;
             document.getElementById('avg-judgments').textContent = (totalCompletedEvals / predefinedPosters.length).toFixed(2);
             
-            // Renderizar la lista de jueces
+            // Renderizar la lista de jueces (con botón de reasignación)
             judgeStatusList.innerHTML = results.map(judge => {
                 const percentage = judge.assigned > 0 ? ((judge.completed / judge.assigned) * 100).toFixed(0) : 100;
                 const progressColor = percentage == 100 ? 'bg-green-500' : (percentage > 0 ? 'bg-yellow-500' : 'bg-red-500');
                 
                 return `
-                    <div class="bg-white p-4 rounded-lg shadow-md flex items-center justify-between">
+                    <div class="bg-white p-4 rounded-lg shadow-md flex items-center justify-between transform transition duration-200 hover:shadow-xl hover:scale-[1.01]">
                         <div class="flex flex-col">
                             <p class="font-bold text-gray-700">${judge.judgeName} (${judge.id})</p>
-                            ${judge.error ? '<p class="text-xs text-red-500">Error al cargar evaluaciones</p>' : ''}
+                            ${judge.error ? '<p class="text-xs text-red-500 font-semibold">ERROR: Verifique reglas de lectura.</p>' : ''}
                         </div>
                         <div class="flex items-center space-x-4">
                             <div class="text-sm font-semibold text-gray-600">${judge.completed} / ${judge.assigned} completados</div>
@@ -433,14 +691,166 @@
                                 <div class="h-2.5 rounded-full ${progressColor} transition-all duration-500" style="width: ${percentage}%;"></div>
                             </div>
                             <span class="text-sm font-bold text-purple-700">${percentage}%</span>
+                            <button onclick="openReassignModal('${judge.id}')" class="bg-indigo-500 text-white text-xs px-3 py-1 rounded-full hover:bg-indigo-600 transition">
+                                Reasignar Pendientes
+                            </button>
                         </div>
                     </div>
                 `;
             }).join('');
-            
-            // Guardar todas las evaluaciones para la exportación del Admin (opcional, si es necesario exportar todo)
-            window.allEvaluationsData = allEvaluations; 
         };
+        
+        /* ============================================================
+           MODAL UNIVERSAL (para administrador)
+        ============================================================ */
+
+        const openModal = (html) => {
+            const modal = document.createElement("div");
+            modal.className = "modal-bg fade-in";
+            modal.innerHTML = `
+                <div class="modal-content">
+                    ${html}
+                    <button class="w-full mt-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition" onclick="closeModal()">Cerrar</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        const closeModal = () => {
+            const m = document.querySelector(".modal-bg");
+            if (m) m.remove();
+        }
+
+        const showAlert = (message, type = "info") => {
+            const box = document.createElement("div");
+            box.className = `fixed top-5 right-5 px-4 py-3 rounded shadow-lg text-white transform transition duration-300 ease-out z-50`;
+            
+            const colors = {
+                success: "bg-green-500",
+                error: "bg-red-500",
+                info: "bg-indigo-500"
+            };
+
+            box.classList.add(colors[type] || colors.info);
+            box.innerText = message;
+
+            document.body.appendChild(box);
+
+            setTimeout(() => {
+                box.classList.remove('top-5');
+                box.classList.add('top-0', 'opacity-0');
+                setTimeout(() => box.remove(), 500);
+            }, 3500);
+        }
+
+        /* ============================================================
+           REASIGNACIÓN MASIVA
+        ============================================================ */
+
+        async function getJudgePendingWorks(juezId) {
+            const pendientes = [];
+
+            if (!db) return pendientes;
+            
+            const judge = predefinedUsers.find(u => u.id === juezId);
+            if (!judge || !judge.firebaseId) return pendientes;
+
+            // Buscamos en la lista local de asignaciones para obtener los IDs
+            const assignedPosters = predefinedPosters.filter(p => p.assignedTo === juezId || (p.assignedToGroup && p.assignedToGroup.includes(juezId)));
+            
+            for (const work of assignedPosters) {
+                // Verificamos si ya existe una evaluación para ese trabajo por parte de ese juez
+                const snap = await getDoc(doc(db, `artifacts/${appId}/users/${judge.firebaseId}/evaluations`, work.id));
+
+                if (!snap.exists()) {
+                    pendientes.push(work.id);
+                }
+            }
+
+            return pendientes; 
+        }
+
+        async function reassignWorkToJudge(oldJudge, newJudge, workId) {
+             if (!db) return;
+             
+             const newJudgeUser = predefinedUsers.find(u => u.id === newJudge);
+             if (!newJudgeUser || !newJudgeUser.firebaseId) {
+                console.error("UID de Firebase del nuevo juez no encontrado.");
+                showAlert("Error: UID del nuevo juez no encontrado.", "error");
+                return;
+             }
+
+             // El documento de reasignación debe ir a la colección del nuevo juez
+             return setDoc(doc(db, `artifacts/${appId}/users/${newJudgeUser.firebaseId}/evaluations`, workId), {
+                reasignadoDesde: oldJudge,
+                estado: "reasignado",
+                fechaReasignado: new Date().toISOString()
+            }, { merge: true });
+        }
+
+        async function reassignAllPendingWorks(oldJudge, newJudge) {
+            const pendientes = await getJudgePendingWorks(oldJudge);
+
+            if (pendientes.length === 0) {
+                 showAlert(`El juez ${oldJudge} no tiene trabajos pendientes de reasignación.`, "info");
+                 return;
+            }
+
+            for (const workId of pendientes) {
+                await reassignWorkToJudge(oldJudge, newJudge, workId);
+            }
+
+            showAlert(
+                `Se reasignaron ${pendientes.length} trabajos de ${oldJudge} a ${newJudge}`,
+                "success"
+            );
+            // Esto dispara la recarga del dashboard en la función confirmMassReassign
+        }
+
+        function openReassignModal(oldJudge) {
+            // Filtrar solo jueces y excluir al juez actual
+            const listaJueces = predefinedUsers
+                .filter(u => u.role === "judge" && u.id !== oldJudge)
+                .map(j => `<option value="${j.id}">${j.name} (${j.id})</option>`)
+                .join("");
+
+            openModal(`
+                <h2 class="text-xl font-bold text-gray-800 mb-3">Reasignar trabajos de ${oldJudge}</h2>
+                <p class="text-sm mb-4 text-gray-600">Selecciona a qué juez deseas transferir todos los trabajos **pendientes** de **${oldJudge}**.</p>
+
+                <label class="font-semibold text-sm block mb-1">Nuevo juez asignado:</label>
+                <select id="newJudgeSelect" class="w-full p-2 border border-gray-300 rounded-lg">
+                    <option value="">Selecciona un juez</option>
+                    ${listaJueces}
+                </select>
+
+                <button class="w-full py-2 px-4 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition mt-4"
+                    onclick="confirmMassReassign('${oldJudge}')">
+                    Reasignar TODOS los pendientes
+                </button>
+            `);
+        }
+        
+        async function confirmMassReassign(oldJudge) {
+            const newJudge = document.getElementById("newJudgeSelect").value;
+
+            if (!newJudge) {
+                showAlert("Debes seleccionar un juez.", "error");
+                return;
+            }
+            
+            closeModal();
+            
+            await reassignAllPendingWorks(oldJudge, newJudge);
+            
+            // Recargar datos para reflejar los cambios en el panel de admin
+            loadAdminData(); 
+        }
+
+        /* ============================================================
+           FIN REASIGNACIÓN MASIVA
+        ============================================================ */
+
 
         // ---------------- CARGAR TRABAJOS ASIGNADOS (Juez) ----------------
         const loadAssignedPosters = (judgeId) => {
@@ -452,21 +862,23 @@
                 return;
             }
 
-            // Filtro CRUCIAL: Solo muestra los trabajos donde assignedTo coincide con el ID del juez
-            const assignedPosters = predefinedPosters.filter(p => p.assignedTo === staticJudgeId);
+            // Filtramos solo los trabajos asignados a este juez (ya sea por asignación directa o por grupo oral)
+            const assignedPosters = predefinedPosters.filter(p => p.assignedTo === staticJudgeId || (p.assignedToGroup && p.assignedToGroup.includes(staticJudgeId)));
             
             if (assignedPosters.length === 0) {
                 listContainer.innerHTML = '<div class="text-center py-8 text-gray-500">No tiene trabajos asignados para evaluar.</div>';
                 return;
             }
             
-            listContainer.innerHTML = ''; // Limpiar el mensaje de "Cargando"
+            listContainer.innerHTML = ''; 
 
             assignedPosters.forEach(poster => {
-                const docRef = (db && typeof doc === 'function') ? doc(db, `artifacts/${appId}/users/${staticJudgeId}/evaluations`, poster.id) : null;
+                const docRef = (db && typeof doc === 'function' && judgeData.firebaseId) 
+                    ? doc(db, `artifacts/${appId}/users/${judgeData.firebaseId}/evaluations`, poster.id) 
+                    : null;
 
                 if (docRef && typeof onSnapshot === 'function') {
-                    // Usar onSnapshot para ver cambios en tiempo real si el juez modifica y vuelve al panel
+                    // Usamos onSnapshot para mantener el estado de la tarjeta en tiempo real
                     onSnapshot(docRef, (docSnap) => {
                         const evaluationData = docSnap.exists() ? docSnap.data() : null;
                         renderOrUpdatePosterCard(poster, evaluationData);
@@ -475,7 +887,8 @@
                         renderOrUpdatePosterCard(poster, null, true);
                     });
                 } else {
-                    renderOrUpdatePosterCard(poster, null); // Firestore no configurado
+                    // Si Firestore no está disponible, mostrar el botón de evaluar sin conexión
+                    renderOrUpdatePosterCard(poster, null); 
                 }
             });
         };
@@ -484,28 +897,48 @@
             const listContainer = document.getElementById('poster-list');
             if (!listContainer) return;
 
+            // La evaluación está hecha si existe el documento Y tiene un totalScore
             const totalScore = evaluationData?.totalScore !== undefined ? evaluationData.totalScore : 'N/A';
-            const isEvaluated = !!evaluationData && totalScore !== 'N/A';
-            const statusText = isEvaluated ? 'Ver Evaluación' : (hasError ? 'Error' : 'Evaluar');
-            const scoreColor = isEvaluated ? 'bg-green-600 text-white' : 'bg-yellow-500 text-gray-800'; // Color ajustado para ser más dinámico
+            // isEvaluated es TRUE si tenemos un documento con un score válido.
+            const isEvaluated = !!evaluationData && totalScore !== 'N/A'; 
+            let statusText;
+            let btnClass;
+            
+            if (isEvaluated) {
+                btnClass = 'bg-gray-400 cursor-not-allowed';
+                statusText = `Finalizada (${totalScore} Pts)`; // Muestra el puntaje en el botón finalizado
+            } else {
+                // Si no está evaluado:
+                statusText = 'Evaluar'; 
+                btnClass = 'bg-purple-600 hover:bg-purple-700';
+                if (hasError) {
+                    // Si hay un error de carga de Firestore (ej. Missing permissions)
+                    btnClass = 'bg-yellow-600 hover:bg-yellow-700';
+                    statusText = 'Evaluar (Verificar)';
+                }
+            }
+
+            const scoreColor = isEvaluated ? 'bg-green-600 text-white' : 'bg-yellow-500 text-gray-800'; 
 
             let card = document.getElementById(`poster-card-${poster.id}`);
             if (!card) {
                 const newCardHTML = `
                     <div id="poster-card-${poster.id}" class="bg-white p-5 rounded-xl shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center transform transition duration-200 hover:shadow-xl hover:scale-[1.01] cursor-pointer ${isEvaluated ? 'border-l-4 border-green-600' : 'border-l-4 border-purple-400'}">
                         <div>
-                            <p class="text-sm font-medium text-gray-500">${poster.id}</p>
+                            <p class="text-sm font-medium text-gray-500">${poster.id} ${poster.type === 'oral' ? '<span class="text-xs font-bold text-red-500">(ORAL)</span>' : ''}</p>
                             <h3 class="text-lg font-semibold text-gray-800">${poster.title}</h3>
                         </div>
                         <div class="mt-3 sm:mt-0 flex items-center space-x-4">
                             <span class="px-3 py-1 text-xs font-medium rounded-full ${scoreColor}">
                                 Puntaje: ${totalScore} / 100
                             </span>
-                            <button class="evaluate-btn text-white px-4 py-2 rounded-full font-medium transition ${isEvaluated ? 'bg-green-600 hover:bg-green-700' : 'bg-purple-600 hover:bg-purple-700'}"
+                            <button class="evaluate-btn text-white px-4 py-2 rounded-full font-medium transition ${btnClass}"
                                     data-poster-id="${poster.id}" 
                                     data-poster-title="${poster.title}" 
                                     data-evaluation='${JSON.stringify(evaluationData || {})}'
-                                    data-is-evaluated="${isEvaluated}">
+                                    data-is-evaluated="${isEvaluated}"
+                                    data-type="${poster.type || 'cartel'}"
+                                    ${isEvaluated ? 'disabled' : ''}>
                                 ${statusText}
                             </button>
                         </div>
@@ -525,12 +958,15 @@
                     btn.textContent = statusText;
                     btn.dataset.evaluation = JSON.stringify(evaluationData || {});
                     btn.dataset.isEvaluated = isEvaluated;
+
+                    // Bloqueo final si ya está evaluado.
+                    btn.disabled = isEvaluated;
+                    btn.classList.remove('bg-purple-600', 'hover:bg-purple-700', 'bg-green-600', 'hover:bg-green-700', 'bg-gray-400', 'cursor-not-allowed', 'bg-red-600', 'bg-yellow-600', 'hover:bg-yellow-700');
+                    
                     if (isEvaluated) {
-                        btn.classList.replace('bg-purple-600','bg-green-600');
-                        btn.classList.replace('hover:bg-purple-700','hover:bg-green-700');
+                        btn.classList.add('bg-gray-400', 'cursor-not-allowed');
                     } else {
-                        btn.classList.replace('bg-green-600','bg-purple-600');
-                        btn.classList.replace('hover:bg-green-700','hover:bg-purple-700');
+                        btn.classList.add(btnClass);
                     }
                 }
             }
@@ -541,15 +977,17 @@
                 btn.addEventListener('click', handleEvaluateClick);
             });
         };
+        
 
-        // ---------------- Lógica de Evaluación se mantiene igual ----------------
+        // ---------------- Lógica de Evaluación ----------------
         const handleEvaluateClick = (event) => {
             const posterId = event.currentTarget.dataset.posterId;
             const posterTitle = event.currentTarget.dataset.posterTitle;
             const evaluationData = JSON.parse(event.currentTarget.dataset.evaluation || '{}');
             const isEvaluated = event.currentTarget.dataset.isEvaluated === 'true';
+            const evaluationType = event.currentTarget.dataset.type || 'cartel';
 
-            showEvaluationForm(posterId, posterTitle, evaluationData, isEvaluated);
+            showEvaluationForm(posterId, posterTitle, evaluationData, isEvaluated, evaluationType);
         };
 
         const handleInputVisualFeedback = (event) => {
@@ -580,10 +1018,16 @@
             calculateScore();
         };
 
-        const showEvaluationForm = (posterId, title, evaluation = {}, isEvaluated = false) => {
+        const showEvaluationForm = (posterId, title, evaluation = {}, isEvaluated = false, evaluationType = 'cartel') => {
             const formContainer = document.getElementById('app-container');
-            const categoryHeaders = evaluationCriteria.reduce((acc,curr)=> { if(!acc.includes(curr.category)) acc.push(curr.category); return acc; }, []);
-            const saveButtonText = isEvaluated ? 'Modificar Evaluación' : 'Guardar Evaluación';
+            
+            const criteriaSet = evaluationType === 'oral' ? evaluationCriteriaOral : evaluationCriteriaCartel;
+            const categoryHeaders = criteriaSet.reduce((acc,curr)=> { if(!acc.includes(curr.category)) acc.push(curr.category); return acc; }, []);
+            
+            const saveButtonText = 'Guardar Evaluación';
+            const isReadOnly = isEvaluated; 
+            const maxScoreDisplay = evaluationType === 'oral' ? '/ 100 (Oral)' : '/ 100 (Cartel)';
+
 
             let formHTML = `
                 <div class="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
@@ -596,21 +1040,28 @@
                                 Volver al Panel
                             </button>
                             <h2 class="text-2xl font-bold text-gray-800">${title}</h2>
-                            <p class="text-md text-gray-500">ID del Cartel: ${posterId}</p>
-                            ${isEvaluated ? '<p class="text-sm text-green-600 font-semibold mt-1">Esta evaluación ya ha sido guardada.</p>' : ''}
+                            <p class="text-md text-gray-500">ID del Trabajo: ${posterId} 
+                                <span class="font-bold text-sm text-red-500 ml-2">(${evaluationType.toUpperCase()})</span>
+                            </p>
+                            ${isReadOnly ? '<p class="text-sm text-gray-600 font-semibold mt-1">Este trabajo ya fue calificado y no se puede modificar.</p>' : 
+                             '<p class="text-sm text-green-600 font-semibold mt-1">Ingresa la calificación. Se bloqueará al guardar (Finalizar).</p>'}
                         </header>
 
-                        <form id="evaluation-form" data-poster-id="${posterId}">
-                            <div id="criteria-list" class="space-y-6">
+                        <form id="evaluation-form" data-poster-id="${posterId}" data-type="${evaluationType}">
+                            <div id="criteria-list" class="space-y-6 opacity-${isReadOnly ? '50' : '100'}" ${isReadOnly ? 'style="pointer-events: none;"' : ''}>
                                 ${categoryHeaders.map(category => `
                                     <div class="border-t pt-4">
                                         <h3 class="text-xl font-semibold text-purple-700 mb-4">${category}</h3>
-                                        ${evaluationCriteria.filter(c => c.category === category).map(c => {
+                                        ${criteriaSet.filter(c => c.category === category).map(c => {
                                             const savedScore = evaluation.scores?.[c.id] !== undefined ? evaluation.scores[c.id] : '';
+                                            const isDeductionOrBonus = c.type === 'deduction' || c.type === 'bonus';
                                             const maxScoreText = c.type === 'deduction' ? `DEDUCCIÓN (Máx: ${c.max})` : (c.type === 'bonus' ? `BONUS (Máx: ${c.max})` : `Máx: ${c.max}`);
                                             const isMarked = savedScore !== '';
 
                                             let inputField = '';
+                                            let cardClass = isDeductionOrBonus ? (c.type === 'deduction' ? 'deduction-card' : 'bonus-card') : 'bg-gray-50';
+                                            
+                                            // Lógica para tipo 3-point
                                             if (c.type === '3-point' && c.options) {
                                                 inputField = `
                                                     <div class="grid grid-cols-3 gap-2">
@@ -618,7 +1069,7 @@
                                                             const isChecked = savedScore == option;
                                                             return `
                                                             <div class="col-span-1">
-                                                                <input type="radio" id="${c.id}-score-${option}" name="${c.id}" value="${option}" class="hidden peer" ${isChecked ? 'checked' : ''} data-max="${c.max}" data-type="${c.type}" required />
+                                                                <input type="radio" id="${c.id}-score-${option}" name="${c.id}" value="${option}" class="hidden peer" ${isChecked ? 'checked' : ''} data-max="${c.max}" data-type="${c.type}" required ${isReadOnly ? 'disabled' : ''}/>
                                                                 <label for="${c.id}-score-${option}" class="score-option block p-3 text-center rounded-lg font-bold text-gray-700 hover:bg-purple-50 peer-checked:selected transition duration-150 ${isChecked ? 'selected' : ''}">
                                                                     ${option} Pts
                                                                 </label>
@@ -627,15 +1078,36 @@
                                                         }).join('')}
                                                     </div>
                                                 `;
+                                            // Lógica para tipo yes-no
+                                            } else if (c.type === 'yes-no' && c.options) {
+                                                const scoreYes = c.options[1];
+                                                const scoreNo = c.options[0];
+                                                inputField = `
+                                                    <div class="grid grid-cols-2 gap-2">
+                                                        <div class="col-span-1">
+                                                            <input type="radio" id="${c.id}-score-${scoreYes}" name="${c.id}" value="${scoreYes}" class="hidden peer" ${savedScore == scoreYes ? 'checked' : ''} data-max="${c.max}" data-type="${c.type}" required ${isReadOnly ? 'disabled' : ''}/>
+                                                            <label for="${c.id}-score-${scoreYes}" class="score-option block p-3 text-center rounded-lg font-bold text-green-700 hover:bg-green-50 peer-checked:selected transition duration-150 ${savedScore == scoreYes ? 'selected' : ''}">
+                                                                Sí (${scoreYes} Pts)
+                                                            </label>
+                                                        </div>
+                                                        <div class="col-span-1">
+                                                            <input type="radio" id="${c.id}-score-${scoreNo}" name="${c.id}" value="${scoreNo}" class="hidden peer" ${savedScore == scoreNo ? 'checked' : ''} data-max="${c.max}" data-type="${c.type}" required ${isReadOnly ? 'disabled' : ''}/>
+                                                            <label for="${c.id}-score-${scoreNo}" class="score-option block p-3 text-center rounded-lg font-bold text-red-700 hover:bg-red-50 peer-checked:selected transition duration-150 ${savedScore == scoreNo ? 'selected' : ''}">
+                                                                No (${scoreNo} Pts)
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                `;
+                                            // Lógica para tipo full, bonus y deduction
                                             } else {
                                                 inputField = `
                                                     <input type="number" id="${c.id}-score" name="${c.id}" class="score-input ${c.type === 'deduction' ? 'border-red-400 text-red-700' : 'border-purple-400 text-purple-700'} ${isMarked ? 'has-value' : ''}" 
-                                                        min="0" max="${c.max}" value="${savedScore}" data-max="${c.max}" data-type="${c.type}" required />
+                                                        min="0" max="${c.max}" value="${savedScore}" data-max="${c.max}" data-type="${c.type}" required ${isReadOnly ? 'disabled' : ''}/>
                                                 `;
                                             }
 
                                             return `
-                                                <div class="p-4 bg-gray-50 rounded-lg shadow-inner">
+                                                <div class="p-4 rounded-lg shadow-inner ${cardClass}">
                                                     <div class="flex justify-between items-center mb-2">
                                                         <h4 class="text-lg font-medium text-gray-700">${c.name}</h4>
                                                         <span class="text-sm font-semibold ${c.type === 'deduction' ? 'text-red-600' : (c.type === 'bonus' ? 'text-blue-600' : 'text-purple-600')}">${maxScoreText}</span>
@@ -650,20 +1122,24 @@
                             </div>
 
                             <div class="mt-8 pt-6 border-t border-gray-200">
-                                <h3 class="text-xl font-bold text-gray-800 mb-4">Puntuación Total: <span id="total-score" class="text-3xl text-purple-600">${evaluation.totalScore || '0'}</span> / 100</h3>
-                                <div class="bg-purple-50 p-4 rounded-lg text-sm text-purple-800 mb-6">
-                                    <p>La **Puntuación Total** se calcula automáticamente (Máximo Base: **100 puntos**):</p>
-                                    <ul class="list-disc list-inside mt-2">
-                                        <li>Criterios Positivos (Fondo, Forma, Defensa, Impacto): Suman al total.</li>
-                                        <li>Innovación: Se agrega como **BONUS**.</li>
-                                        <li>Tiempo y Ortografía: Se aplican como **DEDUCCIÓN** (se restan).</li>
+                                <h3 class="text-xl font-bold text-gray-800 mb-4">Puntuación Final: <span id="total-score" class="text-3xl text-purple-600">${evaluation.totalScore || '0'}</span> ${maxScoreDisplay}</h3>
+                                
+                                <div class="bg-gray-100 p-4 rounded-lg text-sm text-gray-700 mb-6 border border-gray-200">
+                                    <p class="font-bold text-lg mb-1">Cálculo de Puntaje (Base 100)</p>
+                                    <ul class="list-disc list-inside mt-2 text-xs">
+                                        <li>**Puntos Base (${evaluationType.toUpperCase()}):** Máximo 100 puntos.</li>
+                                        <li>**Puntos de Bonificación (IV):** Se <span class="font-bold text-blue-600">suman</span> al total (Máx +15).</li>
+                                        <li>**Puntos de Deducción (V):** Se <span class="font-bold text-red-600">restan</span> del total (Máx -20).</li>
                                     </ul>
                                 </div>
-                                <label for="observations" class="block text-md font-medium text-gray-700 mb-2">Observaciones y Comentarios Adicionales (Opcional)</label>
-                                <textarea id="observations" rows="4" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500">${evaluation.observations || ''}</textarea>
 
-                                <button type="submit" id="save-evaluation-btn" class="mt-6 w-full bg-green-600 text-white p-4 rounded-lg font-semibold text-lg hover:bg-green-700 transition duration-150 shadow-lg transform hover:scale-[1.01]">
-                                    ${saveButtonText}
+                                <label for="observations" class="block text-md font-medium text-gray-700 mb-2">Observaciones y Comentarios Adicionales (Opcional)</label>
+                                <textarea id="observations" rows="4" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500" ${isReadOnly ? 'disabled' : ''}>${evaluation.observations || ''}</textarea>
+
+                                <button type="submit" id="save-evaluation-btn" class="mt-6 w-full p-4 rounded-lg font-semibold text-lg transition duration-150 shadow-lg transform hover:scale-[1.01] 
+                                    ${isReadOnly ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}"
+                                    ${isReadOnly ? 'disabled' : ''}>
+                                    ${isReadOnly ? 'No Modificable' : saveButtonText}
                                 </button>
                                 <p id="save-status" class="text-center mt-3 text-sm font-medium"></p>
                             </div>
@@ -673,7 +1149,8 @@
             `;
             formContainer.innerHTML = formHTML;
             setupFormHandlers(posterId);
-
+            
+            // Forzar actualización de estilos al cargar el formulario
             document.querySelectorAll('#criteria-list input').forEach(input => {
                 if (input.type === 'radio' && input.checked) {
                     const label = document.querySelector(`label[for="${input.id}"]`);
@@ -688,15 +1165,19 @@
         const calculateScore = () => {
             const form = document.getElementById('evaluation-form');
             if (!form) return 0;
+
+            const evaluationType = form.dataset.type || 'cartel';
+            const criteriaSet = evaluationType === 'oral' ? evaluationCriteriaOral : evaluationCriteriaCartel;
+            
             let totalScore = 0;
             const currentScores = {};
 
-            evaluationCriteria.forEach(c => {
+            criteriaSet.forEach(c => {
                 const criteriaId = c.id;
                 let score = 0;
                 let inputElement;
 
-                if (c.type === '3-point') {
+                if (c.type === '3-point' || c.type === 'yes-no') {
                     const checkedRadio = document.querySelector(`input[name="${criteriaId}"]:checked`);
                     if (checkedRadio) {
                         score = parseInt(checkedRadio.value) || 0;
@@ -715,44 +1196,68 @@
                 }
             });
 
+            // 1. Calcular puntos base (Máx 100)
+            let baseScore = 0;
+            let totalBonus = 0;
+            let totalDeduction = 0;
+            
             for (const criteriaId in currentScores) {
                 const { score, criteriaType, input } = currentScores[criteriaId];
-                
-                if (criteriaType === 'deduction') {
-                    const maxDeduction = parseInt(input.dataset.max) || 0;
-                    totalScore -= Math.min(score, maxDeduction);
+                const max = parseInt(input.dataset.max) || 0;
+                const safeScore = Math.min(score, max); // Asegura que no exceda el máximo
+
+                if (criteriaType === 'bonus') {
+                    totalBonus += safeScore;
+                } else if (criteriaType === 'deduction') {
+                    totalDeduction += safeScore;
                 } else {
-                    const max = parseInt(input.dataset.max) || 0;
-                    totalScore += Math.min(score, max);
+                    // Criterios Base (full, 3-point, yes-no)
+                    baseScore += safeScore;
                 }
             }
+            
+            // 2. Cálculo Final: Base + Bonus - Deducción
+            totalScore = baseScore + totalBonus - totalDeduction;
 
-            document.getElementById('total-score').textContent = totalScore;
+            const scoreDisplay = document.getElementById('total-score');
+            if (scoreDisplay) scoreDisplay.textContent = totalScore;
+            
             return totalScore;
         };
 
         // ENVIAR A GOOGLE SHEETS
         const sendDataToGoogleSheets = async (evaluationData) => {
-            if (!GOOGLE_SHEETS_WEB_APP_URL || GOOGLE_SHEETS_WEB_APP_URL.includes('YOUR_WEB_APP_ID')) {
-                console.warn("URL de Google Sheets no configurada.");
+            
+            const SHEETS_WEBAPP_URL = GOOGLE_SHEETS_WEB_APP_URL;
+
+            const payload = {
+                timestamp: new Date().toISOString(),
+                staticJudgeId: judgeData?.id || currentUserId || 'unknown',
+                judgeName: judgeData?.name || currentUserId || 'unknown',
+                posterId: evaluationData.posterId || 'N/A',
+                posterTitle: evaluationData.posterTitle || 'N/A',
+                totalScore: evaluationData.totalScore || 0,
+                scores: evaluationData.scores || {},
+                observations: evaluationData.observations || ''
+            };
+            
+            if (!SHEETS_WEBAPP_URL || SHEETS_WEBAPP_URL.includes('YOUR_WEB_APP_ID')) {
+                console.warn("URL de Google Sheets no configurada. Saltando envío.");
                 return;
             }
-            try {
-                const payload = {
-                    ...evaluationData,
-                    staticJudgeId: evaluationData.judgeId, 
-                };
-                delete payload.judgeId; 
 
-                await fetch(GOOGLE_SHEETS_WEB_APP_URL, {
-                    method: 'POST',
-                    mode: 'no-cors', 
-                    cache: 'no-cache',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload),
+            try {
+                // Usamos fetch con 'no-cors' para enviar datos a GAS
+                await fetch(SHEETS_WEBAPP_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
                 });
+                console.log("Intentado guardar en Google Sheets (no-cors).");
             } catch (error) {
-                console.error("Error enviando a Google Sheets:", error);
+                console.warn("Error al enviar a Google Sheets:", error);
+                // No lanzamos error aquí para no bloquear el guardado en Firestore
             }
         };
 
@@ -762,19 +1267,28 @@
             const saveBtn = document.getElementById('save-evaluation-btn');
             const statusMsg = document.getElementById('save-status');
 
-            if (!judgeData || !judgeData.id) {
-                statusMsg.textContent = 'Error: No se ha detectado el usuario juez. Inicia sesión nuevamente.';
+            if (!judgeData || !judgeData.id || !judgeData.firebaseId) {
+                statusMsg.textContent = 'Error: Usuario juez no detectado o no autenticado con Firebase UID.';
                 statusMsg.className = 'text-center mt-3 text-sm font-medium text-red-600';
                 return;
             }
 
+            // Si ya está evaluado (aunque el botón esté deshabilitado), no hacemos nada
+            if (saveBtn.disabled) return;
+
             const scores = {};
-            evaluationCriteria.forEach(c => {
+            
+            // Recoger todos los criterios posibles
+            const allCriteria = [...evaluationCriteriaCartel, ...evaluationCriteriaOral];
+            
+            allCriteria.forEach(c => {
                 const criteriaId = c.id;
-                if (c.type === '3-point') {
-                    const checkedRadio = document.querySelector(`input[name="${criteriaId}"]:checked`);
-                    if (checkedRadio) scores[criteriaId] = parseInt(checkedRadio.value);
+                // Intentar obtener de radios (3-point, yes-no)
+                const radioValue = document.querySelector(`input[name="${criteriaId}"]:checked`)?.value;
+                if (radioValue !== undefined) {
+                    scores[criteriaId] = parseInt(radioValue);
                 } else {
+                    // Intentar obtener de number input (full, bonus, deduction)
                     const numberInput = document.getElementById(`${criteriaId}-score`);
                     if (numberInput) scores[criteriaId] = parseInt(numberInput.value) || 0;
                 }
@@ -799,25 +1313,45 @@
             statusMsg.textContent = '';
 
             try {
-                // 1. Guardar en Firestore (si está configurado)
+                let savedToCloud = false;
+
+                // 1. Guardar en Firestore (AQUÍ ES DONDE SE USA EL FIREBASE UID)
                 if (db && typeof setDoc === 'function') {
-                    const docRef = doc(db, `artifacts/${appId}/users/${judgeData.id}/evaluations`, posterId);
+                    // El UID de Firebase (judgeData.firebaseId) DEBE coincidir con el 'userId' en la regla de seguridad.
+                    const docRef = doc(db, `artifacts/${appId}/users/${judgeData.firebaseId}/evaluations`, posterId); 
                     await setDoc(docRef, evaluationData);
+                    savedToCloud = true;
                 } else {
                     console.warn("Firestore no inicializado. La evaluación NO se guardará en la nube de Firebase.");
                 }
 
-                // 2. Enviar a Google Sheets
+                // 2. Enviar a Google Sheets (no bloqueante para el flujo principal)
                 await sendDataToGoogleSheets(evaluationData); 
 
-                statusMsg.textContent = 'Evaluación guardada y enviada exitosamente.';
+                if (savedToCloud) {
+                    statusMsg.textContent = 'Evaluación guardada y enviada exitosamente.';
+                } else {
+                    statusMsg.textContent = 'Guardado local (Sin Firebase Cloud) exitoso.';
+                }
+                
                 statusMsg.className = 'text-center mt-3 text-sm font-medium text-green-600';
                 saveBtn.textContent = 'Guardado';
 
-                setTimeout(()=> showDashboard(judgeData.id), 1200);
+                // Redirigir y refrescar el estado de bloqueo.
+                setTimeout(()=> showDashboard(judgeData.id), 1200); 
             } catch (error) {
                 console.error("Error guardando evaluación:", error);
-                statusMsg.textContent = 'Error al guardar la evaluación. Reintente.';
+                
+                // **** FEEDBACK DE ERROR CRÍTICO ****
+                let errorMessage = `Error al guardar: ${error.message}.`;
+                if (error.code === 'permission-denied') {
+                    // Si el error es de permisos, el mensaje es directo
+                    errorMessage = '¡ERROR DE PERMISOS DE FIREBASE! El juez no puede escribir. Revisa tus Reglas de Seguridad.';
+                } else if (error.code === 'unavailable') {
+                    errorMessage = 'ERROR: Servicio de Firestore no disponible. Verifique la configuración de red.';
+                }
+
+                statusMsg.textContent = errorMessage;
                 statusMsg.className = 'text-center mt-3 text-sm font-medium text-red-600';
                 saveBtn.disabled = false;
                 saveBtn.textContent = 'Guardar Evaluación';
@@ -826,7 +1360,6 @@
 
         const setupFormHandlers = (posterId) => {
             const backBtn = document.getElementById('back-to-dashboard');
-            // Redirige al panel correcto basado en el rol del juez, aunque solo los jueces llegan aquí
             if (backBtn) backBtn.addEventListener('click', ()=> judgeData.role === 'admin' ? showAdminDashboard() : showDashboard(judgeData.id));
             
             document.querySelectorAll('#criteria-list input').forEach(input => {
@@ -838,22 +1371,24 @@
             if (form) form.addEventListener('submit', saveEvaluation);
             calculateScore(); 
         };
-        
-        // ---------------- EXPORTACIÓN CSV ADMIN ----------------
+
+        // ---------------- EXPORTACIÓN CSV ADMIN (TODAS las evaluaciones) ----------------
         const exportAllEvaluationsToCSV = async () => {
              if (!judgeData || judgeData.role !== 'admin') { 
-                alert('Solo el Administrador puede realizar esta exportación.'); 
+                showAlert('Solo el Administrador puede realizar esta exportación.', 'error'); 
                 return; 
              }
              if (!db || typeof collection !== 'function') {
-                alert('Firestore no configurado. No se pueden exportar los datos.');
+                showAlert('Firestore no configurado. No se pueden exportar los datos.', 'error');
                 return;
              }
              
             const exportBtn = document.getElementById('admin-export-all-btn');
             exportBtn.disabled = true; exportBtn.textContent = 'Recolectando datos...';
 
-            const criteriaMapping = evaluationCriteria.map(c => ({ 
+            // Mapeamos todos los criterios posibles (Cartel + Oral) para el CSV global
+            const allCriteria = [...evaluationCriteriaCartel, ...evaluationCriteriaOral.filter(c => !evaluationCriteriaCartel.some(c2 => c2.id === c.id))];
+            const criteriaMapping = allCriteria.map(c => ({ 
                 id: c.id, 
                 name: c.name.replace(/\s/g, '_').replace(/[\(\)]/g, '').replace(/\./g, '') 
             }));
@@ -866,9 +1401,12 @@
                 const allEvals = [];
                 const judgeIds = predefinedUsers.filter(u => u.role === 'judge').map(u => u.id);
 
-                // Recorrer las colecciones de evaluaciones de cada juez
                 for (const judgeId of judgeIds) {
-                    const evalsColRef = collection(db, `artifacts/${appId}/users/${judgeId}/evaluations`);
+                    const judge = predefinedUsers.find(u => u.id === judgeId);
+                    if (!judge || !judge.firebaseId) continue; // Si no tiene Firebase ID, saltar
+                    
+                    const evalsColRef = collection(db, `artifacts/${appId}/users/${judge.firebaseId}/evaluations`);
+                    // Nota: Esta consulta requiere la Regla de Seguridad 2 (lectura del Admin en todas las colecciones de usuarios)
                     const querySnapshot = await getDocs(evalsColRef);
                     querySnapshot.forEach(docSnap => {
                         const data = docSnap.data();
@@ -907,19 +1445,21 @@
 
             } catch (error) {
                 console.error("Error al exportar CSV:", error);
-                alert('Error al exportar todas las evaluaciones. Revise la consola.');
+                showAlert('Error al exportar todas las evaluaciones. Revise la consola.', 'error');
                 exportBtn.disabled=false; exportBtn.textContent='Exportar TODAS las Evaluaciones (CSV)';
                 exportBtn.classList.replace('bg-green-600','bg-blue-600');
             }
         };
-
-        // ---------------- EXPORTACIÓN CSV JUEZ ----------------
+        
+        // ---------------- EXPORTACIÓN CSV JUEZ (Mis evaluaciones) ----------------
         const exportEvaluationsToCSV = async () => {
-            if (!judgeData || !judgeData.id) { alert('Debe iniciar sesión para exportar datos.'); return; }
+            if (!judgeData || !judgeData.id) { showAlert('Debe iniciar sesión para exportar datos.', 'error'); return; }
             const exportBtn = document.getElementById('export-csv-btn');
             exportBtn.disabled = true; exportBtn.textContent = 'Generando CSV...';
 
-            const criteriaMapping = evaluationCriteria.map(c => ({ 
+            // Mapeamos todos los criterios posibles (Cartel + Oral) para el CSV personal
+            const allCriteria = [...evaluationCriteriaCartel, ...evaluationCriteriaOral.filter(c => !evaluationCriteriaCartel.some(c2 => c2.id === c.id))];
+            const criteriaMapping = allCriteria.map(c => ({ 
                 id: c.id, 
                 name: c.name.replace(/\s/g, '_').replace(/[\(\)]/g, '').replace(/\./g, '') 
             }));
@@ -930,7 +1470,14 @@
 
             try {
                 if (db && typeof collection === 'function' && typeof getDocs === 'function') {
-                    const evaluationsColRef = collection(db, `artifacts/${appId}/users/${judgeData.id}/evaluations`);
+                    const judge = predefinedUsers.find(u => u.id === judgeData.id);
+                    if (!judge || !judge.firebaseId) {
+                         showAlert('Error de autenticación: UID de Firebase no encontrado.', 'error');
+                         exportBtn.disabled=false; exportBtn.textContent='Exportar Evaluaciones (CSV)';
+                         return;
+                    }
+                    
+                    const evaluationsColRef = collection(db, `artifacts/${appId}/users/${judge.firebaseId}/evaluations`);
                     const querySnapshot = await getDocs(evaluationsColRef);
                     querySnapshot.forEach(docSnap => {
                         const data = docSnap.data();
@@ -949,7 +1496,7 @@
                         csvContent += row.join(',') + '\r\n';
                     });
                 } else {
-                    alert('Firestore no configurado: la exportación solo funcionará si los datos están en la nube.');
+                    showAlert('Firestore no configurado: la exportación solo funcionará si los datos están en la nube.', 'error');
                     exportBtn.disabled=false; exportBtn.textContent='Exportar Evaluaciones (CSV)';
                     return;
                 }
@@ -967,7 +1514,7 @@
                 setTimeout(()=>{ exportBtn.disabled=false; exportBtn.textContent='Exportar Evaluaciones (CSV)'; exportBtn.classList.replace('bg-green-600','bg-blue-600'); }, 3000);
             } catch (error) {
                 console.error("Error al exportar CSV:", error);
-                alert('Error al exportar las evaluaciones.');
+                showAlert('Error al exportar las evaluaciones.', 'error');
                 exportBtn.disabled=false; exportBtn.textContent='Exportar Evaluaciones (CSV)';
             }
         };
