@@ -309,8 +309,8 @@
             <table class="criteria-table">
                 <tbody>
                     <tr><td>Innovación (Bonificación) <span class="sub-criteria">Aporta nuevo conocimiento.</span></td><td class="score-box"></td><td class="max-score" style="color:green">+15</td></tr>
-                    <tr><td>Tiempo (Deducción) <span class="sub-criteria">Excedió el tiempo.</span></td><td class="score-box"></td><td class="max-score" style="color:red">-10</td></tr>
-                    <tr><td>Ortografía (Deducción) <span class="sub-criteria">Errores redacción.</span></td><td class="score-box"></td><td class="max-score" style="color:red">-10</td></tr>
+                    <tr><td>Manejo del Tiempo (Deducción) <span class="sub-criteria">Puntos de penalización (Se RESTAN).</span></td><td class="score-box"></td><td class="max-score" style="color:red">-10</td></tr>
+                    <tr><td>Redacción/Ortografía (Deducción) <span class="sub-criteria">Puntos de penalización (Se RESTAN).</span></td><td class="score-box"></td><td class="max-score" style="color:red">-10</td></tr>
                 </tbody>
             </table>
 
@@ -422,6 +422,10 @@
                 ...(ORAL_ASSIGNMENTS[judge] || [])
             ].filter((v, i, a) => a.indexOf(v) === i); // Eliminar duplicados
         }
+        
+        // 1.1 Combinar y asegurar que el ADMIN tenga acceso a TODOS los trabajos
+        // Si el usuario es "admin", asignarle todas las claves de WORKS
+        ASSIGNMENTS["admin"] = Object.keys(WORKS);
 
 
         // --- CRITERIOS DE EVALUACIÓN (Modificados para 0/5/15) ---
@@ -446,8 +450,10 @@
 
             // Modificadores (sin cambio)
             { id: 'innovacion', category: 'IV. Bonificación y Deducción', max: 15, type: 'bonus', name: 'Innovación y Originalidad', desc: 'Aporta nuevo conocimiento o enfoque metodológico.' },
-            { id: 'tiempo', category: 'V. Deducción (Restan Puntos)', max: 10, type: 'deduction', name: 'Manejo del Tiempo', desc: 'Excedió o no utilizó el tiempo. (Máx -10 puntos)' },
-            { id: 'ortografia', category: 'V. Deducción (Restan Puntos)', max: 10, type: 'deduction', name: 'Redacción y Ortografía', desc: 'Errores gramaticales o de sintaxis. (Máx -10 puntos)' },
+            
+            // CORRECCIÓN: Descripciones actualizadas para la deducción
+            { id: 'tiempo', category: 'V. Deducción (Restan Puntos)', max: 10, type: 'deduction', name: 'Manejo del Tiempo', desc: 'Puntos de penalización (Se RESTAN). (Máx. 10 (Ingresar valor positivo))' },
+            { id: 'ortografia', category: 'V. Deducción (Restan Puntos)', max: 10, type: 'deduction', name: 'Redacción y Ortografía', desc: 'Puntos de penalización (Se RESTAN). (Máx. 10 (Ingresar valor positivo))' },
         ];
         
         // --- CRITERIOS PARA EXPOSICIÓN ORAL (Actualizados y Divididos) ---
@@ -473,8 +479,10 @@
 
             // Modificadores (sin cambio)
             { id: 'innovacion_o', category: 'IV. Bonificación y Deducción', max: 15, type: 'bonus', name: 'Innovación y Originalidad', desc: 'Aporta nuevo conocimiento o enfoque metodológico.' },
-            { id: 'tiempo_o', category: 'V. Deducción (Restan Puntos)', max: 10, type: 'deduction', name: 'Manejo del Tiempo', desc: 'Excedió o no utilizó el tiempo. (Máx -10 puntos)' },
-            { id: 'ortografia_o', category: 'V. Deducción (Restan Puntos)', max: 10, type: 'deduction', name: 'Redacción/Ortografía (Material)', desc: 'Errores en el material visual o verbal. (Máx -10 puntos)' },
+            
+             // CORRECCIÓN: Descripciones actualizadas para la deducción
+            { id: 'tiempo_o', category: 'V. Deducción (Restan Puntos)', max: 10, type: 'deduction', name: 'Manejo del Tiempo', desc: 'Puntos de penalización (Se RESTAN). (Máx. 10 (Ingresar valor positivo))' },
+            { id: 'ortografia_o', category: 'V. Deducción (Restan Puntos)', max: 10, type: 'deduction', name: 'Redacción/Ortografía (Material)', desc: 'Puntos de penalización (Se RESTAN). (Máx. 10 (Ingresar valor positivo))' },
         ];
 
 
