@@ -1,11 +1,11 @@
-
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LICAM Asistente de Laboratorio</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script> <!-- AÑADIDO: Biblioteca para Excel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -138,35 +138,43 @@
             border-left: 4px solid #14b8a6;
         }
 
-        /* ESTILOS LABMANAGER ULTRA */
+        /* Estilos LabManager Ultra (AÑADIDOS) */
         .mono { font-family: 'JetBrains Mono', monospace; }
         .glass-card {
-            background: rgba(255, 255, 255, 1);
+            background: #ffffff;
             border: 1px solid #e2e8f0;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .glass-card:hover {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.07);
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         .mermaid svg {
-            filter: drop-shadow(0 10px 8px rgb(0 0 0 / 0.04));
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.05));
             max-width: 100% !important;
             height: auto !important;
         }
         .map-grid-bg {
-            background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
-            background-size: 24px 24px;
+            background-image: radial-gradient(#e2e8f0 1.2px, transparent 1.2px);
+            background-size: 30px 30px;
         }
-        @keyframes pulse-indigo {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.05); opacity: 0.8; }
-            100% { transform: scale(1); opacity: 1; }
+        @keyframes pulse-soft {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.02); }
         }
-        .active-pulse { animation: pulse-indigo 2s infinite; }
+        .active-pulse { animation: pulse-soft 3s infinite ease-in-out; }
         .scheduler-focus:focus-within {
-            ring: 2px;
-            ring-color: #4f46e5;
+            ring: 3px;
+            ring-color: rgba(79, 70, 229, 0.2);
             border-color: #4f46e5;
+        }
+        #export-container {
+            position: relative;
+            background: white;
         }
     </style>
 </head>
@@ -188,7 +196,7 @@
             <nav class="flex space-x-1 overflow-x-auto pb-0" aria-label="Tabs">
                 <button onclick="changeTab('guide')" id="tab-guide" class="tab-button active text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">💡 Guía de Uso</button>
                 <button onclick="changeTab('planner')" id="tab-planner" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">🧪 Organizador de Cultivo</button>
-                <button onclick="changeTab('scheduler')" id="tab-scheduler" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">🗓️ Cronograma Maestro</button>
+                <button onclick="changeTab('scheduler')" id="tab-scheduler" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">🗓️ Cronograma Maestro</button> <!-- AÑADIDO -->
                 <button onclick="changeTab('cell-counter')" id="tab-cell-counter" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">🔬 Contador AI</button>
                 <button onclick="changeTab('models')" id="tab-models" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">🐭 Modelos Animales</button>
                 <button onclick="changeTab('protocols')" id="tab-protocols" class="tab-button text-md py-3 px-4 flex-shrink-0 flex items-center space-x-2">📚 Protocolos y Recursos</button>
@@ -206,107 +214,190 @@
             <h2 class="text-3xl font-bold text-blue-700 border-b pb-4">💡 Guía de Uso Rápido</h2>
             <div class="prose max-w-none text-gray-700">
                 <p>¡Bienvenido/a al Asistente de Laboratorio LICAM! Esta guía te ayudará a usar las funciones principales.</p>
-                <h3>Cronograma Maestro (🗓️)</h3>
-                <p>Genera mapas de flujo experimentales y calendarios de intervención sincronizados. Permite definir fases globales y aplicarlas a múltiples muestras con visualización automática en diagramas de Mermaid.</p>
+                
+                <h3>Cronograma Maestro (🗓️) - ¡NUEVO!</h3>
+                <p>Diseña mapas de flujo globales para tus experimentos y monitoriza todas las fases de incubación y tratamientos.</p>
+                <ul class="list-disc list-inside">
+                    <li>Define Fases globales, registra las muestras y el sistema graficará el ciclo exacto con horas y días.</li>
+                    <li>Permite capturar el diagrama como imagen y exportar a CSV.</li>
+                    <li>Utiliza el botón <i class="fas fa-copy text-indigo-500"></i> para duplicar muestras rápidamente.</li>
+                </ul>
+
                 <h3>Organizador de Cultivo (🧪)</h3>
-                <p>Planifica tus experimentos en placas. Define parámetros por pozo y calcula stocks generales.</p>
+                <p>Esta es la sección principal para planificar tus experimentos en placas.</p>
+                <ul class="list-disc list-inside">
+                    <li><strong>1. Configuración del Experimento:</strong> Dale un nombre a tu experimento y selecciona el tipo de placa (6, 12, 24, 48, 96 pozos). Haz clic en "Generar Placa".</li>
+                    <li><strong>Guardar/Cargar Experimento:</strong> Usa los botones verdes y grises para guardar tu progreso en un archivo <code>.json</code> o cargar un experimento previamente guardado.</li>
+                    <li><strong>2. Diseño de la Placa:</strong> Haz clic en los pozos para seleccionarlos (se pondrán azules). Puedes seleccionar varios. Usa "Seleccionar Todos" o "Limpiar Selección" para ayudarte.</li>
+                    <li><strong>Configurar Pozo(s):</strong> Con los pozos seleccionados, haz clic en "Configurar Pozo(s)". Se abrirá una ventana.
+                        <br><span class="text-indigo-600 font-bold">¡NUEVO! Función Copiar/Pegar:</span> Selecciona 1 pozo configurado, dale a "Copiar". Luego selecciona varios vacíos y dale a "Pegar" para clonar toda la configuración.
+                    </li>
+                    <li><strong>3. Creador de Stock General:</strong> Selecciona los pozos que tendrán la misma mezcla y haz clic en "Calcular Stock...". Indica un porcentaje extra si lo deseas. La tabla te mostrará cuánto necesitas preparar en total.</li>
+                    <li><strong>4. Cronograma del Protocolo:</strong> Aquí aparecerán todos los Pasos del Protocolo. Cada paso tendrá su propio temporizador. Haz clic en "Iniciar" para comenzar la cuenta regresiva.</li>
+                </ul>
+
                 <h3>Contador AI (🔬)</h3>
-                <p>Utiliza Inteligencia Artificial para el conteo automático de células en cuadrantes de Neubauer.</p>
+                <p>Utiliza la Inteligencia Artificial para el conteo automático de células en cuadrantes de Neubauer.</p>
+                <ul class="list-disc list-inside">
+                    <li>**1. Carga de Regiones:** Sube hasta 4 imágenes independientes (una por cada cuadrante grande "L").</li>
+                    <li>**2. Análisis:** La IA cuenta las células de cada región y genera un informe estructurado con el conteo y un análisis morfológico.</li>
+                    <li>**3. Cálculo Final:** El sistema suma el conteo y calcula la concentración final en Células/mL, asumiendo que usas muestra pura (Dilución 1:1) y contaste 4 cuadrantes grandes.</li>
+                </ul>
+
                 <h3>Modelos Animales (🐭)</h3>
-                <p>Lleva un registro histórico y calcula dosis precisas por peso para tus modelos animales.</p>
+                <p>Sección para llevar un registro de datos de modelos animales y calcular dosis.</p>
+                <ul class="list-disc list-inside">
+                    <li><strong>Seguimiento:</strong> Añade modelos con un ID único. Luego, haz clic en "+ Añadir Registro" para ingresar Peso (g), Talla (cm), Glucosa (mg/dL), Fuerza de Agarre (gf) y Notas.</li>
+                    <li><strong>Duplicar:</strong> Puedes duplicar un modelo y todo su historial con el nuevo botón de copiado rápido.</li>
+                    <li><strong>Dosis:</strong> Utiliza la Calculadora de Dosificación para saber cuánto volumen administrar (µL o mL) según la dosis requerida (mg/kg), el peso del modelo y la concentración de tu stock.</li>
+                    <li><strong>Guardar/Cargar:</strong> Guarda o carga los datos de tus modelos en archivos <code>.json</code>.</li>
+                </ul>
+
+                <h3>Protocolos y Recursos (📚)</h3>
+                <p>Contiene una sección editable de notas para protocolos comunes (ej. Extracción de ARN) y enlaces directos a bases de datos útiles (PubMed, UniProt, etc.).</p>
+
+                <h3>Reporte y Calculadoras (📄/🔢)</h3>
+                <p>El **Reporte** genera un archivo CSV listo para Excel con la configuración de tu placa. Las **Calculadoras** te permiten realizar cálculos rápidos de Masa Molar, Conversión de Unidades y Dilución (C₁V₁=C₂V₂) de forma independiente.</p>
+
+                <h3>Acerca del Proyecto (ℹ️)</h3>
+                <p>Muestra información sobre el desarrollo, colaboradores, institución y datos de contacto de LICAM.</p>
             </div>
         </div>
 
-        <!-- LABMANAGER ULTRA - MASTER SCHEDULER -->
+        <!-- LABMANAGER ULTRA (CRONOGRAMA MAESTRO) - AÑADIDO -->
         <div id="content-scheduler" class="hidden space-y-8">
-            <!-- Widgets de Estado -->
-            <div id="sched-stats-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+            <div id="sched-stats-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                <!-- Inyectado mediante JS -->
+            </div>
 
             <div class="grid grid-cols-1 xl:grid-cols-12 gap-8">
-                <!-- PANEL LATERAL -->
+                <!-- COLUMNA LATERAL: CONFIGURACIÓN -->
                 <aside class="xl:col-span-3 space-y-6">
-                    <div class="glass-card p-6 rounded-3xl border-l-4 border-l-indigo-600 shadow-xl bg-gradient-to-br from-white to-indigo-50/30">
-                        <h3 class="text-[10px] font-black text-indigo-500 flex items-center gap-2 mb-4 uppercase tracking-[0.2em]">
-                            <i class="fas fa-clock"></i> Planificador Maestro
+                    <div class="glass-card p-6 rounded-[2rem] border-l-8 border-l-indigo-600 relative overflow-hidden bg-white">
+                        <div class="absolute -top-4 -right-4 p-8 opacity-5">
+                            <i class="fas fa-clock text-7xl text-indigo-900"></i>
+                        </div>
+                        <h3 class="text-[10px] font-black text-indigo-500 flex items-center gap-2 mb-5 uppercase tracking-[0.2em]">
+                            <i class="fas fa-business-time"></i> Cronograma de Comienzo
                         </h3>
-                        <div class="space-y-4">
-                            <div class="p-4 bg-white border border-indigo-100 rounded-2xl shadow-inner scheduler-focus transition-all">
-                                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2">Inicio Experimento (T=0)</label>
-                                <input type="datetime-local" id="sched-start-time" onchange="syncSchedStartTime(this.value)" class="w-full text-sm font-bold text-slate-700 outline-none cursor-pointer bg-transparent">
+                        <div class="space-y-5 relative z-10">
+                            <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl scheduler-focus transition-all group">
+                                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2 group-focus-within:text-indigo-500">Programar Punto T=0</label>
+                                <input type="datetime-local" id="sched-sidebar-start-time" onchange="syncSchedStartTime(this.value)" 
+                                       class="w-full text-sm font-extrabold text-slate-700 outline-none cursor-pointer bg-transparent">
                             </div>
-                            <div class="bg-slate-900 rounded-2xl p-4 shadow-lg">
-                                <div class="flex justify-between items-center mb-1">
-                                    <p class="text-[8px] text-indigo-400 font-black uppercase tracking-widest">Próxima Alerta</p>
-                                    <span id="sched-next-countdown" class="text-[10px] font-bold text-white mono bg-indigo-600 px-2 py-0.5 rounded-lg">00:00:00</span>
+                            <div id="sched-next-milestone-card" class="bg-slate-900 rounded-2xl p-5 shadow-2xl border border-indigo-500/30">
+                                <div class="flex justify-between items-center mb-2">
+                                    <p class="text-[8px] text-indigo-400 font-black uppercase tracking-[0.2em]">Hito más cercano</p>
+                                    <span id="sched-next-milestone-countdown" class="text-[10px] font-bold text-white mono bg-indigo-600/50 px-2 py-1 rounded-lg border border-indigo-400/30">00:00:00</span>
                                 </div>
-                                <h4 id="sched-next-name" class="text-xs font-bold text-indigo-50 truncate text-center">Sin tareas</h4>
+                                <h4 id="sched-next-milestone-name" class="text-sm font-bold text-indigo-50 truncate tracking-tight">Cargando cronograma...</h4>
                             </div>
                         </div>
                     </div>
 
-                    <div class="glass-card p-6 rounded-3xl">
-                        <h3 class="text-[10px] font-black text-slate-400 flex items-center gap-2 mb-5 uppercase tracking-[0.2em]">
-                            <i class="fas fa-project-diagram text-indigo-600"></i> Definición de Fases
-                        </h3>
-                        <div id="sched-phase-names-container" class="space-y-3 mb-4"></div>
-                        <button onclick="addNewSchedPhaseSlot()" class="w-full border-2 border-dashed border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50/50 text-[10px] font-black py-3 rounded-2xl transition-all flex items-center justify-center gap-2">
-                            <i class="fas fa-plus-circle"></i> AÑADIR FASE
+                    <div class="glass-card p-6 rounded-[2rem] bg-white">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-[10px] font-black text-slate-400 flex items-center gap-2 uppercase tracking-[0.2em]">
+                                <i class="fas fa-project-diagram text-indigo-600"></i> Estructura del Ciclo
+                            </h3>
+                            <span id="sched-phase-count-badge" class="text-[9px] font-black bg-indigo-50 text-indigo-600 px-2 py-1 rounded-lg"></span>
+                        </div>
+                        <div id="sched-phase-names-container" class="space-y-3 mb-5">
+                            <!-- Inputs dinámicos -->
+                        </div>
+                        <button onclick="addNewSchedPhaseSlot()" class="w-full border-2 border-dashed border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50/50 text-[10px] font-black py-4 rounded-2xl transition-all flex items-center justify-center gap-2">
+                            <i class="fas fa-plus-circle"></i> INSERTAR NUEVA FASE
                         </button>
                     </div>
 
-                    <div class="glass-card p-6 rounded-3xl border border-slate-100">
-                        <h3 class="text-[10px] font-black text-slate-400 flex items-center gap-2 mb-6 uppercase tracking-[0.2em]">
-                            <i class="fas fa-vial text-indigo-600"></i> Nueva Muestra
+                    <div class="glass-card p-7 rounded-[2rem] bg-gradient-to-br from-white to-slate-50 border border-slate-200 shadow-xl">
+                        <h3 class="text-[10px] font-black text-slate-500 flex items-center gap-2 mb-6 uppercase tracking-[0.2em]">
+                            <i class="fas fa-dna text-indigo-600"></i> Datos de la Muestra
                         </h3>
-                        <div class="space-y-4">
-                            <input type="text" id="sched-new-id" placeholder="ID Muestra" class="w-full text-xs p-3 border border-slate-200 rounded-2xl bg-slate-50 outline-none font-bold">
-                            <div id="sched-phase-values-container" class="grid grid-cols-2 gap-3"></div>
-                            <input type="text" id="sched-new-notes" placeholder="Notas" class="w-full text-xs p-3 border border-slate-200 rounded-2xl bg-slate-50 outline-none">
-                            <button onclick="addSchedCondition()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-black py-4 rounded-2xl shadow-lg flex items-center justify-center gap-3 uppercase tracking-[0.2em]">
-                                <i class="fas fa-save"></i> REGISTRAR MUESTRA
+                        <div class="space-y-5">
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">ID / Pozo Experimental</label>
+                                <input type="text" id="sched-new-id" placeholder="ej: THP1-W4-A1" class="w-full text-xs p-4 border border-slate-200 rounded-2xl bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all font-bold shadow-sm">
+                            </div>
+                            <div id="sched-phase-values-container" class="grid grid-cols-2 gap-4">
+                                <!-- Inyección dinámica de campos de horas -->
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Notas de Tratamiento</label>
+                                <input type="text" id="sched-new-notes" placeholder="ej: 100nM PMA / 2uM EC" class="w-full text-xs p-4 border border-slate-200 rounded-2xl bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm">
+                            </div>
+                            <button onclick="addSchedCondition()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-black py-5 rounded-3xl transition-all shadow-xl shadow-indigo-200 flex items-center justify-center gap-3 uppercase tracking-[0.2em]">
+                                <i class="fas fa-plus-circle text-lg"></i> REGISTRAR MUESTRA
                             </button>
                         </div>
-                        <div id="sched-condition-list" class="mt-6 space-y-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar"></div>
+                        <div id="sched-condition-list" class="mt-8 space-y-2 max-h-44 overflow-y-auto pr-2 custom-scrollbar border-t border-slate-100 pt-4">
+                            <!-- Muestras inyectadas -->
+                        </div>
                     </div>
                 </aside>
 
-                <!-- VISUALIZACIÓN -->
-                <div class="xl:col-span-9 space-y-6">
-                    <div id="sched-export-container" class="glass-card rounded-[40px] overflow-hidden p-8 space-y-8 bg-white border border-slate-200 shadow-2xl">
-                        <div class="flex justify-between items-center border-b border-slate-100 pb-6">
-                            <div>
-                                <h2 class="text-xl font-extrabold text-slate-800 tracking-tight uppercase">Diagrama de Flujo Experimental</h2>
-                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-[0.4em]">Laboratorio LICAM · LabManager v7.2</p>
+                <!-- PANEL CENTRAL: VISUALIZACIÓN E INFORMES -->
+                <div class="xl:col-span-9 space-y-8">
+                    <div id="sched-export-container" class="glass-card rounded-[3rem] overflow-hidden p-10 space-y-10 bg-white shadow-2xl">
+                        <div class="flex justify-between items-end border-b border-slate-100 pb-8">
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-3">
+                                    <span class="bg-indigo-600 text-white text-[9px] font-black px-3 py-1 rounded-full tracking-widest uppercase">Protocolo Master</span>
+                                    <h2 class="text-2xl font-extrabold text-slate-800 tracking-tight uppercase">Cronograma de Intervención Molecular</h2>
+                                </div>
+                                <p class="text-[11px] text-slate-400 font-bold uppercase tracking-[0.4em]">Laboratorio LICAM</p>
                             </div>
-                            <div class="flex gap-2">
-                                <button onclick="exportarSchedMapaComoImagen()" class="p-2 bg-slate-100 rounded-lg hover:bg-indigo-100 text-indigo-600" title="Capturar Mapa"><i class="fas fa-camera"></i></button>
-                                <button onclick="descargarSchedCSV()" class="p-2 bg-slate-100 rounded-lg hover:bg-indigo-100 text-indigo-600" title="Exportar CSV"><i class="fas fa-file-csv"></i></button>
+                            <div class="text-right">
+                                <div class="flex gap-2 mb-2 justify-end">
+                                    <button onclick="exportarSchedMapaComoImagen()" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all"><i class="fas fa-camera"></i> Mapa</button>
+                                    <button onclick="descargarSchedCSV()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all"><i class="fas fa-file-csv"></i> CSV</button>
+                                </div>
+                                <p class="text-sm font-bold text-slate-700 mono" id="sched-current-gen-date">--/--/--</p>
                             </div>
                         </div>
 
-                        <div class="map-grid-bg border border-slate-100 rounded-[32px] p-8 min-h-[400px] flex items-center justify-center relative bg-slate-50/30">
-                            <div id="sched-mermaid-container" class="w-full flex items-center justify-center">
-                                <div id="sched-empty-state" class="text-center py-20">
-                                    <i class="fas fa-layer-group text-5xl text-slate-200 mb-4 block"></i>
-                                    <span class="text-[10px] text-slate-300 font-black uppercase tracking-[0.3em]">Ingrese datos para generar mapa</span>
+                        <div class="map-grid-bg border border-slate-100 rounded-[2.5rem] p-10 min-h-[550px] flex items-center justify-center relative overflow-hidden bg-slate-50/50 shadow-inner">
+                            <div id="sched-mermaid-container" class="w-full h-full flex items-center justify-center">
+                                <div id="sched-empty-state" class="text-center py-24 space-y-6">
+                                    <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto shadow-xl border border-slate-100 text-slate-200">
+                                        <i class="fas fa-project-diagram text-4xl"></i>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <span class="text-[12px] text-slate-400 font-black uppercase tracking-[0.4em] block">Sin Datos Experimentales</span>
+                                        <p class="text-[10px] text-slate-300 font-medium">Configure las fases y registre muestras para generar el mapa</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div id="sched-integrated-summary" class="hidden">
-                            <div class="flex items-center gap-3 mb-6">
-                                <div class="h-[1px] flex-1 bg-slate-200"></div>
-                                <span class="text-[9px] font-black text-slate-400 uppercase tracking-[0.4em]">Hitos Finales</span>
-                                <div class="h-[1px] flex-1 bg-slate-200"></div>
+                        <div id="sched-integrated-summary" class="hidden animate-fadeIn">
+                            <div class="flex items-center gap-5 mb-8">
+                                <div class="h-[1.5px] flex-1 bg-gradient-to-r from-transparent to-slate-200"></div>
+                                <span class="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] px-4">Panel de Resumen Operativo</span>
+                                <div class="h-[1.5px] flex-1 bg-gradient-to-l from-transparent to-slate-200"></div>
                             </div>
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="sched-summary-tiles"></div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="sched-summary-tiles">
+                            </div>
                         </div>
                     </div>
 
-                    <div class="glass-card rounded-[32px] overflow-hidden border border-slate-200">
-                        <div class="p-4 bg-slate-50 border-b border-slate-200"><h3 class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Cronograma Automático</h3></div>
+                    <div class="glass-card rounded-[2.5rem] overflow-hidden bg-white">
+                        <div class="p-8 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                            <div class="flex items-center gap-4">
+                                <div class="w-1 h-8 bg-indigo-600 rounded-full"></div>
+                                <div>
+                                    <h3 class="text-xs font-black text-slate-700 uppercase tracking-[0.2em]">Hoja de Ruta Detallada</h3>
+                                    <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Calendario por horas exactas</p>
+                                </div>
+                            </div>
+                            <div id="sched-total-badge" class="bg-slate-900 text-white text-[10px] font-black px-5 py-2.5 rounded-2xl uppercase tracking-[0.2em] shadow-lg">
+                                0 MUESTRAS ACTIVAS
+                            </div>
+                        </div>
                         <div class="overflow-x-auto custom-scrollbar">
-                            <table id="sched-protocol-table" class="w-full text-left border-collapse"></table>
+                            <table id="sched-protocol-table" class="w-full text-left border-collapse">
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -346,10 +437,14 @@
                     </div>
                     
                     <div class="mt-6 pt-4 border-t border-gray-200">
-                        <h3 class="text-xl font-bold mb-3 text-gray-700">Controles de Selección</h3>
-                        <div class="flex space-x-2 mb-4">
-                            <button onclick="selectAllWells()" class="flex-1 bg-gray-200 text-gray-800 py-2 px-3 text-sm rounded-xl hover:bg-gray-300 transition shadow-sm">Seleccionar Todos</button>
-                            <button onclick="clearSelection()" class="flex-1 bg-gray-200 text-gray-800 py-2 px-3 text-sm rounded-xl hover:bg-gray-300 transition shadow-sm">Limpiar Selección</button>
+                        <h3 class="text-xl font-bold mb-3 text-gray-700">Controles de Selección y Copiado</h3>
+                        <div class="grid grid-cols-2 gap-2 mb-4">
+                            <button onclick="selectAllWells()" class="bg-gray-200 text-gray-800 py-2 px-3 text-sm rounded-xl hover:bg-gray-300 transition shadow-sm">Seleccionar Todos</button>
+                            <button onclick="clearSelection()" class="bg-gray-200 text-gray-800 py-2 px-3 text-sm rounded-xl hover:bg-gray-300 transition shadow-sm">Limpiar Selección</button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 mb-4">
+                            <button onclick="copyWellConfig()" class="bg-indigo-100 text-indigo-700 font-bold py-2 px-3 text-sm rounded-xl hover:bg-indigo-200 transition shadow-sm border border-indigo-200"><i class="fas fa-copy"></i> Copiar Pozo</button>
+                            <button onclick="pasteWellConfig()" class="bg-indigo-100 text-indigo-700 font-bold py-2 px-3 text-sm rounded-xl hover:bg-indigo-200 transition shadow-sm border border-indigo-200"><i class="fas fa-paste"></i> Pegar a Selec.</button>
                         </div>
                         <button onclick="openWellConfigModal()" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-indigo-700 transition duration-300 shadow-lg">⚙️ Configurar Pozo(s)</button>
                     </div>
@@ -389,115 +484,1872 @@
 
             <div class="bg-white p-6 rounded-3xl shadow-xl border border-gray-200">
                 <h2 class="text-2xl font-bold mb-5 text-indigo-700 border-b pb-3">4. Cronograma del Protocolo ⏰</h2>
+                <div class="text-sm text-gray-700 mb-6 p-4 bg-yellow-100 border-l-4 border-yellow-500 rounded-lg">
+                    <b class="font-extrabold">🚨 Alerta de Tiempo:</b> Las alarmas y notificaciones solo funcionarán si esta pestaña del navegador permanece abierta.
+                </div>
                 <div id="protocol-schedule-container" class="space-y-4">
                     <p class="text-gray-500">Los eventos del protocolo para los pozos configurados aparecerán aquí.</p>
                 </div>
             </div>
         </div>
         
-        <!-- CONTADOR CELULAR AI -->
+        <!-- CONTADOR CELULAR AI (NUEVA PESTAÑA) -->
         <div id="content-cell-counter" class="hidden space-y-8">
             <div class="bg-white p-8 rounded-3xl shadow-2xl border border-gray-200">
                 <h2 class="text-3xl font-bold text-blue-700 border-b pb-4">🔬 Contador de Células (Neubauer AI)</h2>
+                <p class="text-gray-500 mt-2 mb-6">Analiza hasta 4 imágenes de cuadrantes grandes ("L") para el conteo de células y cálculo de concentración.</p>
+
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Columna de Carga de Imagen y Parámetros (lg:col-span-1) -->
                     <div class="lg:col-span-1 space-y-4">
+                        <h3 class="text-lg font-semibold text-gray-700 border-b pb-2 mb-4">Paso 1: Cargar Regiones (Máx. 4)</h3>
+                        
+                        <!-- Slots de Carga -->
                         <div id="cellUploadSlots" class="grid grid-cols-2 gap-4">
+                            <!-- Los slots se inicializan vía JS -->
                             <template id="cellUploadSlotTemplate">
                                 <div class="bg-gray-50 p-3 rounded-lg shadow-inner border border-gray-200">
                                     <label class="block text-sm font-medium text-gray-600 mb-2" data-slot-label>Región N</label>
                                     <input type="file" accept="image/*" class="cell-upload-input hidden" onchange="handleImageUpload(event, this)">
-                                    <img class="image-preview-slot cursor-pointer border border-gray-300" src="https://placehold.co/150x150/e5e7eb/9ca3af?text=Subir" onclick="this.previousElementSibling.click()">
-                                    <button onclick="clearImageSlot(this)" class="clear-button w-full mt-2 py-1 text-xs bg-red-500 text-white rounded-md hidden">Eliminar</button>
+                                    <img class="image-preview-slot cursor-pointer border border-gray-300" 
+                                         src="https://placehold.co/150x150/e5e7eb/9ca3af?text=Slot" 
+                                         alt="Vista previa de la región" 
+                                         onclick="this.previousElementSibling.click()">
+                                    <button onclick="clearImageSlot(this)" class="clear-button w-full mt-2 py-1 text-xs bg-red-500 text-white rounded-md hover:bg-red-600 hidden">Eliminar</button>
                                 </div>
                             </template>
                         </div>
-                        <button id="analyzeButton" onclick="analyzeImage()" disabled class="w-full py-3 px-4 bg-gray-400 text-white font-bold rounded-lg transition shadow-md disabled:opacity-50 mt-6">Analizar AI</button>
+
+                        <h3 class="text-lg font-semibold text-gray-700 border-b pb-2 pt-4 mb-4">Paso 2: Parámetros de Cálculo</h3>
+                        <div class="space-y-4 bg-white p-4 rounded-lg shadow-md border">
+                            <p class="text-sm font-medium text-gray-700">Factor de Dilución:</p>
+                            <p class="text-md font-bold text-teal-800">1:1 (Muestra Pura)</p>
+                            <p class="text-xs text-gray-500">El cálculo de concentración asume que no se ha diluido la muestra, usando un factor de <span class="font-extrabold text-teal-700">1</span>.</p>
+                        </div>
+
+
+                        <button id="analyzeButton" onclick="analyzeImage()" disabled
+                            class="w-full py-3 px-4 bg-gray-400 text-white font-bold rounded-lg transition duration-200 shadow-md disabled:opacity-50 mt-6">
+                            Paso 3: Analizar y Calcular Concentración
+                        </button>
                     </div>
+
+                    <!-- Columna de Resultados (lg:col-span-2) -->
                     <div class="lg:col-span-2 space-y-6">
                         <div id="loadingIndicator" class="hidden bg-yellow-100 p-6 rounded-lg shadow-md border-l-4 border-yellow-500">
-                            <div class="flex items-center space-x-3"><span class="animate-spin h-5 w-5 border-2 border-yellow-600 border-t-transparent rounded-full"></span><span class="text-yellow-700 font-medium italic">Procesando morfología...</span></div>
+                            <div class="flex items-center space-x-3">
+                                <svg class="animate-spin h-5 w-5 text-yellow-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span class="text-yellow-700 font-medium">Analizando hasta 4 regiones... Esto puede tardar más.</span>
+                            </div>
                         </div>
+
                         <div id="resultsCard" class="bg-green-50 p-6 rounded-lg shadow-md border-l-4 border-green-500 min-h-[200px]">
-                            <div id="resultsContent" class="text-gray-700"></div>
+                            <h3 class="text-xl font-bold text-green-700 mb-4">Resultados Detallados por Región (IA)</h3>
+                            <div id="resultsContent" class="text-gray-700">
+                                <p>Los resultados del conteo aparecerán aquí en una tabla detallada por cada región cargada.</p>
+                                <p class="mt-4 text-sm text-gray-500">Nota: La IA analizará la morfología y distribución para cada imagen.</p>
+                            </div>
+
                             <div id="totalSummary" class="hidden mt-6 pt-4 border-t border-green-300">
+                                <h4 class="text-lg font-bold text-green-800">Resumen del Conteo:</h4>
+                                <p class="text-sm text-gray-600 mb-4">El conteo sumado de todas las regiones analizadas es: <span id="totalCountDisplay" class="text-2xl font-bold ml-1 text-green-700">0</span> Células.</p>
+                                
+                                <!-- Resultado de concentración -->
                                 <div id="concentrationResult" class="calculation-result-ai p-4 rounded-lg">
-                                    <h5 class="text-md font-bold text-teal-700 mb-1">Concentración Final (Células/mL):</h5>
+                                    <h5 class="text-md font-bold text-teal-700 mb-1">Concentración de la Muestra (Células/mL):</h5>
                                     <p class="text-2xl font-extrabold text-teal-800"><span id="finalConcentrationDisplay">0</span></p>
-                                    <p class="text-[10px] text-gray-500">Muestra analizada en <span id="calcRegions">0</span> regiones.</p>
+                                    <p class="text-xs text-gray-600 mt-1">Fórmula: $(\sum\text{Células} / \text{N Cuadrantes}) \times 2,500$. (Dilución x1).</p>
+                                    <p class="text-xs text-gray-600">Usando $\text{N Cuadrantes}$: <span id="calcRegions">0</span></p>
                                 </div>
                             </div>
-                            <button id="downloadExcelButton" onclick="downloadExcel()" class="hidden mt-4 py-2 px-4 bg-green-600 text-white font-bold rounded-lg">Descargar Resultados</button>
+
+                            <button id="downloadExcelButton" onclick="downloadExcel()"
+                                class="hidden mt-4 py-2 px-4 bg-green-600 text-white font-bold rounded-lg transition duration-200 hover:bg-green-700 shadow-md">
+                                Descargar Resultados (Excel)
+                            </button>
                         </div>
+
+                        <div id="errorCard" class="hidden bg-red-100 p-6 rounded-lg shadow-md border-l-4 border-red-500">
+                            <h3 class="text-xl font-bold text-red-700 mb-2">Error en el Análisis</h3>
+                            <p id="errorMessage" class="text-red-700"></p>
+                        </div>
+
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- OTROS CONTENIDOS -->
+        <!-- MODELOS ANIMALES -->
         <div id="content-models" class="hidden space-y-8">
-            <div id="animal-models-container" class="space-y-6"></div>
+            <!-- ... (CONTENIDO DE MODELOS ANIMALES) ... -->
+            <div class="bg-white p-6 rounded-3xl shadow-xl border border-gray-200">
+                <h2 class="text-2xl font-bold mb-5 text-indigo-700 border-b pb-3">🐭 Seguimiento de Modelos Animales</h2>
+                <div class="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-4 mb-6">
+                    <button onclick="saveModelData()" class="bg-green-600 text-white font-bold py-2 px-4 text-sm rounded-xl hover:bg-green-700 transition shadow-md">💾 Guardar Datos Modelos</button>
+                    <label for="load-model-input" class="bg-gray-600 text-white font-bold py-2 px-4 text-sm rounded-xl hover:bg-gray-700 cursor-pointer text-center transition shadow-md">📂 Cargar Datos Modelos</label>
+                    <input type="file" id="load-model-input" class="hidden" accept=".json">
+                    <div class="flex space-x-2 w-full md:w-auto">
+                        <input type="text" id="new-model-id" placeholder="ID Nuevo Modelo (Ej: Ratón-01)" class="border-gray-300 rounded-lg shadow-sm p-2 w-full">
+                        <button onclick="addAnimalModel()" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-xl hover:bg-blue-700 transition shadow-md flex-shrink-0">Añadir</button>
+                    </div>
+                </div>
+                <div id="animal-models-container" class="space-y-6">
+                    </div>
+            </div>
+            <div class="bg-white p-6 rounded-3xl shadow-xl border border-gray-200">
+                <h2 class="text-2xl font-bold mb-5 text-indigo-700 border-b pb-3">💉 Calculadora de Dosificación por Peso</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700">Dosis Deseada (mg/kg):</label>
+                        <div class="flex space-x-1 mt-1">
+                            <input type="number" id="dose-amount" placeholder="Cantidad" class="w-1/2 border-gray-300 rounded-lg shadow-sm p-2">
+                            <select id="dose-amount-unit" class="w-1/2 border-gray-300 rounded-lg shadow-sm p-2"></select>
+                         </div>
+                         <div class="flex space-x-1 mt-2 items-center text-sm">
+                            <span class="whitespace-nowrap">por cada</span>
+                            <input type="number" id="dose-weight-unit-val" value="1" class="w-1/4 border-gray-300 rounded-lg shadow-sm p-2 text-center">
+                            <select id="dose-weight-unit" class="w-1/2 border-gray-300 rounded-lg shadow-sm p-2">
+                                <option value="g">g</option>
+                                <option value="kg" selected>kg</option>
+                            </select>
+                         </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700">Peso del Modelo:</label>
+                        <div class="flex space-x-1 mt-1">
+                            <input type="number" id="model-weight" placeholder="Peso" class="w-1/2 border-gray-300 rounded-lg shadow-sm p-2">
+                            <select id="model-weight-unit" class="w-1/2 border-gray-300 rounded-lg shadow-sm p-2">
+                                <option value="g" selected>g</option>
+                                <option value="kg">kg</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700">Concentración del Stock (Ej: mg/mL):</label>
+                        <div class="flex space-x-1 mt-1">
+                            <input type="number" id="stock-conc-dose" placeholder="Conc." class="w-1/2 border-gray-300 rounded-lg shadow-sm p-2">
+                            <select id="stock-conc-dose-unit" class="w-1/2 border-gray-300 rounded-lg shadow-sm p-2"></select>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6 flex justify-between items-center border-t pt-4">
+                    <button onclick="calculateModelDose()" class="bg-teal-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-teal-700 transition shadow-md">Calcular Volumen a Administrar</button>
+                    <div class="flex items-center space-x-2">
+                        <label class="text-sm font-medium">Resultado en:</label>
+                        <select id="dose-output-unit" class="border-gray-300 rounded-lg shadow-sm p-2">
+                            <option value="µL" selected>µL</option>
+                            <option value="mL">mL</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="dose-calculation-result" class="mt-4 calc-result-box"></div>
+            </div>
         </div>
-        <div id="content-protocols" class="hidden"></div>
-        <div id="content-report" class="hidden"></div>
-        <div id="content-calculators" class="hidden"></div>
-        <div id="content-about" class="hidden"></div>
+
+        <!-- PROTOCOLOS Y RECURSOS -->
+        <div id="content-protocols" class="hidden space-y-6 bg-white p-8 rounded-3xl shadow-xl border border-gray-200">
+            <!-- ... (CONTENIDO DE PROTOCOLOS Y RECURSOS) ... -->
+            <h2 class="text-3xl font-bold text-blue-700 border-b pb-4">📚 Protocolos Comunes y Recursos Externos</h2>
+            <div class="prose max-w-none grid grid-cols-1 md:grid-cols-2 gap-8 text-gray-700">
+                <div>
+                    <h3>Protocolos Comunes (Notas Rápidas)</h3>
+                    <div class="p-4 border border-gray-300 rounded-xl bg-gray-50 shadow-inner">
+                        <h4>Extracción de ARN (Esquema Básico)</h4>
+                        <p>Este es un lugar para tus notas o un checklist simple:</p>
+                        <ul class="list-disc list-inside text-sm space-y-1">
+                            <li>Lisis celular (ej. Trizol)</li>
+                            <li>Separación de fases (Cloroformo)</li>
+                            <li>Precipitación de ARN (Isopropanol)</li>
+                            <li>Lavados (Etanol 70-75%)</li>
+                            <li>Resuspensión (Agua libre de nucleasas)</li>
+                            <li>Cuantificación (Nanodrop/Qubit)</li>
+                            <li>Control de Calidad (Gel/Bioanalyzer)</li>
+                        </ul>
+                        <p class="text-xs text-gray-500 mt-3">Puedes editar este archivo HTML para añadir detalles específicos de tus kits o protocolos.</p>
+                    </div>
+                </div>
+                <div>
+                    <h3>Bases de Datos Externas</h3>
+                    <p>Enlaces rápidos a recursos útiles de ciencia:</p>
+                    <ul class="list-disc list-inside space-y-2">
+                        <li><a href="https://pubmed.ncbi.nlm.nih.gov/" target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline font-semibold">PubMed (NCBI):</a> Búsqueda de literatura biomédica.</li>
+                        <li><a href="https://www.ncbi.nlm.nih.gov/gene/" target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline font-semibold">NCBI Gene:</a> Información sobre genes específicos.</li>
+                        <li><a href="https://blast.ncbi.nlm.nih.gov/Blast.cgi" target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline font-semibold">NCBI BLAST:</a> Búsqueda de secuencias.</li>
+                        <li><a href="https://www.uniprot.org/" target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline font-semibold">UniProt:</a> Información sobre proteínas.</li>
+                        <li><a href="https://www.rcsb.org/" target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline font-semibold">Protein Data Bank (PDB):</a> Estructuras 3D.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- REPORTE -->
+        <div id="content-report" class="hidden space-y-6 bg-white p-8 rounded-3xl shadow-xl border border-gray-200">
+            <!-- ... (CONTENIDO DE REPORTE) ... -->
+            <h2 class="text-3xl font-bold text-blue-700 border-b pb-4">📄 Reporte del Experimento</h2>
+            <div class="flex space-x-4">
+                <button onclick="generateReport()" class="bg-teal-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-teal-700 transition shadow-md">Generar Reporte Completo</button>
+                <button onclick="exportReportCSV()" id="export-csv-btn" class="bg-blue-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-blue-700 hidden transition shadow-md">⬇️ Descargar Reporte (CSV)</button>
+            </div>
+            <div id="report-output" class="prose max-w-none mt-4 border-t pt-4 text-gray-700">
+                <p class="text-gray-500">Haz clic en el botón para generar un resumen de tu experimento.</p>
+            </div>
+        </div>
+
+        <!-- CALCULADORAS RÁPIDAS -->
+        <div id="content-calculators" class="hidden space-y-8">
+            <!-- ... (CONTENIDO DE CALCULADORAS) ... -->
+            <div class="bg-white p-6 rounded-3xl shadow-xl border border-gray-200">
+                <h2 class="text-2xl font-bold mb-5 text-indigo-700">🔢 Calculadora de Masa Molar</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                    <div class="md:col-span-2">
+                        <label for="chem-formula" class="block text-sm font-medium text-gray-700">Fórmula Química (Ej: C6H12O6):</label>
+                        <input type="text" id="chem-formula" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm p-2" placeholder="Ej: C6H12O6, NaCl">
+                    </div>
+                    <div>
+                        <button onclick="calculateMolarMass()" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-blue-700 transition shadow-md">Calcular Masa Molar</button>
+                    </div>
+                </div>
+                <div id="molar-mass-result" class="mt-4 calc-result-box"></div>
+            </div>
+
+            <div class="bg-white p-6 rounded-3xl shadow-xl border border-gray-200">
+                <h2 class="text-2xl font-bold mb-5 text-indigo-700">🔄 Conversor de Unidades</h2>
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4 items-end">
+                    <div>
+                        <label for="uc-value" class="block text-sm font-medium text-gray-700">Valor:</label>
+                        <input type="number" id="uc-value" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm p-2">
+                    </div>
+                    <div>
+                        <label for="uc-from" class="block text-sm font-medium text-gray-700">Desde:</label>
+                        <select id="uc-from" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm p-2"></select>
+                    </div>
+                    <div class="hidden md:block text-center text-xl font-bold text-gray-500">=</div>
+                    <div>
+                        <label for="uc-to" class="block text-sm font-medium text-gray-700">Hasta:</label>
+                        <select id="uc-to" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm p-2"></select>
+                    </div>
+                    <button onclick="convertUnits()" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-blue-700 transition shadow-md">Convertir</button>
+                </div>
+                <div id="uc-result" class="mt-4 calc-result-box"></div>
+            </div>
+
+            <div class="bg-white p-6 rounded-3xl shadow-xl border border-gray-200">
+                <h2 class="text-2xl font-bold mb-5 text-indigo-700">💧 Calculadora de Dilución (C₁V₁ = C₂V₂)</h2>
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div>
+                            <label for="c1" class="block text-sm font-medium text-gray-700">C1 (Stock):</label>
+                            <input type="number" id="c1" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm p-2" placeholder="Conc. inicial">
+                        </div>
+                        <div>
+                            <label for="c1-unit" class="block text-sm font-medium text-gray-700">Unidad C1:</label>
+                            <select id="c1-unit" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm p-2"></select>
+                        </div>
+                        <div>
+                            <label for="v1" class="block text-sm font-medium text-gray-700">V1 (Stock):</label>
+                            <input type="number" id="v1" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm p-2" placeholder="Vol. inicial">
+                        </div>
+                        <div>
+                            <label for="v1-unit" class="block text-sm font-medium text-gray-700">Unidad V1:</label>
+                            <select id="v1-unit" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm p-2"></select>
+                        </div>
+                        <div>
+                            <label for="c2" class="block text-sm font-medium text-gray-700">C2 (Final):</label>
+                            <input type="number" id="c2" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm p-2" placeholder="Conc. final">
+                        </div>
+                        <div>
+                            <label for="c2-unit" class="block text-sm font-medium text-gray-700">Unidad C2:</label>
+                            <select id="c2-unit" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm p-2"></select>
+                        </div>
+                        <div>
+                            <label for="v2" class="block text-sm font-medium text-gray-700">V2 (Final):</label>
+                            <input type="number" id="v2" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm p-2" placeholder="Vol. final">
+                        </div>
+                        <div>
+                            <label for="v2-unit" class="block text-sm font-medium text-gray-700">Unidad V2:</label>
+                            <select id="v2-unit" class="mt-1 block w-full border-gray-300 rounded-lg shadow-sm p-2"></select>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6">
+                    <button onclick="calculateDilution()" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-blue-700 transition shadow-md">Calcular Valor Faltante</button>
+                </div>
+                <div id="dilution-result" class="mt-4 calc-result-box"></div>
+            </div>
+        </div>
+
+        <!-- ACERCA DEL PROYECTO -->
+        <div id="content-about" class="hidden space-y-8 bg-white p-8 rounded-3xl shadow-xl border border-gray-200">
+            <!-- ... (CONTENIDO DE ACERCA DE) ... -->
+            <h2 class="text-3xl font-bold text-blue-700 border-b pb-4">ℹ️ Información del Proyecto y Colaboradores</h2>
+            <div class="prose max-w-none text-gray-700">
+                <p class="text-lg">Esta aplicación es una herramienta de apoyo desarrollada como parte de un proyecto de tesis para optimizar el trabajo en el laboratorio, especialmente en la planificación y seguimiento de cultivos celulares.</p>
+                
+                <h3 class="font-bold text-2xl text-indigo-600 mt-8 mb-4 border-b border-indigo-100 pb-2">Equipo de Desarrollo y Asesoría</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="p-4 bg-gray-50 border border-gray-200 rounded-xl shadow-md transition hover:shadow-lg">
+                        <p class="text-xl font-extrabold text-indigo-700">Tesista</p>
+                        <p class="mt-1 font-semibold">Edsel Yahvi Méndez Hernández</p>
+                    </div>
+                    <div class="p-4 bg-gray-50 border border-gray-200 rounded-xl shadow-md transition hover:shadow-lg">
+                        <p class="text-xl font-extrabold text-indigo-700">Asesora Externa</p>
+                        <p class="mt-1 font-semibold">Dra. Nayelli Nájera García</p>
+                    </div>
+                    <div class="p-4 bg-gray-50 border border-gray-200 rounded-xl shadow-md transition hover:shadow-lg">
+                        <p class="text-xl font-extrabold text-indigo-700">Asesor Docente</p>
+                        <p class="mt-1 font-semibold">Dr. Bustos García Juan Roberto Israel</p>
+                    </div>
+                </div>
+
+                <h3 class="font-bold text-2xl text-indigo-600 mt-10 mb-4 border-b border-indigo-100 pb-2">Institución y Laboratorio</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="p-4 bg-blue-50 border border-blue-200 rounded-xl shadow-md transition hover:shadow-lg">
+                        <p class="text-xl font-extrabold text-blue-700">Institución</p>
+                        <p class="mt-1 font-semibold">Escuela Superior de Medicina (ESM) - IPN</p>
+                    </div>
+                    <div class="p-4 bg-blue-50 border border-blue-200 rounded-xl shadow-md transition hover:shadow-lg">
+                        <p class="text-xl font-extrabold text-blue-700">Laboratorio Colaborador (LICAM)</p>
+                        <p class="mt-1 font-semibold">Investigación Integral Cardiometabólica (IPN)</p>
+                    </div>
+                </div>
+                
+                <div class="mt-10 pt-6 border-t border-gray-200">
+                    <h3 class="font-bold text-2xl text-indigo-600">Contacto y Redes</h3>
+                    <p class="mt-4">
+                        <span class="font-bold">Dirección:</span> Plan de San Luis y Díaz Mirón s/n Col. Casco de Santo Tomás, Miguel Hidalgo, 11340, Ciudad de México, CDMX.
+                    </p>
+                    <p>
+                        <span class="font-bold">Correo:</span> nnajerag@ipn.mx
+                    </p>
+                    <p>
+                        <span class="font-bold">Teléfono:</span> 55 5729 6300 ext 62820
+                    </p>
+                    <div class="mt-4 flex space-x-4 text-lg">
+                        <a href="https://cemiztli.wixsite.com/cardiometabolismo" target="_blank" class="text-blue-600 hover:text-blue-800 font-semibold transition flex items-center">
+                            🌐 Website
+                        </a>
+                        <a href="#" class="text-blue-600 hover:text-blue-800 font-semibold transition flex items-center">
+                            📘 Facebook
+                        </a>
+                        <a href="#" class="text-blue-600 hover:text-blue-800 font-semibold transition flex items-center">
+                            📸 Instagram
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
     </main>
 
-    <!-- MODAL CONFIG -->
     <div id="well-config-modal" class="modal fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center p-4">
+        <!-- ... (CONTENIDO DEL MODAL DE CONFIGURACIÓN DE POZO) ... -->
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto p-8 border-4 border-indigo-500/50">
-            <h2 class="text-2xl font-bold mb-6">Configurar Pozos: <span id="well-ids-display"></span></h2>
-            <div id="variables-container" class="space-y-4"></div>
-            <button onclick="addVariable()" class="mt-4 text-sm bg-gray-200 py-2 px-4 rounded-xl">+ Reactivo</button>
-            <div id="protocol-steps-container" class="mt-6 space-y-3"></div>
-            <button onclick="addProtocolStep()" class="mt-4 text-sm bg-gray-200 py-2 px-4 rounded-xl">+ Paso</button>
-            <div class="mt-8 flex justify-end gap-4"><button onclick="closeWellConfigModal()" class="bg-gray-400 text-white py-2 px-6 rounded-lg">Cerrar</button><button onclick="saveWellConfig()" class="bg-blue-600 text-white py-2 px-6 rounded-lg">Guardar</button></div>
+            <div class="flex justify-between items-center border-b pb-4 mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Configurar Pozo(s): <span id="well-ids-display" class="text-indigo-600 font-extrabold"></span></h2>
+                <button onclick="closeWellConfigModal()" class="text-3xl text-gray-500 hover:text-gray-800 transition leading-none">&times;</button>
+            </div>
+            
+            <div class="space-y-6">
+                <div>
+                    <h3 class="font-bold text-xl mb-3 text-indigo-700 border-b border-indigo-100 pb-2">Parámetros Generales</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border rounded-xl bg-indigo-50">
+                        <div>
+                            <label for="well-type" class="block text-sm font-medium text-gray-700">Tipo de Pozo:</label>
+                             <select id="well-type" class="mt-1 w-full border-gray-300 rounded-lg shadow-sm p-2">
+                                 <option value="default">No Asignado</option>
+                                 <option value="control">Control</option>
+                                 <option value="experimental">Experimental</option>
+                                 <option value="blanco">Blanco</option>
+                                 <option value="tratamiento-1">Tratamiento 1</option>
+                                 <option value="tratamiento-2">Tratamiento 2</option>
+                             </select>
+                        </div>
+                        <div>
+                            <label for="well-total-volume" class="block text-sm font-medium text-gray-700">Volumen Total Final (µL):</label>
+                            <input type="number" id="well-total-volume" class="mt-1 w-full border-gray-300 rounded-lg shadow-sm p-2" placeholder="Ej: 2000">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="block text-sm font-medium text-gray-700">Células por Pozo:</label>
+                            <div class="flex items-center space-x-2">
+                                <input type="number" id="well-cell-count" class="w-full border-gray-300 rounded-lg shadow-sm p-2" placeholder="Ej: 200000">
+                                <button onclick="toggleSubCalc('cell-calc')" class="bg-gray-200 p-2 rounded-lg hover:bg-gray-300 transition">⚙️</button>
+                            </div>
+                            <div id="cell-calc" class="sub-calc p-3 border rounded-lg bg-white mt-2 space-y-3 shadow-inner">
+                                <div class="space-y-2">
+                                    <p class="text-xs font-semibold text-gray-700 border-b pb-1">Calcular volumen de stock celular:</p>
+                                    <div class="flex items-center space-x-2">
+                                        <input type="number" id="cell-stock-conc" placeholder="Conc. stock" class="w-full text-sm border-gray-300 rounded-lg p-2">
+                                        <select id="cell-stock-conc-unit" class="text-sm border-gray-300 rounded-lg p-2">
+                                            <option value="1">células/mL</option>
+                                            <option value="1000">células/µL</option>
+                                        </select>
+                                    </div>
+                                    <button onclick="calculateCellVolume()" class="w-full text-sm bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition shadow-sm">Calcular Volumen (µL)</button>
+                                    <p id="cell-volume-result" class="text-sm font-medium text-blue-700 bg-blue-100 p-2 rounded-lg"></p>
+                                </div>
+                                <div class="mt-4 pt-4 border-t border-gray-200 space-y-2">
+                                    <p class="text-xs font-semibold text-gray-700 border-b pb-1">Calculadora Cámara de Neubauer:</p>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <input type="number" id="neubauer-q1" placeholder="Cuadrante 1" class="w-full text-sm border-gray-300 rounded-lg p-2">
+                                        <input type="number" id="neubauer-q2" placeholder="Cuadrante 2" class="w-full text-sm border-gray-300 rounded-lg p-2">
+                                        <input type="number" id="neubauer-q3" placeholder="Cuadrante 3" class="w-full text-sm border-gray-300 rounded-lg p-2">
+                                        <input type="number" id="neubauer-q4" placeholder="Cuadrante 4" class="w-full text-sm border-gray-300 rounded-lg p-2">
+                                    </div>
+                                    <button onclick="calculateNeubauer()" class="w-full text-sm bg-teal-500 text-white py-2 rounded-lg hover:bg-teal-600 transition shadow-sm">Calcular Concentración</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="font-bold text-xl mb-3 text-indigo-700 border-b border-indigo-100 pb-2">Variables / Reactivos</h3>
+                    <div id="variables-container" class="space-y-4">
+                        </div>
+                    <button onclick="addVariable()" class="mt-4 text-sm bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-xl hover:bg-gray-300 transition shadow-sm">+ Añadir Variable</button>
+                </div>
+
+                <div>
+                    <h3 class="font-bold text-xl mb-3 text-indigo-700 border-b border-indigo-100 pb-2">Pasos del Protocolo</h3>
+                    <div class="p-4 border rounded-xl bg-indigo-50 space-y-4">
+                        <div id="protocol-steps-container" class="space-y-3">
+                            </div>
+                        <button onclick="addProtocolStep()" class="text-sm bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-xl hover:bg-gray-300 transition shadow-sm">+ Añadir Paso</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 pt-6 border-t border-gray-200 flex justify-end space-x-4">
+                <button onclick="closeWellConfigModal()" class="bg-gray-500 text-white font-bold py-3 px-8 rounded-xl hover:bg-gray-600 transition shadow-lg">Cancelar</button>
+                <button onclick="saveWellConfig()" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-xl hover:bg-blue-700 transition shadow-lg">Guardar Cambios</button>
+            </div>
         </div>
     </div>
 
-    <!-- TEMPLATES -->
-    <div id="variable-template" class="hidden">
-        <div class="p-4 border rounded-xl bg-gray-50 grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
-            <input type="text" class="variable-name md:col-span-6 p-2 rounded" placeholder="Nombre">
-            <input type="number" class="variable-final-conc md:col-span-4 p-2 rounded" placeholder="Valor">
-            <select class="variable-final-conc-unit md:col-span-2 p-2 rounded"></select>
+    <div id="model-data-modal" class="modal fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center p-4">
+        <!-- ... (CONTENIDO DEL MODAL DE DATOS DEL MODELO) ... -->
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-8 border-4 border-green-500/50">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">Añadir Registro para Modelo <span id="modal-model-id" class="text-green-600 font-extrabold"></span></h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Peso (g):</label>
+                    <input type="number" id="modal-model-weight" class="mt-1 w-full border-gray-300 rounded-lg shadow-sm p-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Talla (cm):</label>
+                    <input type="number" id="modal-model-size" class="mt-1 w-full border-gray-300 rounded-lg shadow-sm p-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Glucosa (mg/dL):</label>
+                    <input type="number" id="modal-model-glucose" class="mt-1 w-full border-gray-300 rounded-lg shadow-sm p-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Fuerza Agarre (gf):</label>
+                    <input type="number" id="modal-model-grip" class="mt-1 w-full border-gray-300 rounded-lg shadow-sm p-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Notas/Otras Mediciones:</label>
+                    <textarea id="modal-model-notes" rows="2" class="mt-1 w-full border-gray-300 rounded-lg shadow-sm p-2"></textarea>
+                </div>
+            </div>
+            <div class="mt-8 flex justify-end space-x-4 border-t pt-4">
+                <button onclick="closeModelDataModal()" class="bg-gray-500 text-white font-bold py-3 px-6 rounded-xl hover:bg-gray-600 transition shadow-md">Cancelar</button>
+                <button onclick="saveModelDataEntry()" class="bg-green-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-green-700 transition shadow-md">Guardar Registro</button>
+            </div>
         </div>
     </div>
-    <div id="protocol-step-template" class="hidden">
-        <div class="p-3 border rounded-xl flex gap-3">
-            <input type="text" class="protocol-step-name flex-1 p-2 rounded" placeholder="Tarea">
-            <input type="number" class="protocol-step-duration w-20 p-2 rounded" placeholder="H">
-            <select class="protocol-step-unit p-2 rounded"><option value="3600000">h</option><option value="60000">min</option></select>
+
+
+    <div id="variable-template" class="hidden p-4 border rounded-xl bg-gray-50 transition hover:bg-gray-100">
+        <!-- ... (CONTENIDO DE PLANTILLA DE VARIABLE) ... -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-x-4 gap-y-3 items-center">
+            <div class="md:col-span-12 flex justify-between items-center border-b pb-2 mb-2">
+                <input type="text" class="variable-name w-full md:w-1/3 border-0 bg-transparent font-extrabold text-gray-800 focus:ring-0 text-lg" placeholder="Nombre (Ej: PMA)">
+                <button onclick="this.parentElement.parentElement.parentElement.remove()" class="text-red-500 hover:text-red-700 font-bold transition">🗑️ Eliminar</button>
+            </div>
+
+            <label class="md:col-span-2 text-sm font-medium text-gray-700">Conc. Final:</label>
+            <div class="md:col-span-4">
+                <input type="number" class="variable-final-conc w-full border-gray-300 rounded-lg shadow-sm p-2" placeholder="Valor">
+            </div>
+            <div class="md:col-span-4">
+                <select class="variable-final-conc-unit w-full border-gray-300 rounded-lg shadow-sm p-2"></select>
+            </div>
+            <div class="md:col-span-2">
+                <button onclick="toggleSubCalc(this.dataset.target)" data-target="stock-calc-X" class="stock-calc-toggle bg-indigo-500 text-white p-2 rounded-lg hover:bg-indigo-600 w-full text-sm transition shadow-sm">⚙️ Stock</button>
+            </div>
+
+            <div class="sub-calc md:col-span-12 p-3 border rounded-lg bg-white mt-2 space-y-3 shadow-inner">
+                <p class="text-xs font-semibold text-gray-700 border-b pb-1">Calcular volumen de stock del reactivo:</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <input type="number" class="variable-stock-conc w-full text-sm border-gray-300 rounded-lg p-2" placeholder="Conc. stock">
+                    <select class="variable-stock-conc-unit w-full text-sm border-gray-300 rounded-lg p-2"></select>
+                </div>
+                <button onclick="calculateStockVolume(this)" class="w-full text-sm bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition shadow-sm">Calcular Volumen (µL)</button>
+                <p class="variable-stock-volume-result text-sm font-medium text-blue-700 bg-blue-100 p-2 rounded-lg"></p>
+            </div>
         </div>
+    </div>
+
+    <div id="protocol-step-template" class="hidden p-3 border rounded-xl bg-white shadow-sm hover:shadow-md transition">
+        <!-- ... (CONTENIDO DE PLANTILLA DE PASO) ... -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+            <input type="text" class="protocol-step-name md:col-span-1 border-gray-300 rounded-lg p-2" placeholder="Nombre (Ej: Incubación PMA)">
+            <div class="flex items-center space-x-2 md:col-span-2">
+                <input type="number" class="protocol-step-duration w-1/2 border-gray-300 rounded-lg p-2" placeholder="Duración">
+                <select class="protocol-step-unit w-1/2 border-gray-300 rounded-lg p-2">
+                    <option value="3600000">horas</option>
+                    <option value="60000">minutos</option>
+                    <option value="86400000">días</option>
+                </select>
+            </div>
+            <div class="md:col-span-1 flex justify-end">
+                <button onclick="this.parentElement.parentElement.parentElement.remove()" class="text-red-500 hover:text-red-700 font-bold transition">🗑️ Eliminar</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="toast" class="toast fixed bottom-5 right-5 bg-green-600 text-white py-4 px-8 rounded-xl shadow-2xl z-50">
+        <p id="toast-message" class="font-semibold"></p>
     </div>
 
     <script>
-        const apiKey = ""; 
+        // --- DATA & STATE MANAGEMENT ---
+        let copiedWellData = null; // Variable para almacenar pozo copiado
+        const ATOMIC_WEIGHTS = { 
+            'H': 1.008, 'C': 12.011, 'N': 14.007, 'O': 15.999, 'Na': 22.990, 'Mg': 24.305, 
+            'P': 30.974, 'S': 32.06, 'Cl': 35.45, 'K': 39.098, 'Ca': 40.078, 'Fe': 55.845,
+            'He': 4.0026, 'Li': 6.94, 'Be': 9.0122, 'B': 10.81, 'F': 18.998, 'Ne': 20.180, 'Al': 26.982, 'Si': 28.085, 'Ar': 39.948, 'Sc': 44.956, 'Ti': 47.867, 'V': 50.942, 'Cr': 51.996, 'Mn': 54.938, 'Co': 58.933, 'Ni': 58.693, 'Cu': 63.546, 'Zn': 65.38, 'Ga': 69.723, 'Ge': 72.630, 'As': 74.922, 'Se': 78.971, 'Br': 79.904, 'Kr': 83.798, 'Rb': 85.468, 'Sr': 87.62, 'Y': 88.906, 'Zr': 91.224, 'Nb': 92.906, 'Mo': 95.96, 'Tc': 98, 'Ru': 101.07, 'Rh': 102.91, 'Pd': 106.42, 'Ag': 107.87, 'Cd': 112.41, 'In': 114.82, 'Sn': 118.71, 'Sb': 121.76, 'Te': 127.60, 'I': 126.90, 'Xe': 131.29, 'Cs': 132.91, 'Ba': 137.33,
+        };
+
+        const CONVERSION_FACTORS = {
+            'mass': { 'kg': 1000, 'g': 1, 'mg': 1e-3, 'µg': 1e-6, 'ng': 1e-9, 'pg': 1e-12 },
+            'volume': { 'L': 1, 'mL': 1e-3, 'µL': 1e-6, 'nL': 1e-9 },
+            'concentration': { 'M': 1, 'mM': 1e-3, 'µM': 1e-6, 'nM': 1e-9 },
+            'length': { 'm': 1, 'cm': 1e-2, 'mm': 1e-3},
+            'force': { 'N': 1, 'gf': 9.80665e-3 }, 
+            'pressure': { 'Pa': 1, 'mmHg': 133.322 },
+        };
+        
         let wellData = {}; 
         let selectedWells = new Set();
+        let variableCounter = 0;
         let runningTimers = {};
         let animalModels = {}; 
-        let base64Images = [];
-        let currentResults = [];
-        const MAX_SLOTS = 4;
-        const CORRECTION_FACTOR = 2500;
-        const DILUTION_FACTOR_FIXED = 1;
+        let currentEditingModelId = null; 
 
-        // ESTADO SCHEDULER
-        let SCHED_CONFIG = { phases: ["PMA", "LPS", "Cosecha"], condiciones: [] };
+        // --- VARIABLES DEL CONTADOR AI ---
+        let base64Images = []; // Almacena hasta 4 objetos de imagen
+        let currentResults = []; // Almacena resultados de la tabla para Excel
+        const MAX_SLOTS = 4;
+        const CORRECTION_FACTOR = 2500; // Factor para 4 cuadrantes grandes (1 / 0.0004 mL)
+        const DILUTION_FACTOR_FIXED = 1; // Dilución asumida: Muestra Pura (1:1)
+        const apiKey = ""; // Clave API gestionada por el entorno
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+        const MAX_RETRIES = 3;
+
+        // --- VARIABLES DEL CRONOGRAMA MAESTRO (LABMANAGER ULTRA) ---
+        let SCHED_CONFIG = {
+            phases: ["Diferenciación", "Descanso", "Activación"],
+            condiciones: []
+        };
         let schedStartTime = new Date();
 
-        function changeTab(name) {
-            ['planner','models','protocols','report','calculators','guide','about','cell-counter','scheduler'].forEach(t => {
-                const c = document.getElementById(`content-${t}`);
-                const b = document.getElementById(`tab-${t}`);
-                if(c) c.classList.toggle('hidden', t !== name);
-                if(b) b.classList.toggle('active', t === name);
+
+        // --- TABS & NAVIGATION ---
+        function changeTab(tabName) {
+            const contents = ['planner', 'scheduler', 'models', 'protocols', 'report', 'calculators', 'guide', 'about', 'cell-counter']; 
+            contents.forEach(content => {
+                const el = document.getElementById(`content-${content}`);
+                const tab = document.getElementById(`tab-${content}`);
+                if (el) el.style.display = content === tabName ? 'block' : 'none';
+                if (tab) {
+                    if (content === tabName) {
+                        tab.classList.add('active');
+                    } else {
+                        tab.classList.remove('active');
+                    }
+                }
+            });
+            if (tabName === 'models') {
+                renderAnimalModels(); 
+            }
+            if (tabName === 'scheduler') {
+                renderSchedMermaid(); // Refrescar mapa si está oculto
+            }
+        }
+
+        // --- UTILIDADES DE CONVERSIÓN ---
+        function getUnitType(unit) {
+             if (!unit) return null;
+             for (const type in CONVERSION_FACTORS) {
+                 if (CONVERSION_FACTORS[type][unit]) {
+                     return type;
+                 }
+             }
+             if (unit.includes('/')) {
+                 const parts = unit.split('/');
+                 if (parts.length === 2 && CONVERSION_FACTORS.mass[parts[0]] && CONVERSION_FACTORS.volume[parts[1]]) {
+                     return 'combined_concentration';
+                 }
+             }
+             return null; 
+        }
+
+        function convertToBaseUnit(value, fromUnit) {
+            const type = getUnitType(fromUnit);
+            if (!type || isNaN(value)) return NaN;
+
+            if (type === 'combined_concentration') {
+                 const [massUnit, volUnit] = fromUnit.split('/');
+                 const valueInG = value * (CONVERSION_FACTORS.mass[massUnit] || NaN);
+                 const volumeInL = 1 * (CONVERSION_FACTORS.volume[volUnit] || NaN); 
+                 if (isNaN(valueInG) || isNaN(volumeInL) || volumeInL === 0) return NaN;
+                 return valueInG / volumeInL; 
+            } else if (CONVERSION_FACTORS[type]) {
+                return value * (CONVERSION_FACTORS[type][fromUnit] || NaN);
+            }
+            return NaN; 
+        }
+
+        function convertFromBaseUnit(value, toUnit) {
+            const type = getUnitType(toUnit);
+             if (!type || isNaN(value)) return NaN;
+
+             if (type === 'combined_concentration') {
+                 const [massUnit, volUnit] = toUnit.split('/');
+                 const targetMassFactor = CONVERSION_FACTORS.mass[massUnit];
+                 const targetVolFactor = CONVERSION_FACTORS.volume[volUnit];
+                 if (!targetMassFactor || !targetVolFactor) return NaN;
+                 return value * targetMassFactor / targetVolFactor;
+             } else if (CONVERSION_FACTORS[type]) {
+                 const factor = CONVERSION_FACTORS[type][toUnit];
+                 if (!factor) return NaN;
+                 return value / factor;
+             }
+             return NaN; 
+        }
+
+        function _pureConvertUnits(value, from, to) {
+            if (isNaN(value) || !from || !to) return NaN;
+            if (from === to) return value;
+
+            const fromType = getUnitType(from);
+            const toType = getUnitType(to);
+
+             if (!fromType || !toType || fromType !== toType) {
+                 return NaN; 
+             }
+            
+            const baseValue = convertToBaseUnit(value, from);
+            if (isNaN(baseValue)) return NaN;
+            const finalValue = convertFromBaseUnit(baseValue, to);
+             
+            return finalValue;
+        }
+
+        // --- QUICK CALCULATORS (Molar Mass, Unit Conversion, Dilution) ---
+        function parseFormula(formula) {
+            const regex = /([A-Z][a-z]*)(\d*)|(\()|(\))(\d*)/g;
+            let match;
+            const stack = [{}]; 
+            while ((match = regex.exec(formula))) {
+                const [, element, countStr, openParen, closeParen, parenCountStr] = match;
+                const count = countStr ? parseInt(countStr) : 1;
+                const parenCount = parenCountStr ? parseInt(parenCountStr) : 1;
+
+                if (element) { 
+                    const currentGroup = stack[stack.length - 1];
+                    currentGroup[element] = (currentGroup[element] || 0) + count;
+                } else if (openParen) { 
+                    stack.push({});
+                } else if (closeParen && stack.length > 1) { 
+                    const completedGroup = stack.pop();
+                    const currentGroup = stack[stack.length - 1];
+                    for (const el in completedGroup) {
+                        currentGroup[el] = (currentGroup[el] || 0) + completedGroup[el] * parenCount;
+                    }
+                }
+            }
+            if (stack.length !== 1) { 
+                throw new Error("Paréntesis no balanceados en la fórmula.");
+            }
+            return stack[0]; 
+        }
+
+
+        function calculateMolarMass() {
+            const formula = document.getElementById('chem-formula').value.replace(/\s+/g, ''); 
+            const resultDiv = document.getElementById('molar-mass-result');
+            if (!formula) {
+                resultDiv.innerHTML = `<span class="text-red-500">Por favor, introduce una fórmula.</span>`;
+                return;
+            }
+            try {
+                const composition = parseFormula(formula);
+                let totalMass = 0;
+                let breakdown = [];
+                for (const element in composition) {
+                    if (!ATOMIC_WEIGHTS[element]) {
+                        throw new Error(`Elemento desconocido: ${element}`);
+                    }
+                    const mass = ATOMIC_WEIGHTS[element] * composition[element];
+                    totalMass += mass;
+                    breakdown.push(`<b>${element}</b>: ${composition[element]} x ${ATOMIC_WEIGHTS[element]} = ${mass.toFixed(4)}`);
+                }
+                resultDiv.innerHTML = `<b>Masa Molar Total: <span class="text-blue-600">${totalMass.toFixed(4)} g/mol</span></b><br><small>${breakdown.join('<br>')}</small>`;
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="text-red-500">Error: ${error.message}</span>`;
+            }
+        }
+        
+        function convertUnits() {
+            const value = parseFloat(document.getElementById('uc-value').value);
+            const from = document.getElementById('uc-from').value;
+            const to = document.getElementById('uc-to').value;
+            const resultDiv = document.getElementById('uc-result');
+
+            const finalValue = _pureConvertUnits(value, from, to);
+            
+            if (isNaN(finalValue)) {
+                 resultDiv.innerHTML = `<span class="text-red-500">No se puede convertir entre estas unidades o tipos.</span>`;
+            } else {
+                 resultDiv.textContent = `${value} ${from} = ${finalValue.toExponential(4)} ${to}`;
+            }
+        }
+
+        function calculateDilution() {
+            const fields = {
+                c1: { val: parseFloat(document.getElementById('c1').value), unit: document.getElementById('c1-unit').value },
+                v1: { val: parseFloat(document.getElementById('v1').value), unit: document.getElementById('v1-unit').value },
+                c2: { val: parseFloat(document.getElementById('c2').value), unit: document.getElementById('c2-unit').value },
+                v2: { val: parseFloat(document.getElementById('v2').value), unit: document.getElementById('v2-unit').value },
+            };
+
+            const resultDiv = document.getElementById('dilution-result');
+            const emptyFields = Object.keys(fields).filter(k => isNaN(fields[k].val));
+
+            if (emptyFields.length !== 1) {
+                resultDiv.innerHTML = `<span class="text-red-500">Por favor, introduce exactamente 3 valores numéricos.</span>`;
+                return;
+            }
+
+            const missingVar = emptyFields[0];
+            let result;
+            let resultUnit;
+
+            try {
+                 const c2_conv = _pureConvertUnits(fields.c2.val, fields.c2.unit, fields.c1.unit);
+                 const v2_conv = _pureConvertUnits(fields.v2.val, fields.v2.unit, fields.v1.unit);
+                
+                if (isNaN(c2_conv) && !isNaN(fields.c2.val)) throw new Error(`No se puede convertir la unidad de C2 (${fields.c2.unit}) a la de C1 (${fields.c1.unit}). Asegúrate que son del mismo tipo (ej. ambas molares o ambas masa/volumen).`);
+                if (isNaN(v2_conv) && !isNaN(fields.v2.val)) throw new Error(`No se puede convertir la unidad de V2 (${fields.v2.unit}) a la de V1 (${fields.v1.unit}).`);
+
+                let c1_val = fields.c1.val;
+                let v1_val = fields.v1.val;
+
+                switch (missingVar) {
+                    case 'c1': 
+                        result = (c2_conv * v2_conv) / v1_val;
+                        resultUnit = fields.c1.unit; 
+                        break;
+                    case 'v1': 
+                        result = (c2_conv * v2_conv) / c1_val;
+                        resultUnit = fields.v1.unit; 
+                        break;
+                    case 'c2': 
+                        const c2_in_c1_units = (c1_val * v1_val) / v2_conv; 
+                        result = _pureConvertUnits(c2_in_c1_units, fields.c1.unit, fields.c2.unit);
+                        resultUnit = fields.c2.unit;
+                        break;
+                    case 'v2': 
+                        const v2_in_v1_units = (c1_val * v1_val) / c2_conv;
+                        result = _pureConvertUnits(v2_in_v1_units, fields.v1.unit, fields.v2.unit);
+                        resultUnit = fields.v2.unit;
+                        break;
+                }
+
+                if (isNaN(result) || !isFinite(result)) {
+                    throw new Error("El resultado es inválido. Revisa los valores y unidades.");
+                }
+
+                resultDiv.textContent = `Resultado: ${missingVar.toUpperCase()} = ${result.toPrecision(4)} ${resultUnit}`;
+
+            } catch (error) {
+                 resultDiv.innerHTML = `<span class="text-red-500">Error: ${error.message}</span>`;
+            }
+        }
+
+
+        // --- CONTADOR CELULAR AI FUNCTIONS ---
+
+        /** Inicializa los slots de carga de imágenes */
+        function initializeUploadSlots() {
+            const cellUploadSlotsContainer = document.getElementById('cellUploadSlots');
+            const cellUploadSlotTemplate = document.getElementById('cellUploadSlotTemplate');
+            
+            // Limpiar slots existentes antes de inicializar
+            cellUploadSlotsContainer.innerHTML = ''; 
+            base64Images = [];
+
+            for (let i = 1; i <= MAX_SLOTS; i++) {
+                const slot = cellUploadSlotTemplate.content.cloneNode(true);
+                const container = slot.querySelector('div');
+                const label = container.querySelector('[data-slot-label]');
+                const input = container.querySelector('.cell-upload-input');
+                const preview = container.querySelector('.image-preview-slot');
+                const clearButton = container.querySelector('.clear-button');
+
+                label.textContent = `Región ${i}`;
+                input.id = `imageUpload${i}`;
+                input.dataset.slotIndex = i;
+                preview.dataset.slotIndex = i;
+                clearButton.dataset.slotIndex = i;
+                clearButton.onclick = function() { clearImageSlot(this); };
+                input.onchange = function(event) { handleImageUpload(event, this); };
+
+                cellUploadSlotsContainer.appendChild(slot);
+                base64Images[i] = null; // Inicializar array
+            }
+            updateAnalyzeButtonState();
+        }
+
+        /**
+         * Convierte el archivo seleccionado a una cadena base64.
+         */
+        function getBase64Image(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const [mimeTypePart, dataPart] = reader.result.split(',');
+                    const mimeType = mimeTypePart.match(/:(.*?);/)[1];
+                    resolve({ data: dataPart, mimeType: mimeType });
+                };
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(file);
             });
         }
 
-        // --- SCHEDULER LOGIC ---
-        function syncSchedStartTime(val) { if(!val) return; schedStartTime = new Date(val); updateSchedUI(); }
+        /**
+         * Maneja la carga de la imagen en un slot específico.
+         */
+        async function handleImageUpload(event, inputElement) {
+            document.getElementById('errorCard').classList.add('hidden');
+            document.getElementById('resultsContent').innerHTML = '<p>Los resultados del conteo aparecerán aquí en una tabla detallada por cada región cargada.</p>';
+            document.getElementById('downloadExcelButton').classList.add('hidden');
+            document.getElementById('totalSummary').classList.add('hidden');
+            currentResults = [];
+            
+            const slotIndex = parseInt(inputElement.dataset.slotIndex);
+            const file = inputElement.files[0];
+            const preview = inputElement.nextElementSibling;
+            const clearButton = inputElement.nextElementSibling.nextElementSibling;
+
+            if (file) {
+                preview.src = URL.createObjectURL(file);
+                try {
+                    const result = await getBase64Image(file);
+                    base64Images[slotIndex] = { ...result, slotIndex };
+                    clearButton.classList.remove('hidden');
+                } catch (error) {
+                    console.error("Error al leer el archivo:", error);
+                    base64Images[slotIndex] = null;
+                    clearButton.classList.add('hidden');
+                }
+            } else {
+                clearImageSlot(clearButton);
+            }
+            updateAnalyzeButtonState();
+        }
+
+        /** Limpia un slot de imagen. */
+        function clearImageSlot(buttonElement) {
+            const slotIndex = parseInt(buttonElement.dataset.slotIndex);
+            const container = buttonElement.closest('div');
+            const input = container.querySelector('.cell-upload-input');
+            const preview = container.querySelector('.image-preview-slot');
+
+            input.value = ''; // Resetear el input file
+            preview.src = `https://placehold.co/150x150/e5e7eb/9ca3af?text=Slot`;
+            base64Images[slotIndex] = null;
+            buttonElement.classList.add('hidden');
+            updateAnalyzeButtonState();
+        }
+
+        /** Habilita/deshabilita el botón de análisis. */
+        function updateAnalyzeButtonState() {
+            const loadedImages = base64Images.filter(img => img !== null && img !== undefined);
+            const analyzeButton = document.getElementById('analyzeButton');
+            if (loadedImages.length > 0) {
+                analyzeButton.disabled = false;
+                analyzeButton.classList.replace('bg-gray-400', 'bg-blue-600');
+                analyzeButton.classList.add('hover:bg-blue-700');
+            } else {
+                analyzeButton.disabled = true;
+                analyzeButton.classList.replace('bg-blue-600', 'bg-gray-400');
+                analyzeButton.classList.remove('hover:bg-blue-700');
+            }
+        }
+        
+        /**
+         * Formato de números grandes con separador de miles.
+         */
+        function formatNumber(num) {
+            if (num === 0) return '0';
+            const options = { maximumSignificantDigits: 4 };
+            return new Intl.NumberFormat('es-MX', options).format(num);
+        }
+
+        /**
+         * Calcula la concentración final de la muestra.
+         * Células/mL = (Conteo Total / N Cuadrantes) * 1 (Dilución Fija) * 2,500
+         */
+        function calculateConcentration(totalCount) {
+            const dilutionFactor = DILUTION_FACTOR_FIXED; 
+            const numRegions = base64Images.filter(img => img !== null && img !== undefined).length;
+            
+            if (totalCount === 0 || numRegions === 0) return 0;
+
+            const averageCountPerRegion = totalCount / numRegions; 
+            const concentration = averageCountPerRegion * dilutionFactor * CORRECTION_FACTOR;
+
+            return concentration;
+        }
+
+
+        /**
+         * Llama a la API de Gemini para analizar las imágenes.
+         */
+        async function analyzeImage() {
+            const loadedImages = base64Images.filter(img => img !== null && img !== undefined);
+            const analyzeButton = document.getElementById('analyzeButton');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+
+            if (loadedImages.length === 0) {
+                displayError("Carga al menos una imagen para analizar.");
+                return;
+            }
+
+            document.getElementById('errorCard').classList.add('hidden');
+            loadingIndicator.classList.remove('hidden');
+            analyzeButton.disabled = true;
+            analyzeButton.textContent = 'Analizando...';
+            document.getElementById('resultsContent').innerHTML = '';
+            document.getElementById('downloadExcelButton').classList.add('hidden');
+            document.getElementById('totalSummary').classList.add('hidden');
+            currentResults = [];
+
+            // Construir la lista de partes del contenido (texto + imágenes)
+            const parts = [{ 
+                text: `Analiza las ${loadedImages.length} imágenes proporcionadas. Identifícalas como Región ${loadedImages.map(img => img.slotIndex).join(', Región ')}. Para cada imagen, realiza el conteo total de células. Luego, proporciona un análisis estructurado y profesional. Tu respuesta debe ser una lista numerada (1. Región X, 2. Región Y, etc.) donde cada entrada contiene: a) El conteo total como primer valor numérico, y b) una descripción con las siguientes secciones obligatorias, usando el formato **Título** para los encabezados: **CONTEO Y DENSIDAD**, **MORFOLOGÍA CELULAR**, **DISTRIBUCIÓN EN LA CUADRÍCULA**, y **APUNTES ADICIONALES**. No incluyas ningún saludo, introducción o descripción de tu persona ni notas de cierre.` 
+            }];
+
+            loadedImages.forEach(img => {
+                parts.push({
+                    inlineData: {
+                        mimeType: img.mimeType,
+                        data: img.data
+                    }
+                });
+            });
+
+            const systemPrompt = "Eres un sistema de análisis de imágenes cuyo único objetivo es ejecutar la tarea solicitada. Genera el resultado del análisis de las imágenes de la cámara de Neubauer. Tu respuesta debe ser concisa, profesional y limitarse estrictamente a la información solicitada sin preámbulos, descripciones de tu rol, ni notas de cierre. El primer elemento de cada entrada de la lista debe ser el número total de células contado para esa imagen.";
+
+            const payload = {
+                contents: [{ role: "user", parts }],
+                systemInstruction: { parts: [{ text: systemPrompt }] }
+            };
+
+            for (let i = 0; i < MAX_RETRIES; i++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    // --- NUEVA LÓGICA DE MANEJO DE RESPUESTA ROBUSTA ---
+                    const responseText = await response.text();
+                    let result;
+
+                    try {
+                        result = JSON.parse(responseText);
+                    } catch (e) {
+                        // Captura el error de sintaxis JSON (ej: Unexpected end of input)
+                        if (!response.ok) {
+                            // Si el status NO es OK y falla JSON, es un error HTTP con respuesta malformada
+                            throw new Error(`Error HTTP ${response.status} (${response.statusText}). La respuesta no es JSON válido. Contenido: ${responseText.substring(0, 100)}...`);
+                        }
+                        // Si el status SÍ es OK (200) pero falla JSON (cuerpo vacío o incompleto)
+                        throw new Error(`Error de sintaxis JSON, la respuesta de la API fue inválida. Contenido: ${responseText.substring(0, 100)}...`);
+                    }
+
+                    if (!response.ok) {
+                        // Si la respuesta fue HTTP error pero el cuerpo sí era JSON válido.
+                        throw new Error(`Error HTTP ${response.status} (${response.statusText}): ${result.error?.message || 'Fallo en la llamada a la API.'}`);
+                    }
+                    // --- FIN LÓGICA DE MANEJO DE RESPUESTA ---
+
+                    // Continuar con el procesamiento del resultado
+                    const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                    if (text) {
+                        formatAndDisplayResult(text);
+                        return; // Éxito, salir del bucle
+                    } else {
+                        // El JSON es válido (cuerpo no vacío), pero faltan los datos esperados
+                        throw new Error("La respuesta de la IA no contenía texto generado (candidatos vacíos o estructura inesperada).");
+                    }
+
+                } catch (error) {
+                    console.error(`Intento ${i + 1} fallido:`, error);
+                    if (i === MAX_RETRIES - 1) {
+                        displayError(`No se pudo completar el análisis después de ${MAX_RETRIES} intentos. Error: ${error.message}`);
+                    } else {
+                        await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+                    }
+                } finally {
+                    loadingIndicator.classList.add('hidden');
+                    updateAnalyzeButtonState(); 
+                    analyzeButton.textContent = 'Paso 3: Analizar y Calcular Concentración';
+                }
+            }
+        }
+
+        /**
+         * Formatea el resultado de texto de la IA (múltiples regiones) en una tabla y lo muestra.
+         */
+        function formatAndDisplayResult(text) {
+            const lines = text.split('\n').filter(line => line.trim() !== '');
+            const regionData = [];
+            let totalCount = 0;
+            let currentRegion = {};
+
+            // Expresión para detectar el inicio de una nueva región (ej. "1. Región X" o "1.")
+            const regionStartRegex = /^(\d+\.\s*|\[?Región\s*(\d+)\]?\.?)(.*)/i; 
+            
+            // Reconstruir la data basada en las líneas
+            lines.forEach(line => {
+                const match = line.match(regionStartRegex);
+                
+                if (match) {
+                    if (currentRegion.Region) {
+                        regionData.push(currentRegion);
+                    }
+                    
+                    let regionText = match[0];
+                    let countMatch = regionText.match(/(\d+)/);
+                    let count = countMatch ? parseInt(countMatch[1]) : 0;
+                    
+                    let regionNumber = match[2] ? parseInt(match[2]) : (regionData.length + 1);
+
+                    currentRegion = {
+                        Region: `Región ${regionNumber}`,
+                        Conteo: count,
+                        Interpretacion: line.replace(countMatch ? countMatch[0] : '', '').trim()
+                    };
+                    
+                    if (!countMatch) {
+                        const innerCountMatch = line.match(/\*\*CONTEO Y DENSIDAD\*\*.*?(\d+)/i);
+                        currentRegion.Conteo = innerCountMatch ? parseInt(innerCountMatch[1]) : 0;
+                    }
+
+                    totalCount += currentRegion.Conteo;
+
+                } else if (currentRegion.Region) {
+                    currentRegion.Interpretacion += '\n' + line;
+                }
+            });
+
+            if (currentRegion.Region) {
+                regionData.push(currentRegion);
+            }
+
+            // CALCULAR CONCENTRACIÓN
+            const finalConcentration = calculateConcentration(totalCount);
+            const numRegions = base64Images.filter(img => img !== null && img !== undefined).length;
+            
+            // Actualizar visualización del resumen
+            document.getElementById('totalCountDisplay').textContent = formatNumber(totalCount);
+            document.getElementById('finalConcentrationDisplay').textContent = formatNumber(finalConcentration);
+            document.getElementById('calcRegions').textContent = numRegions;
+
+
+            // Mapear los resultados para la tabla HTML y el Excel
+            currentResults = regionData.map(data => {
+                const interpretationHTML = data.Interpretacion
+                    .replace(/\*\*(.*?)\*\*/g, '<h4>$1</h4>') // Markdown a <h4>
+                    .split('\n').map(line => line.trim() === '' ? '<br>' : line).join('');
+
+                return {
+                    'Región': data.Region,
+                    'Conteo': data.Conteo,
+                    'Interpretación (HTML)': interpretationHTML,
+                    'Interpretación (Texto Simple)': data.Interpretacion.replace(/<\/?h4>/g, ' ').replace(/<br>/g, ' ').replace(/\s+/g, ' ').trim() // Para Excel
+                };
+            });
+            
+            // Generar HTML de la tabla
+            let tableHtml = `
+                <div class="table-responsive">
+                    <table id="cell-counter-results-table" class="min-w-full divide-y divide-gray-200">
+                        <thead>
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Región</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Células Contadas</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-10/12">Interpretación y Análisis Morfológico</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+            `;
+
+            currentResults.forEach(data => {
+                tableHtml += `
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 align-top">${data['Región']}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600 align-top">
+                            <span class="text-xl font-extrabold">${data.Conteo}</span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-500 interpretation-content">
+                            ${data['Interpretación (HTML)']}
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tableHtml += `</tbody></table></div>`;
+            
+            document.getElementById('resultsContent').innerHTML = tableHtml;
+            document.getElementById('totalSummary').classList.remove('hidden');
+            document.getElementById('downloadExcelButton').classList.remove('hidden'); 
+        }
+
+        /**
+         * Muestra un mensaje de error y limpia el estado de carga.
+         */
+        function displayError(message) {
+            document.getElementById('loadingIndicator').classList.add('hidden');
+            document.getElementById('analyzeButton').disabled = false;
+            document.getElementById('analyzeButton').textContent = 'Paso 3: Analizar y Calcular Concentración';
+            document.getElementById('errorCard').classList.remove('hidden');
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('downloadExcelButton').classList.add('hidden');
+            document.getElementById('totalSummary').classList.add('hidden');
+        }
+
+        /**
+         * Descarga los resultados actuales en un archivo Excel.
+         */
+        function downloadExcel() {
+            if (currentResults.length === 0) {
+                document.getElementById('errorMessage').textContent = "No hay resultados para descargar.";
+                document.getElementById('errorCard').classList.remove('hidden');
+                return;
+            }
+
+            const totalCount = currentResults.reduce((sum, item) => sum + item['Conteo'], 0);
+            const finalConcentration = calculateConcentration(totalCount);
+            
+            // Preparamos los datos para Excel (usando solo las columnas de texto simple)
+            const excelData = currentResults.map(data => ({
+                'Región': data['Región'],
+                'Células Contadas': data['Conteo'],
+                'Análisis Detallado': data['Interpretación (Texto Simple)']
+            }));
+            
+            // Añadir la fila de resumen
+            excelData.push(
+                {}, 
+                {
+                    'Región': 'RESUMEN TOTAL',
+                    'Células Contadas': totalCount,
+                    'Análisis Detallado': 'Suma total de células contadas en todas las regiones.'
+                },
+                {
+                    'Región': 'CONCENTRACIÓN FINAL (Células/mL)',
+                    'Células Contadas': finalConcentration,
+                    'Análisis Detallado': `Cálculo: (Conteo Promedio) x 2,500. Se asume Dilución 1:1. Regiones Contadas: ${currentResults.length}.`
+                }
+            );
+
+            const worksheet = XLSX.utils.json_to_sheet(excelData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Conteo Celular Multirregión");
+            XLSX.writeFile(workbook, `resultados_conteo_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        }
+        
+        // --- PLATE PLANNER ---
+        function generatePlate(restoringData = null) {
+            const plateType = restoringData ? restoringData.plateType : document.getElementById('plate-type').value;
+            document.getElementById('plate-type').value = plateType; 
+            const layout = document.getElementById('plate-layout');
+            layout.innerHTML = ''; 
+            
+            if (!restoringData) {
+                wellData = {};
+            }
+            selectedWells.clear(); 
+
+            const plateConfigs = {
+                '6': { rows: 2, cols: 3 }, '12': { rows: 3, cols: 4 },
+                '24': { rows: 4, cols: 6 }, '48': { rows: 6, cols: 8 },
+                '96': { rows: 8, cols: 12 },
+            };
+            const config = plateConfigs[plateType];
+            layout.style.gridTemplateColumns = `repeat(${config.cols}, minmax(0, 1fr))`;
+            layout.style.display = 'grid';
+
+            for (let r = 0; r < config.rows; r++) {
+                for (let c = 0; c < config.cols; c++) {
+                    const rowLabel = String.fromCharCode(65 + r); 
+                    const colLabel = c + 1; 
+                    const wellId = `${rowLabel}${colLabel}`; 
+                    
+                    const well = document.createElement('div');
+                    well.id = `well-${wellId}`;
+                    well.className = 'well w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center cursor-pointer bg-white';
+                    well.dataset.id = wellId;
+                    
+                    const label = document.createElement('span');
+                    label.className = 'well-label text-sm md:text-base font-semibold';
+                    label.textContent = wellId;
+                    well.appendChild(label);
+
+                    well.addEventListener('click', () => toggleWellSelection(wellId));
+                    layout.appendChild(well); 
+
+                    if (restoringData?.wellData?.[wellId]) {
+                        const data = restoringData.wellData[wellId];
+                        well.classList.add('configured'); 
+                        if (data.wellType && data.wellType !== 'default') {
+                            well.classList.add(data.wellType);
+                        }
+                    }
+                }
+            }
+            updateProtocolSchedule(); 
+        }
+
+
+        function toggleWellSelection(wellId) {
+            const wellEl = document.getElementById(`well-${wellId}`);
+            if (selectedWells.has(wellId)) { 
+                selectedWells.delete(wellId);
+                wellEl.classList.remove('selected');
+            } else { 
+                selectedWells.add(wellId);
+                wellEl.classList.add('selected');
+            }
+        }
+
+        function selectAllWells() {
+            document.querySelectorAll('#plate-layout .well').forEach(well => {
+                const wellId = well.dataset.id;
+                if (!selectedWells.has(wellId)) { 
+                    selectedWells.add(wellId);
+                    well.classList.add('selected');
+                }
+            });
+        }
+        
+        function clearSelection() {
+            selectedWells.forEach(wellId => { 
+                const wellEl = document.getElementById(`well-${wellId}`);
+                if (wellEl) wellEl.classList.remove('selected');
+            });
+            selectedWells.clear(); 
+        }
+
+        function openWellConfigModal() {
+            if (selectedWells.size === 0) { 
+                showToast('Por favor, selecciona al menos un pozo para configurar.', 'error');
+                return;
+            }
+            const wellIds = Array.from(selectedWells).sort(); 
+            document.getElementById('well-ids-display').textContent = wellIds.join(', ');
+            
+            const firstWellId = wellIds[0];
+            if (wellData[firstWellId]) {
+                loadConfigToModal(wellData[firstWellId]); 
+            } else {
+                resetModal(); 
+            }
+
+            document.getElementById('well-config-modal').style.display = 'flex';
+        }
+
+        function closeWellConfigModal() {
+            document.getElementById('well-config-modal').style.display = 'none'; 
+        }
+        
+        function resetModal() {
+             document.getElementById('well-type').value = 'default';
+             document.getElementById('well-total-volume').value = '';
+             document.getElementById('well-cell-count').value = '';
+             document.getElementById('variables-container').innerHTML = ''; 
+             document.getElementById('protocol-steps-container').innerHTML = ''; 
+             document.getElementById('neubauer-q1').value = '';
+             document.getElementById('neubauer-q2').value = '';
+             document.getElementById('neubauer-q3').value = '';
+             document.getElementById('neubauer-q4').value = '';
+             document.getElementById('cell-stock-conc').value = '';
+             document.getElementById('cell-stock-conc-unit').value = '1'; 
+             document.getElementById('cell-volume-result').textContent = '';
+             variableCounter = 0; 
+             addVariable(); 
+             addProtocolStep(); 
+        }
+
+        function loadConfigToModal(data) {
+            resetModal(); 
+             document.getElementById('well-type').value = data.wellType || 'default';
+             document.getElementById('well-total-volume').value = data.totalVolume || '';
+             document.getElementById('well-cell-count').value = data.cells?.count || '';
+            
+            const variablesContainer = document.getElementById('variables-container');
+            variablesContainer.innerHTML = ''; 
+            if (data.variables?.length > 0) {
+                data.variables.forEach(v => addVariable(v)); 
+            } else {
+                addVariable(); 
+            }
+            
+            const stepsContainer = document.getElementById('protocol-steps-container');
+            stepsContainer.innerHTML = ''; 
+            if (data.protocol?.steps?.length > 0) {
+                data.protocol.steps.forEach(s => addProtocolStep(s)); 
+            } else {
+                addProtocolStep(); 
+            }
+        }
+
+        function saveWellConfig() {
+            const wellType = document.getElementById('well-type').value;
+            const totalVolume = parseFloat(document.getElementById('well-total-volume').value);
+            const cellCount = parseFloat(document.getElementById('well-cell-count').value);
+
+            const variables = [];
+            document.querySelectorAll('#variables-container > div.p-4').forEach(varDiv => { 
+                const variable = {
+                    id: varDiv.dataset.id, 
+                    name: varDiv.querySelector('.variable-name').value.trim(),
+                    finalConc: parseFloat(varDiv.querySelector('.variable-final-conc').value),
+                    finalConcUnit: varDiv.querySelector('.variable-final-conc-unit').value,
+                };
+                if (variable.name && !isNaN(variable.finalConc)) {
+                    variables.push(variable);
+                }
+            });
+            
+            const protocolSteps = [];
+            document.querySelectorAll('#protocol-steps-container > div').forEach(stepDiv => {
+                const step = {
+                    name: stepDiv.querySelector('.protocol-step-name').value.trim(),
+                    duration: parseFloat(stepDiv.querySelector('.protocol-step-duration').value),
+                    unit: parseInt(stepDiv.querySelector('.protocol-step-unit').value) 
+                };
+                if (step.name && !isNaN(step.duration)) {
+                    protocolSteps.push(step);
+                }
+            });
+
+            const configData = {
+                wellType,
+                totalVolume: isNaN(totalVolume) ? null : totalVolume, 
+                cells: { count: isNaN(cellCount) ? null : cellCount }, 
+                variables,
+                protocol: {
+                    steps: protocolSteps
+                }
+            };
+            
+            selectedWells.forEach(wellId => {
+                wellData[wellId] = JSON.parse(JSON.stringify(configData)); 
+                const wellEl = document.getElementById(`well-${wellId}`);
+                if (wellEl) {
+                     wellEl.classList.remove('control', 'experimental', 'blanco', 'tratamiento-1', 'tratamiento-2', 'default');
+                    if (wellType !== 'default') {
+                        wellEl.classList.add(wellType); 
+                    }
+                    wellEl.classList.add('configured'); 
+                    wellEl.classList.remove('selected'); 
+                }
+            });
+            
+            updateProtocolSchedule(); 
+            clearSelection(); 
+            closeWellConfigModal(); 
+            showToast('Configuración guardada para los pozos seleccionados.'); 
+        }
+
+        // --- FUNCIONES DE COPIAR Y PEGAR POZOS (NUEVAS) ---
+        function copyWellConfig() {
+            if (selectedWells.size !== 1) {
+                showToast("Por favor, selecciona exactamente 1 pozo para copiar su configuración.", "error");
+                return;
+            }
+            const wellId = Array.from(selectedWells)[0];
+            if (!wellData[wellId]) {
+                showToast("El pozo seleccionado no tiene configuración previa.", "error");
+                return;
+            }
+            copiedWellData = JSON.parse(JSON.stringify(wellData[wellId]));
+            showToast(`Configuración del pozo ${wellId} copiada al portapapeles.`);
+        }
+
+        function pasteWellConfig() {
+            if (!copiedWellData) {
+                showToast("No hay ninguna configuración copiada. Copia un pozo primero.", "error");
+                return;
+            }
+            if (selectedWells.size === 0) {
+                showToast("Selecciona los pozos donde deseas pegar la configuración.", "error");
+                return;
+            }
+            
+            selectedWells.forEach(wellId => {
+                wellData[wellId] = JSON.parse(JSON.stringify(copiedWellData));
+                const wellEl = document.getElementById(`well-${wellId}`);
+                if (wellEl) {
+                    wellEl.classList.remove('control', 'experimental', 'blanco', 'tratamiento-1', 'tratamiento-2', 'default');
+                    if (copiedWellData.wellType !== 'default') {
+                        wellEl.classList.add(copiedWellData.wellType);
+                    }
+                    wellEl.classList.add('configured');
+                    wellEl.classList.remove('selected');
+                }
+            });
+            
+            updateProtocolSchedule();
+            clearSelection();
+            showToast(`Configuración pegada en ${selectedWells.size} pozo(s) exitosamente.`);
+        }
+        
+        function addVariable(data = null) {
+            const template = document.getElementById('variable-template');
+            const clone = template.cloneNode(true); 
+            clone.id = ''; 
+            clone.classList.remove('hidden'); 
+            
+            const uniqueId = `var-${variableCounter++}`; 
+            clone.dataset.id = uniqueId; 
+
+            populateUnitDropdowns(clone); 
+            
+            const stockCalcToggle = clone.querySelector('.stock-calc-toggle');
+            const subCalcDiv = clone.querySelector('.sub-calc');
+            const subCalcId = `stock-calc-${uniqueId}`;
+            stockCalcToggle.dataset.target = subCalcId; 
+            subCalcDiv.id = subCalcId; 
+            
+            if (data) {
+                 clone.querySelector('.variable-name').value = data.name || '';
+                 clone.querySelector('.variable-final-conc').value = data.finalConc || '';
+                 clone.querySelector('.variable-final-conc-unit').value = data.finalConcUnit || 'µM'; 
+            }
+
+            document.getElementById('variables-container').appendChild(clone);
+        }
+
+        function addProtocolStep(data = null) {
+            const template = document.getElementById('protocol-step-template');
+            const clone = template.cloneNode(true); 
+            clone.id = ''; 
+            clone.classList.remove('hidden'); 
+            if (data) {
+                clone.querySelector('.protocol-step-name').value = data.name || '';
+                clone.querySelector('.protocol-step-duration').value = data.duration || '';
+                clone.querySelector('.protocol-step-unit').value = data.unit || '3600000'; 
+            }
+            document.getElementById('protocol-steps-container').appendChild(clone);
+        }
+
+        function calculateCellVolume() {
+            const cellCount = parseFloat(document.getElementById('well-cell-count').value);
+            let stockConc = parseFloat(document.getElementById('cell-stock-conc').value); 
+            const stockUnitFactor = parseFloat(document.getElementById('cell-stock-conc-unit').value); 
+            const resultEl = document.getElementById('cell-volume-result');
+
+            if (isNaN(cellCount) || isNaN(stockConc) || stockConc === 0) {
+                resultEl.textContent = 'Inputs inválidos.';
+                return;
+            }
+            
+            const stockConcInMl = stockConc * stockUnitFactor;
+            const volumeInMicroL = (cellCount / stockConcInMl) * 1000;
+            resultEl.textContent = `Tomar: ${volumeInMicroL.toFixed(2)} µL`;
+        }
+
+        function calculateNeubauer() {
+             const q1 = parseFloat(document.getElementById('neubauer-q1').value) || 0;
+            const q2 = parseFloat(document.getElementById('neubauer-q2').value) || 0;
+            const q3 = parseFloat(document.getElementById('neubauer-q3').value) || 0;
+            const q4 = parseFloat(document.getElementById('neubauer-q4').value) || 0;
+
+            const sum = q1 + q2 + q3 + q4;
+            if (sum === 0) { 
+                showToast("Introduce los conteos de los cuadrantes.", "error");
+                return;
+            }
+            const avg = sum / 4; 
+            const concentration = avg * 10000; 
+            
+            document.getElementById('cell-stock-conc-unit').value = "1"; 
+            document.getElementById('cell-stock-conc').value = concentration; 
+            showToast(`Concentración calculada: ${concentration.toExponential(2)} células/mL.`); 
+             calculateCellVolume(); 
+        }
+
+        function calculateStockVolume(button) {
+             const variableSection = button.closest('.grid.grid-cols-1'); 
+            if (!variableSection) {
+                // Fallback for original variable template structure
+                const altSection = button.closest('.p-4.border.rounded-xl');
+                if (!altSection) return;
+                
+                const finalConc = parseFloat(altSection.querySelector('.variable-final-conc').value);
+                const finalConcUnit = altSection.querySelector('.variable-final-conc-unit').value;
+                const stockConc = parseFloat(altSection.querySelector('.variable-stock-conc').value);
+                const stockConcUnit = altSection.querySelector('.variable-stock-conc-unit').value;
+                const totalVolume = parseFloat(document.getElementById('well-total-volume').value); 
+                const resultEl = altSection.querySelector('.variable-stock-volume-result');
+
+                if (isNaN(finalConc) || isNaN(stockConc) || isNaN(totalVolume) || stockConc === 0) {
+                     resultEl.textContent = 'Inputs inválidos.';
+                     return;
+                }
+                
+                const finalConcConverted = _pureConvertUnits(finalConc, finalConcUnit, stockConcUnit);
+                if (isNaN(finalConcConverted)) { 
+                     resultEl.textContent = 'Error de conversión.';
+                     return;
+                }
+                const V_Stock_in_uL = (finalConcConverted * totalVolume) / stockConc;
+                resultEl.textContent = `Tomar: ${V_Stock_in_uL.toFixed(3)} µL`;
+                return;
+            }
+        }
+        
+        function calculateMasterMix() {
+            if (selectedWells.size === 0) {
+                showToast("Selecciona los pozos para los que quieres calcular la mezcla.", 'error');
+                return;
+            }
+            
+            const numWells = selectedWells.size;
+            const extraVolFactor = 1 + (parseFloat(document.getElementById('extra-volume').value) || 0) / 100;
+            const totalWellsToPrep = numWells * extraVolFactor;
+
+            const masterMix = {};
+            let firstWellId = Array.from(selectedWells)[0];
+            const baseConfig = wellData[firstWellId];
+
+            if (!baseConfig) { 
+                showToast("El primer pozo seleccionado no está configurado.", 'error');
+                return;
+            }
+
+            if (baseConfig.cells?.count > 0) {
+                masterMix['Células'] = { 
+                    total: `${(baseConfig.cells.count * totalWellsToPrep).toExponential(2)} células`,
+                    note: 'El volumen depende del stock.'
+                };
+            }
+            
+            baseConfig.variables.forEach(v => {
+                 masterMix[v.name] = {
+                     total: `${v.finalConc} ${v.finalConcUnit} final`,
+                     note: 'Calcular volumen individualmente.'
+                 };
+            });
+            
+            let html = `<h3 class="font-bold mb-2">Mezcla para ${numWells} pozos (+${(extraVolFactor-1)*100}% extra):</h3>`;
+            html += `<table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-100"><tr><th class="px-4 py-2">Componente</th><th class="px-4 py-2">Cantidad</th><th class="px-4 py-2">Notas</th></tr></thead><tbody class="bg-white">`;
+
+            for(const component in masterMix) { 
+                html += `<tr><td class="px-4 py-2 font-medium">${component}</td><td class="px-4 py-2">${masterMix[component].total}</td><td class="px-4 py-2 text-gray-500">${masterMix[component].note}</td></tr>`;
+            }
+             html += `<tr><td class="px-4 py-2 font-bold">Medio de cultivo (completar hasta)</td><td class="px-4 py-2 font-bold">${(baseConfig.totalVolume * totalWellsToPrep).toFixed(2)} µL</td><td></td></tr>`;
+            html += `</tbody></table>`;
+            document.getElementById('master-mix-results').innerHTML = html;
+        }
+
+        function updateProtocolSchedule() {
+            const scheduleContainer = document.getElementById('protocol-schedule-container');
+            scheduleContainer.innerHTML = ''; 
+            let allSteps = [];
+
+            for (const wellId in wellData) {
+                const data = wellData[wellId];
+                if (!data.protocol?.steps) continue; 
+                data.protocol.steps.forEach((step, index) => {
+                    allSteps.push({ ...step, wellId, stepIndex: index + 1, eventId: `${wellId}-${step.name.replace(/\s/g, '')}-${index}` });
+                });
+            }
+            
+            const uniqueSteps = Object.values(allSteps.reduce((acc, cur) => {
+                const key = `${cur.name}-${cur.duration}-${cur.unit}-${cur.stepIndex}`; 
+                if (!acc[key]) acc[key] = { ...cur, wells: [cur.wellId] }; 
+                else acc[key].wells.push(cur.wellId); 
+                return acc;
+            }, {}));
+            
+            uniqueSteps.sort((a,b) => a.stepIndex - b.stepIndex);
+
+            if (uniqueSteps.length === 0) { 
+                scheduleContainer.innerHTML = '<p class="text-gray-500">No hay pasos configurados.</p>';
+                return;
+            }
+
+            uniqueSteps.forEach((step) => {
+                const durationMs = step.duration * step.unit; 
+                const eventEl = document.createElement('div');
+                eventEl.className = 'flex items-center justify-between p-3 bg-gray-100 rounded-lg';
+                eventEl.innerHTML = `
+                    <div><span class="font-bold">Paso ${step.stepIndex}: ${step.name}</span><p class="text-xs text-blue-600">Pozos: ${step.wells.join(', ')}</p></div>
+                    <div class="flex items-center space-x-3"><span id="timer-display-${step.eventId}" class="font-mono text-lg">--:--:--</span><button id="timer-btn-${step.eventId}" class="bg-green-500 text-white text-sm py-1 px-3 rounded-md">Iniciar</button></div>`;
+                scheduleContainer.appendChild(eventEl); 
+                document.getElementById(`timer-btn-${step.eventId}`).addEventListener('click', (e) => handleTimerClick(e, step, durationMs));
+            });
+        }
+        
+        function handleTimerClick(e, event, durationMs) {
+            const btn = e.target;
+            const timerId = `timer-btn-${event.eventId}`; 
+            const displayId = `timer-display-${event.eventId}`; 
+
+            if (runningTimers[timerId]) { 
+                clearInterval(runningTimers[timerId].interval); 
+                delete runningTimers[timerId]; 
+                btn.textContent = 'Iniciar'; 
+                document.getElementById(displayId).textContent = '--:--:--'; 
+            } else { 
+                const endTime = Date.now() + durationMs; 
+                btn.textContent = 'Detener'; 
+                const interval = setInterval(() => {
+                    const remaining = endTime - Date.now();
+                    if (remaining <= 0) { 
+                        clearInterval(interval); 
+                        document.getElementById(displayId).textContent = '00:00:00';
+                        showToast(`¡Paso finalizado: ${event.name}!`); 
+                        btn.textContent = 'Finalizado'; 
+                        btn.disabled = true; 
+                        delete runningTimers[timerId]; 
+                    } else { 
+                        const h = String(Math.floor(remaining / 3600000)).padStart(2, '0');
+                        const m = String(Math.floor((remaining % 3600000) / 60000)).padStart(2, '0');
+                        const s = String(Math.floor((remaining % 60000) / 1000)).padStart(2, '0');
+                        document.getElementById(displayId).textContent = `${h}:${m}:${s}`; 
+                    }
+                }, 1000);
+                runningTimers[timerId] = { interval, endTime };
+            }
+        }
+        
+        // --- ANIMAL MODELS ---
+        function addAnimalModel() {
+            const id = document.getElementById('new-model-id').value.trim();
+            if (!id || animalModels[id]) return;
+            animalModels[id] = { id, data: [] }; 
+            document.getElementById('new-model-id').value = ''; 
+            renderAnimalModels(); 
+        }
+
+        // --- FUNCIÓN DUPLICAR ANIMAL MODEL (NUEVA) ---
+        function duplicateAnimalModel(modelId) {
+            if (!animalModels[modelId]) return;
+            let newId = modelId + "-Copia";
+            let counter = 1;
+            while (animalModels[newId]) {
+                newId = modelId + "-Copia" + counter;
+                counter++;
+            }
+            animalModels[newId] = JSON.parse(JSON.stringify(animalModels[modelId]));
+            animalModels[newId].id = newId;
+            renderAnimalModels();
+            showToast(`Modelo ${modelId} duplicado exitosamente como ${newId}.`);
+        }
+
+        function renderAnimalModels() {
+            const container = document.getElementById('animal-models-container');
+            container.innerHTML = ''; 
+            Object.keys(animalModels).sort().forEach(modelId => {
+                const model = animalModels[modelId];
+                const div = document.createElement('div');
+                div.className = 'p-4 border rounded-lg bg-white shadow';
+                div.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-bold text-blue-700">${model.id}</h3>
+                    <div class="flex gap-2">
+                        <button onclick="duplicateAnimalModel('${modelId}')" class="text-xs bg-indigo-500 text-white px-3 py-1 rounded"><i class="fas fa-copy"></i> Duplicar</button>
+                        <button onclick="openModelDataModal('${modelId}')" class="text-xs bg-green-500 text-white px-3 py-1 rounded"><i class="fas fa-plus"></i> Añadir Datos</button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm">
+                        <thead><tr><th>Fecha</th><th>Peso</th><th>Notas</th></tr></thead>
+                        <tbody>${model.data.map(e => `<tr><td>${new Date(e.date).toLocaleDateString()}</td><td>${e.weight || ''}</td><td>${e.notes || ''}</td></tr>`).join('')}</tbody>
+                    </table>
+                </div>`;
+                container.appendChild(div);
+            });
+        }
+
+        function openModelDataModal(id) {
+            currentEditingModelId = id; 
+            document.getElementById('modal-model-id').textContent = id; 
+            document.getElementById('model-data-modal').style.display = 'flex';
+        }
+
+        function closeModelDataModal() { document.getElementById('model-data-modal').style.display = 'none'; }
+
+        function saveModelDataEntry() {
+            if (!currentEditingModelId) return;
+            const entry = {
+                date: new Date().toISOString(), 
+                weight: parseFloat(document.getElementById('modal-model-weight').value) || null,
+                notes: document.getElementById('modal-model-notes').value.trim() || null
+            };
+            animalModels[currentEditingModelId].data.push(entry);
+            renderAnimalModels(); 
+            closeModelDataModal(); 
+        }
+
+        function saveModelData() {
+            const blob = new Blob([JSON.stringify(animalModels)], { type: 'application/json' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'modelos.json'; a.click();
+        }
+
+        function loadModelData(event) {
+            const file = event.target.files[0]; 
+            if (!file) return; 
+            const reader = new FileReader(); 
+            reader.onload = (e) => {
+                try {
+                    const loadedData = JSON.parse(e.target.result);
+                    if (typeof loadedData === 'object' && loadedData !== null) {
+                        animalModels = loadedData; 
+                        renderAnimalModels(); 
+                        showToast('Datos de modelos cargados.');
+                    } else {
+                        throw new Error("El archivo no tiene el formato esperado.");
+                    }
+                } catch (error) {
+                    showToast(`Error al cargar datos de modelos: ${error.message}`, 'error');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = ''; 
+        }
+
+        function calculateModelDose() {
+            const amount = parseFloat(document.getElementById('dose-amount').value);
+            const weight = parseFloat(document.getElementById('model-weight').value);
+            const stock = parseFloat(document.getElementById('stock-conc-dose').value);
+            const output = document.getElementById('dose-output-unit').value;
+            const resultDiv = document.getElementById('dose-calculation-result');
+            if (isNaN(amount) || isNaN(weight) || isNaN(stock)) return;
+            // Simplistic calculation based on provided fields
+            const dose = (amount * weight) / stock;
+            resultDiv.textContent = `Administrar: ${dose.toFixed(4)} ${output}`;
+        }
+
+        function toggleSubCalc(id) {
+            const el = document.getElementById(id);
+            if(el) el.style.display = el.style.display === 'block' ? 'none' : 'block';
+        }
+        
+        function populateUnitDropdowns(ctx = document) {
+            const m = Object.keys(CONVERSION_FACTORS.mass);
+            const v = Object.keys(CONVERSION_FACTORS.volume);
+            const c = Object.keys(CONVERSION_FACTORS.concentration); 
+            const combined = []; m.forEach(x => v.forEach(y => combined.push(`${x}/${y}`)));
+            const allC = [...c, ...combined];
+            const all = [...m, ...v, ...allC]; 
+
+            const sel = (id, options, def) => {
+                const el = ctx.getElementById ? ctx.getElementById(id) : ctx.querySelector(`#${id}`);
+                if (el) {
+                    el.innerHTML = options.map(o => `<option value="${o}" ${o===def?'selected':''}>${o}</option>`).join('');
+                }
+            };
+            
+            if (ctx === document) {
+                sel('uc-from', all, 'mg'); sel('uc-to', all, 'µg');
+                sel('c1-unit', allC, 'mM'); sel('c2-unit', allC, 'µM');
+                sel('v1-unit', v, 'mL'); sel('v2-unit', v, 'µL');
+                sel('dose-amount-unit', m, 'mg'); sel('stock-conc-dose-unit', allC, 'mg/mL');
+            }
+
+            ctx.querySelectorAll('.variable-final-conc-unit').forEach(s => s.innerHTML = allC.map(o => `<option value="${o}" ${o==='µM'?'selected':''}>${o}</option>`).join(''));
+            ctx.querySelectorAll('.variable-stock-conc-unit').forEach(s => s.innerHTML = allC.map(o => `<option value="${o}" ${o==='mM'?'selected':''}>${o}</option>`).join(''));
+        }
+        
+        function saveExperiment() {
+            const blob = new Blob([JSON.stringify({ wellData, expName: document.getElementById('exp-name').value, plateType: document.getElementById('plate-type').value })], { type: 'application/json' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'experimento.json'; a.click();
+        }
+
+        function loadExperiment(e) {
+            const file = e.target.files[0]; if (!file) return;
+            const r = new FileReader(); r.onload = (ev) => {
+                const data = JSON.parse(ev.target.result);
+                document.getElementById('exp-name').value = data.expName || '';
+                generatePlate(data);
+            };
+            r.readAsText(file);
+        }
+
+        function generateReport() {
+            let h = '<h3>Reporte</h3><ul>';
+            for (const id in wellData) {
+                h += `<li><b>${id}:</b> ${wellData[id].wellType}, ${wellData[id].totalVolume}uL</li>`;
+            }
+            document.getElementById('report-output').innerHTML = h + '</ul>';
+            document.getElementById('export-csv-btn').classList.remove('hidden');
+        }
+
+        function exportReportCSV() {
+            let csv = "Pozo,Tipo,Volumen\n";
+            for (const id in wellData) csv += `${id},${wellData[id].wellType},${wellData[id].totalVolume}\n`;
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'reporte.csv'; a.click();
+        }
+
+        window.onload = () => {
+            mermaid.initialize({ startOnLoad: false, theme: 'base' });
+            generatePlate(); 
+            populateUnitDropdowns(); 
+            initializeUploadSlots();
+            
+            // Set Schedule Time default
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            const dateStr = now.toISOString().slice(0,16);
+            if (document.getElementById('nav-start-time')) document.getElementById('nav-start-time').value = dateStr;
+            if (document.getElementById('sched-sidebar-start-time')) document.getElementById('sched-sidebar-start-time').value = dateStr;
+            schedStartTime = now;
+            updateSchedUI();
+
+            changeTab('guide');
+            document.getElementById('load-exp-input').addEventListener('change', loadExperiment);
+            document.getElementById('load-model-input').addEventListener('change', loadModelData);
+        };
+        
+        // ---- INJECT LAB MANAGER SCHEDULER LOGIC (NO MODIFICAR ORIGINALES) ----
+        
+        function syncSchedStartTime(val) { 
+            if(!val) return; 
+            schedStartTime = new Date(val); 
+            const nInput = document.getElementById('nav-start-time');
+            const sInput = document.getElementById('sched-sidebar-start-time');
+            if (nInput) nInput.value = val;
+            if (sInput) sInput.value = val;
+            updateSchedUI(); 
+        }
 
         function updateSchedUI() {
             renderSchedPhaseInputs();
@@ -506,6 +2358,8 @@
             renderSchedStats();
             renderSchedSummaryTiles();
             renderSchedMermaid();
+            const dateStamp = document.getElementById('sched-current-gen-date');
+            if (dateStamp) dateStamp.innerText = new Date().toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' });
         }
 
         function renderSchedPhaseInputs() {
@@ -513,11 +2367,14 @@
             const v = document.getElementById('sched-phase-values-container');
             if(!n || !v) return;
             n.innerHTML = SCHED_CONFIG.phases.map((name, i) => `
-                <div class="flex gap-2"><input type="text" value="${name}" onchange="updateSchedPhaseName(${i}, this.value)" class="flex-1 text-[11px] p-2 border rounded-xl outline-none font-bold">
-                <button onclick="removeSchedPhase(${i})" class="text-red-400"><i class="fas fa-times"></i></button></div>`).join('');
+                <div class="flex gap-2 group animate-fadeIn">
+                    <input type="text" value="${name}" onchange="updateSchedPhaseName(${i}, this.value)" class="flex-1 text-[11px] p-2 border rounded-xl outline-none font-bold shadow-sm">
+                    ${SCHED_CONFIG.phases.length > 1 ? `<button onclick="removeSchedPhase(${i})" class="text-red-400"><i class="fas fa-times"></i></button>` : ''}
+                </div>`).join('');
             v.innerHTML = SCHED_CONFIG.phases.map((name, i) => `
-                <div class="space-y-1"><label class="text-[9px] font-black text-slate-400 uppercase">${name} (h)</label>
-                <input type="number" id="sched-phase-val-${i}" class="w-full text-xs p-3 border rounded-2xl outline-none font-extrabold shadow-inner"></div>`).join('');
+                <div class="space-y-1"><label class="text-[9px] font-black text-slate-400 uppercase tracking-widest">${name} (h)</label>
+                <input type="number" id="sched-phase-val-${i}" class="w-full text-xs p-3 border rounded-2xl outline-none font-extrabold shadow-inner" placeholder="0"></div>`).join('');
+            document.getElementById('sched-phase-count-badge').innerText = `${SCHED_CONFIG.phases.length} PASOS`;
         }
 
         function updateSchedPhaseName(i, val) { SCHED_CONFIG.phases[i] = val || "Fase"; updateSchedUI(); }
@@ -530,121 +2387,209 @@
             const steps = SCHED_CONFIG.phases.map((_,i) => parseInt(document.getElementById(`sched-phase-val-${i}`).value) || 0);
             SCHED_CONFIG.condiciones.push({ id, steps, notes: document.getElementById('sched-new-notes').value });
             updateSchedUI();
+            
+            document.getElementById('sched-new-id').value = "";
+            document.getElementById('sched-new-notes').value = "";
+            SCHED_CONFIG.phases.forEach((_, i) => { const el = document.getElementById(`sched-phase-val-${i}`); if(el) el.value = ""; });
         }
 
         function removeSchedCondition(i) { SCHED_CONFIG.condiciones.splice(i,1); updateSchedUI(); }
 
+        // --- FUNCIÓN DUPLICAR SCHEDULER (NUEVA) ---
+        function duplicateSchedCondition(index) {
+            const original = SCHED_CONFIG.condiciones[index];
+            if (!original) return;
+            const newCond = JSON.parse(JSON.stringify(original));
+            newCond.id = original.id + "-Copia";
+            SCHED_CONFIG.condiciones.push(newCond);
+            updateSchedUI();
+            showToast("Muestra del cronograma duplicada exitosamente.");
+        }
+
+        function formatSchedLabDate(base, h, minimal = false) {
+            const d = new Date(base.getTime() + (h * 3600000));
+            const day = d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
+            const time = d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+            if(minimal) return `${day} | ${time}`;
+            return `<div class="leading-tight"><span class="capitalize font-extrabold text-slate-800 text-xs">${day}</span><br/><span class="text-[9px] text-slate-400 font-black uppercase tracking-widest">${time}</span></div>`;
+        }
+
         function renderSchedTable() {
             const table = document.getElementById('sched-protocol-table');
-            if(!table || SCHED_CONFIG.condiciones.length === 0) { table.innerHTML = "<tbody><tr><td class='p-10 text-center text-slate-300 uppercase text-xs font-bold'>Sin datos</td></tr></tbody>"; return; }
-            let html = `<thead class='bg-slate-50 border-b border-slate-200'><tr class='text-[9px] text-slate-400 font-black uppercase tracking-widest'><th class='px-6 py-4'>ID</th>${SCHED_CONFIG.phases.map(p => `<th class='px-6 py-4'>${p}</th>`).join('')}<th class='px-6 py-4 text-right'>Total</th></tr></thead><tbody class='divide-y'>`;
+            if(!table) return;
+            if(SCHED_CONFIG.condiciones.length === 0) { table.innerHTML = "<tbody><tr><td class='p-10 text-center text-slate-400 uppercase text-xs font-bold tracking-widest'>Sin datos en el cronograma</td></tr></tbody>"; return; }
+            
+            let html = `<thead class='bg-slate-50 border-b border-slate-200'><tr class='text-[9px] font-black text-slate-500 uppercase tracking-widest'><th class='px-10 py-6 border-r border-slate-100'>Muestra</th>${SCHED_CONFIG.phases.map(p => `<th class='px-10 py-6'>Hito: ${p}</th>`).join('')}<th class='px-10 py-6 text-right'>Ciclo Total</th></tr></thead><tbody class='divide-y divide-slate-100'>`;
             SCHED_CONFIG.condiciones.forEach(c => {
+                const total = c.steps.reduce((a,b)=>a+b,0);
+                const color = total <= 72 ? 'bg-emerald-500' : total <= 144 ? 'bg-amber-500' : 'bg-rose-500';
                 let cum = 0;
-                html += `<tr><td class='px-6 py-4 font-bold text-xs'>${c.id}</td>${c.steps.map(h => { cum+=h; const d = new Date(schedStartTime.getTime()+(cum*3600000)); return `<td class='px-6 py-4 text-[10px]'>${d.toLocaleDateString()}<br>${d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</td>` }).join('')}<td class='px-6 py-4 text-right font-black mono text-xs'>${c.steps.reduce((a,b)=>a+b,0)}h</td></tr>`;
+                
+                html += `<tr class='hover:bg-slate-50 transition-all group'><td class='px-10 py-6 border-r border-slate-100'><div class='flex items-center gap-5'><div class='w-2.5 h-12 rounded-full ${color} shadow-sm group-hover:scale-y-110 transition-transform'></div><div><p class='font-extrabold text-slate-800 text-xs uppercase tracking-tight'>${c.id}</p><p class='text-[9px] text-slate-400 font-bold uppercase truncate max-w-[140px] italic'>${c.notes || 'Estándar'}</p></div></div></td>`;
+                
+                html += c.steps.map(h => { cum+=h; return `<td class='px-10 py-6 border-r border-slate-50/50'>${formatSchedLabDate(schedStartTime, cum)}</td>` }).join('');
+                html += `<td class='px-10 py-6 text-right font-black mono text-[12px] text-indigo-700 bg-indigo-50/20'>${total}h</td></tr>`;
             });
             table.innerHTML = html + "</tbody>";
+            document.getElementById('sched-total-badge').innerText = `${SCHED_CONFIG.condiciones.length} MUESTRAS ACTIVAS`;
+        }
+
+        async function renderSchedMermaid() {
+            const container = document.getElementById('sched-mermaid-container');
+            const emptyState = document.getElementById('sched-empty-state');
+            if(!container || !emptyState) return;
+
+            if (SCHED_CONFIG.condiciones.length === 0) {
+                emptyState.style.display = 'block';
+                const existing = container.querySelector('.mermaid');
+                if (existing) existing.remove();
+                return;
+            }
+            emptyState.style.display = 'none';
+            const renderId = 'mermaid-chart-' + Date.now();
+            container.innerHTML = `<div id="${renderId}" class="mermaid w-full h-full flex justify-center opacity-0 transition-opacity duration-700"></div>`;
+            const chartDiv = document.getElementById(renderId);
+
+            let code = "graph LR\n Start((INICIO)):::startNode\n";
+            SCHED_CONFIG.condiciones.forEach((c, idx) => {
+                let prev = "Start";
+                let cum = 0;
+                c.steps.forEach((h, si) => {
+                    cum += h;
+                    const node = `S${idx}P${si}`;
+                    const dateStr = formatSchedLabDate(schedStartTime, cum, true);
+                    code += `  ${prev} -- "${h}h" --> ${node}["<b style='color:#4f46e5;font-size:12px'>${SCHED_CONFIG.phases[si]}</b><br/><small style='color:#64748b;font-weight:600'>${dateStr}</small>"]:::phaseNode\n`;
+                    prev = node;
+                });
+                const total = c.steps.reduce((a,b)=>a+b, 0);
+                const finalNode = `End_${idx}`;
+                const color = total <= 72 ? '#10b981' : total <= 144 ? '#f59e0b' : '#ef4444';
+                code += `  ${prev} --> ${finalNode}((${c.id}<br/>${total}h)):::finalNode\n`;
+                code += `  style ${finalNode} fill:${color}11,stroke:${color},stroke-width:4px,color:${color}\n`;
+            });
+            code += `\nclassDef startNode fill:#1e293b,stroke:#0f172a,color:#fff,font-weight:900,padding:20px;\nclassDef phaseNode fill:#fff,stroke:#e2e8f0,color:#1e293b,font-size:11px,padding:15px;\nclassDef finalNode font-weight:900,font-size:13px,padding:20px;`;
+            try { 
+                const { svg } = await mermaid.render('sched-svg', code); 
+                chartDiv.innerHTML = svg; 
+                chartDiv.classList.remove('opacity-0');
+            } catch(e) { console.error(e); }
+        }
+
+        function renderSchedConditionList() {
+            const l = document.getElementById('sched-condition-list');
+            if(l) l.innerHTML = SCHED_CONFIG.condiciones.map((c,i) => `
+                <div class='flex items-center justify-between bg-white p-3.5 rounded-2xl border border-slate-100 group hover:border-indigo-200 transition-all shadow-sm'>
+                    <span class='text-[10px] font-black text-slate-700 uppercase tracking-tight'>${c.id}</span>
+                    <div class='flex gap-3'>
+                        <button onclick='duplicateSchedCondition(${i})' class='text-indigo-400 hover:text-indigo-600 transition-colors' title="Duplicar"><i class='fas fa-copy text-xs'></i></button>
+                        <button onclick='removeSchedCondition(${i})' class='text-slate-300 hover:text-rose-500 transition-colors' title="Eliminar"><i class='fas fa-trash-alt text-xs'></i></button>
+                    </div>
+                </div>`).join('');
         }
 
         function renderSchedStats() {
             const grid = document.getElementById('sched-stats-grid');
             if(!grid || SCHED_CONFIG.condiciones.length === 0) { grid.innerHTML = ""; return; }
             const max = Math.max(...SCHED_CONFIG.condiciones.map(c => c.steps.reduce((a,b)=>a+b,0)));
-            const stats = [ {l:'Ciclo Máx', v:max+'h', i:'fa-stopwatch', c:'text-indigo-600'}, {l:'Muestras', v:SCHED_CONFIG.condiciones.length, i:'fa-flask', c:'text-emerald-600'} ];
-            grid.innerHTML = stats.map(s => `<div class='bg-white p-5 rounded-3xl border border-slate-100 flex items-center gap-4'><div class='${s.c} w-10 h-10 rounded-2xl flex items-center justify-center bg-opacity-10'><i class='fas ${s.i}'></i></div><div><p class='text-[9px] font-black text-slate-400 uppercase tracking-widest'>${s.l}</p><h4 class='text-lg font-black text-slate-800'>${s.v}</h4></div></div>`).join('');
-        }
+            
+            const stats = [
+                { label: 'Tiempo Máximo', val: `${max}h`, icon: 'fa-stopwatch', color: 'text-indigo-600', bg: 'bg-indigo-50' },
+                { label: 'Muestras Activas', val: SCHED_CONFIG.condiciones.length, icon: 'fa-vials', color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                { label: 'Complejidad', val: `${SCHED_CONFIG.phases.length} Pasos`, icon: 'fa-network-wired', color: 'text-amber-600', bg: 'bg-amber-50' },
+                { label: 'Fin de Ciclo', val: new Date(schedStartTime.getTime() + (max * 3600000)).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }), icon: 'fa-flag-checkered', color: 'text-rose-600', bg: 'bg-rose-50' }
+            ];
 
-        function renderSchedConditionList() {
-            const l = document.getElementById('sched-condition-list');
-            if(!l) return;
-            l.innerHTML = SCHED_CONFIG.condiciones.map((c,i) => `<div class='flex justify-between bg-white p-3 border rounded-2xl'><span class='text-[10px] font-bold uppercase'>${c.id}</span><button onclick='removeSchedCondition(${i})' class='text-slate-300'><i class='fas fa-trash-alt'></i></button></div>`).join('');
+            grid.innerHTML = stats.map(s => `
+                <div class="bg-white p-6 rounded-[2rem] shadow-sm flex items-center gap-5 border border-slate-100">
+                    <div class="${s.color} ${s.bg} w-14 h-14 rounded-2xl flex items-center justify-center shadow-inner"><i class="fas ${s.icon} text-2xl"></i></div>
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">${s.label}</p>
+                        <h4 class="text-xl font-extrabold text-slate-800 tracking-tight leading-none">${s.val}</h4>
+                    </div>
+                </div>
+            `).join('');
         }
 
         function renderSchedSummaryTiles() {
             const s = document.getElementById('sched-integrated-summary');
-            const c = document.getElementById('sched-summary-tiles');
-            if(!s || !c) return;
+            const container = document.getElementById('sched-summary-tiles');
+            if(!s || !container) return;
             if(SCHED_CONFIG.condiciones.length === 0) { s.classList.add('hidden'); return; }
             s.classList.remove('hidden');
-            c.innerHTML = SCHED_CONFIG.condiciones.map(item => `<div class='bg-white border p-4 rounded-2xl shadow-sm'><p class='text-[9px] font-black text-slate-400 uppercase tracking-tighter'>${item.id}</p><p class='text-xs font-black text-indigo-700'>Total: ${item.steps.reduce((a,b)=>a+b,0)}h</p></div>`).join('');
-        }
-
-        async function renderSchedMermaid() {
-            const container = document.getElementById('sched-mermaid-container');
-            const empty = document.getElementById('sched-empty-state');
-            if(!container || !empty) return;
-            if(SCHED_CONFIG.condiciones.length === 0) { empty.style.display = 'block'; return; }
-            empty.style.display = 'none';
-            container.innerHTML = "<div id='sched-chart-div' class='mermaid w-full h-full'></div>";
-            let code = "graph LR\n Start((INICIO)):::startNode\n";
-            SCHED_CONFIG.condiciones.forEach((c, idx) => {
-                let prev = "Start";
-                c.steps.forEach((h, si) => {
-                    const node = `S${idx}P${si}`;
-                    code += `  ${prev} -- "${h}h" --> ${node}["${SCHED_CONFIG.phases[si]}"]:::phaseNode\n`;
-                    prev = node;
-                });
-                code += `  ${prev} --> End${idx}((${c.id})):::finalNode\n`;
-            });
-            code += "\nclassDef startNode fill:#1e293b,color:#fff,stroke:none;\nclassDef phaseNode fill:#fff,stroke:#e2e8f0,color:#4f46e5,font-size:10px;\nclassDef finalNode fill:#4f46e5,color:#fff,stroke:none,font-weight:800;";
-            try { const { svg } = await mermaid.render('sched-svg', code); document.getElementById('sched-chart-div').innerHTML = svg; } catch(e) { console.error(e); }
+            
+            container.innerHTML = SCHED_CONFIG.condiciones.map(c => {
+                const total = c.steps.reduce((a,b)=>a+b, 0);
+                return `
+                    <div class="bg-white border border-slate-100 rounded-[1.5rem] p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 p-3 opacity-5 group-hover:opacity-10 transition-opacity">
+                            <i class="fas fa-check-double text-4xl text-indigo-900"></i>
+                        </div>
+                        <p class="text-[9px] font-black text-slate-400 uppercase mb-2 tracking-[0.1em]">${c.id}</p>
+                        <p class="text-[12px] font-extrabold text-indigo-700 mono mb-2">${formatSchedLabDate(schedStartTime, total, true)}</p>
+                        <div class="flex justify-between items-center text-[9px] text-slate-500 font-bold uppercase border-t border-slate-50 pt-3">
+                            <span class="tracking-tight">${total}h de ciclo</span>
+                            <i class="fas fa-microscope text-indigo-200"></i>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         async function exportarSchedMapaComoImagen() {
             const el = document.getElementById('sched-export-container');
-            const canvas = await html2canvas(el, { scale: 2 });
+            const originalStyle = el.style.borderRadius;
+            el.style.borderRadius = "0px"; 
+            const canvas = await html2canvas(el, { scale: 2, backgroundColor: "#ffffff" });
             const link = document.createElement('a');
-            link.download = "MAPA_TRABAJO_LICAM.png";
+            link.download = "MAPA_LICAM_V73.png";
             link.href = canvas.toDataURL('image/png');
             link.click();
+            el.style.borderRadius = originalStyle;
         }
 
         function descargarSchedCSV() {
-            let csv = "\uFEFFMuestra,Total_h,Notas\n";
-            SCHED_CONFIG.condiciones.forEach(c => csv += `"${c.id}",${c.steps.reduce((a,b)=>a+b,0)},"${c.notes}"\n`);
+            if(SCHED_CONFIG.condiciones.length === 0) return;
+            let csv = "\uFEFFMuestra," + SCHED_CONFIG.phases.map(p => `Hito_${p}`).join(',') + ",Total_h,Notas\n";
+            SCHED_CONFIG.condiciones.forEach(c => {
+                csv += `"${c.id}",`;
+                let cum = 0;
+                csv += c.steps.map(h => {
+                    cum += h;
+                    const d = new Date(schedStartTime.getTime() + (cum * 3600000));
+                    return `"${d.toLocaleString('es-ES')}"`;
+                }).join(',') + `,${c.steps.reduce((a,b)=>a+b,0)},"${c.notes}"\n`;
+            });
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "PROYECTO_CRONOGRAMA.csv"; link.click();
+            const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "CRONOGRAMA_LICAM.csv"; link.click();
         }
 
-        // --- LOGICA EXISTENTE (LICAM ORIGINAL) ---
-        function generatePlate(restoringData = null) {
-            const plateType = restoringData ? restoringData.plateType : document.getElementById('plate-type').value;
-            const layout = document.getElementById('plate-layout');
-            layout.innerHTML = ''; 
-            if (!restoringData) wellData = {};
-            selectedWells.clear(); 
-            const plateConfigs = { '6': { rows: 2, cols: 3 }, '12': { rows: 3, cols: 4 }, '24': { rows: 4, cols: 6 }, '48': { rows: 6, cols: 8 }, '96': { rows: 8, cols: 12 } };
-            const config = plateConfigs[plateType];
-            layout.style.gridTemplateColumns = `repeat(${config.cols}, 1fr)`;
-            layout.style.display = 'grid';
-            for (let r = 0; r < config.rows; r++) {
-                for (let c = 0; c < config.cols; c++) {
-                    const id = `${String.fromCharCode(65+r)}${c+1}`;
-                    const well = document.createElement('div');
-                    well.id = `well-${id}`;
-                    well.className = 'well w-10 h-10 md:w-16 md:h-16 rounded-full flex items-center justify-center cursor-pointer bg-white border';
-                    well.innerHTML = `<span class="text-[10px] font-bold">${id}</span>`;
-                    well.onclick = () => { if(selectedWells.has(id)) { selectedWells.delete(id); well.classList.remove('selected'); } else { selectedWells.add(id); well.classList.add('selected'); } };
-                    layout.appendChild(well);
-                    if(restoringData?.wellData?.[id]) { well.classList.add('configured'); if(restoringData.wellData[id].wellType !== 'default') well.classList.add(restoringData.wellData[id].wellType); }
-                }
+        setInterval(() => {
+            const now = new Date();
+            let nextHito = null; let minDiff = Infinity;
+            SCHED_CONFIG.condiciones.forEach(c => {
+                let cum = 0;
+                c.steps.forEach((hours, idx) => {
+                    cum += hours;
+                    const hitoTime = new Date(schedStartTime.getTime() + (cum * 3600000));
+                    const diff = hitoTime - now;
+                    if (diff > 0 && diff < minDiff) { minDiff = diff; nextHito = { name: `${c.id} - ${SCHED_CONFIG.phases[idx]}`, time: hitoTime }; }
+                });
+            });
+
+            const nameEl = document.getElementById('sched-next-milestone-name');
+            const countEl = document.getElementById('sched-next-milestone-countdown');
+            if (nextHito && nameEl && countEl) {
+                nameEl.innerText = nextHito.name;
+                const diffH = Math.floor(minDiff / 3600000);
+                const diffM = Math.floor((minDiff % 3600000) / 60000);
+                const diffS = Math.floor((minDiff % 60000) / 1000);
+                countEl.innerText = `${String(diffH).padStart(2, '0')}:${String(diffM).padStart(2, '0')}:${String(diffS).padStart(2, '0')}`;
+            } else if (nameEl && countEl) {
+                nameEl.innerText = SCHED_CONFIG.condiciones.length > 0 ? "Ciclo finalizado" : "Sin programación";
+                countEl.innerText = "--:--:--";
             }
-        }
+        }, 1000);
 
-        function openWellConfigModal() { if(selectedWells.size === 0) return; document.getElementById('well-ids-display').innerText = Array.from(selectedWells).join(','); document.getElementById('well-config-modal').style.display = 'flex'; }
-        function closeWellConfigModal() { document.getElementById('well-config-modal').style.display = 'none'; }
-        function saveWellConfig() { 
-            const config = { wellType: document.getElementById('well-type')?.value || 'default', steps: [] };
-            selectedWells.forEach(id => { wellData[id] = config; const el = document.getElementById(`well-${id}`); el.classList.add('configured'); });
-            closeWellConfigModal();
-        }
-
-        window.onload = () => {
-            generatePlate();
-            const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-            const dateStr = now.toISOString().slice(0,16);
-            if(document.getElementById('sched-start-time')) document.getElementById('sched-start-time').value = dateStr;
-            updateSchedUI();
-        };
     </script>
 </body>
 </html>
